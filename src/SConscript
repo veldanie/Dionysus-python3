@@ -1,0 +1,10 @@
+Import('*')
+
+#sources = ['grid2D.cpp', 'debug.cpp']
+sources = ['debug.cpp']
+o = []
+
+for s in sources:
+	o += [env.Object(s)]
+
+Return('o')

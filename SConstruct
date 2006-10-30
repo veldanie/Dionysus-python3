@@ -15,7 +15,7 @@ optns.AddOptions(
 # Setup environment
 base_env = 				Environment(options = optns,
 									ENV = os.environ,
-									tools=["default", "doxygen", "qt4"], 
+									tools=["default", "doxygen"], #, "qt4"], 
 									toolpath=["sconstools"])
 Help					(optns.GenerateHelpText(base_env))
 
