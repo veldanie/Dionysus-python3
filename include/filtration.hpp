@@ -54,6 +54,8 @@ pair_simplices(Index bg)
 		{
 			Index i = bdry.top(cycles_cmp);
 			Dout(dc::filtration, *i << ": " << *(i->pair()));
+			AssertMsg(!cycles_cmp(i, j), "Simplices in the cycle must precede current simplex: " << 
+										 "(" << *i << " in cycle of " << *j << ")");
 			AssertMsg(i->value() <= j->value(), "Values in the cycle must be less than the value of the simplex");
 
 			// i is not paired, so we pair j with i
@@ -169,12 +171,14 @@ operator<<(std::ostream& out) const
 /* Filtration Private */
 template<class S, class FS>
 void
-Filtration<S, FS>::init_cycle_trail(Index j)
+Filtration<S, FS>::
+init_cycle_trail(Index j)
 {
 	typename Simplex::Cycle bdry = j->boundary();
 
 	for (typename Simplex::Cycle::const_iterator cur = bdry.begin(); cur != bdry.end(); ++cur)
 	{
+		AssertMsg(get_index(*cur) != end(), "Non-existent simplex in the cycle");
 		Dout(dc::filtration, "Appending in init_cycle_trail(): " << *cur);
 		j->cycle().append(get_index(*cur));
 	}

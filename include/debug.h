@@ -75,9 +75,9 @@ namespace dionysus
 
 #define AssertMsg(TEST,MSG)                                           \
 				 ( (TEST) ? (void)0                                   \
-						  : (std::cerr << __FILE__ "(" << __LINE__    \
+						  : (std::cerr << __FILE__ " (" << __LINE__    \
 								  << "): Assertion failed " #TEST     \
-								  << MSG << std::endl,abort()))
+								  << " - " << MSG << std::endl,abort()))
 /*
 #define AssertMsg(TEST,STRM,MSG)                                      \
 				 ( (TEST) ? (void)0                                   \
