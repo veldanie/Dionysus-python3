@@ -1,6 +1,6 @@
 import os
 
-optns =					Options('config.' + os.uname()[1] + '.py')
+optns =					Options('config/' + os.uname()[1] + '.py')
 optns.AddOptions(
 						PathOption('cgal_path', 'where CGAL is installed', ''),
 						('cgal_architecture', 'string describing CGAL architecture'),
