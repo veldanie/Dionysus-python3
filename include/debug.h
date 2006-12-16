@@ -67,6 +67,7 @@ namespace dionysus
 				extern channel_ct lsfiltration;
 				extern channel_ct lsvineyard;
 				extern channel_ct vertex_transpositions;
+				extern channel_ct orderlist;
 			} // namespace dc
 		} // namespace DEBUGCHANNELS
 	}

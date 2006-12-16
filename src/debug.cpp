@@ -19,6 +19,7 @@ namespace dionysus
 				channel_ct lsfiltration("LSFILTRATION");
 				channel_ct lsvineyard("LSVINEYARD");
 				channel_ct vertex_transpositions("VERTEX_TRANSPOS");
+				channel_ct orderlist("ORDERLIST");
 			}
     	} // namespace DEBUGCHANNELS
 

@@ -1,6 +1,6 @@
 Import('*')
 
-Default(env.Program('triangle.cpp'))
+Default(env.Program(['triangle.cpp'] + external_sources))
 
 ## Common variables
 ##libraries = 			['dsrpdb', 'boost_serialization']

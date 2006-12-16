@@ -6,7 +6,7 @@
 #ifndef __FILTRATIONCONTAINER_H__
 #define __FILTRATIONCONTAINER_H__
 
-#include "orderlist.h"
+#include "consistencylist.h"
 #include "cycle.h"
 
 /**
@@ -15,25 +15,25 @@
  * to get Cycle representation.
  */
 template<class FltrSmplx>
-class FiltrationContainer: public OrderList<FltrSmplx>
+class FiltrationContainer: public ConsistencyList<FltrSmplx>
 {
 	public:
 		typedef		FltrSmplx														FiltrationSimplex;
-		typedef		OrderList<FiltrationSimplex>									OrderList;
+		typedef		ConsistencyList<FiltrationSimplex>								ConsistencyList;
 		
 		/// \name Cycles and Trails 
 		/// @{
 		/// Index is and therfore acts like an iterator. The name is preserved for historical reasons.
-		typedef		typename OrderList::iterator									Index;
+		typedef		typename ConsistencyList::iterator								Index;
 		/// const_Index is a const_iterator
-		typedef		typename OrderList::const_iterator								const_Index;
+		typedef		typename ConsistencyList::const_iterator						const_Index;
 		/// @}
 
 		/// \name Cycles and Trails 
 		/// @{
-		typedef		typename OrderList::GreaterThanComparison						CyclesComparator;
-		typedef		typename OrderList::LessThanComparison							TrailsComparator;
-		typedef		typename OrderList::ConsistencyComparison 						ConsistencyComparator;
+		typedef		typename ConsistencyList::GreaterThanComparison					CyclesComparator;
+		typedef		typename ConsistencyList::LessThanComparison					TrailsComparator;
+		typedef		typename ConsistencyList::ConsistencyComparison 				ConsistencyComparator;
 		typedef		::Cycle<Index, CyclesComparator, ConsistencyComparator>			Cycle;
 		typedef		::Cycle<Index, TrailsComparator, ConsistencyComparator>			Trail;
 		/// @}

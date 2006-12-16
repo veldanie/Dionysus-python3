@@ -1,14 +1,24 @@
 /*
  * Author: Dmitriy Morozov 
  * Department of Computer Science, Duke University, 2006
+ *
+ * Implements the simplified order list data strcutre given in ``Two Simplified
+ * Algorithms for Maintaining Order in a List'' by Bender et al.
+ *
+ * Indirection is not implemented, so the insertion cost is amortized O(log n),
+ * while comparison and deletion are O(1).
  */
 
 #ifndef __ORDERLIST_H__
 #define __ORDERLIST_H__
 
+#include "sys.h"
+#include "debug.h"
+
 #include <iterator>
 #include <iostream>
 #include <list>
+
 #include "types.h"
 //#include "counter.h"
 
@@ -25,25 +35,19 @@ template<class T>		class   OrderListIterator;
 template<class T>		class   const_OrderListIterator;
 
 /**
- * OrderList stores a list of objects while keeping track of two orders: proper order and consistency order.
- * Consistency order is guaranteed not to change, while proper order is affected by the swap() operation.
+ * OrderList stores a list of objects while maintaining their total order under
+ * the operations of insert(), swap(), and delete(). push_back() is provided for
+ * uniformity, OrderComparison member class carries out comparison of the
+ * elements.
  */
 template<class T>
-class OrderList: std::list<OrderListNode<T> >
+class OrderList: public std::list<OrderListNode<T> >
 {
 	public:
 		class 			OrderComparison;				
-		class 			LessThanComparison;
-		class 			GreaterThanComparison;
-		class 			ConsistencyComparison;
 
-		/// \name Comparison types
-		/// @{
-		// Explicit typedefs for Doxygen
-		typedef			LessThanComparison							LessThanComparison;
-		typedef			GreaterThanComparison						GreaterThanComparison;
-		typedef			ConsistencyComparison						ConsistencyComparison;
-		/// @}
+		/// OrderComparison type
+		typedef			OrderComparison								OrderComparison;
 	
 		typedef			OrderListNode<T>							NodeType;
 		typedef			OrderList<T>								Self;
@@ -57,7 +61,7 @@ class OrderList: std::list<OrderListNode<T> >
 	
 						OrderList()									{}
 						~OrderList() 								{ clear(); }
-	
+
 		/// \name Order operations
 		void			swap(iterator i, iterator j);				///< Exchanges the order of simplices pointed to by i and j
 
@@ -65,6 +69,9 @@ class OrderList: std::list<OrderListNode<T> >
 		/// @{
 		// Explicit calls instead of using declarations for Doxygen
 		iterator		push_back(const_reference x);
+		iterator		insert(iterator predecessor, const_reference x);	///< Inserts x immediately after predecessor (has to be a valid iterator)
+		void			erase(iterator x)							{ Parent::erase(x.get_base()); }
+		
 		void			clear()										{ return Parent::clear(); }	
 		bool			empty() const								{ return Parent::empty(); }
 		SizeType		size()	const								{ return Parent::size(); }
@@ -79,6 +86,14 @@ class OrderList: std::list<OrderListNode<T> >
 		iterator		last()										{ return iterator(boost::prior(end())); }
 		const_iterator	last() const								{ return const_iterator(boost::prior(end())); }
 		/// @}
+		
+		/// \name Debugging operations
+		/// @{
+		void			show_elements() const;
+		/// @}
+
+	private:
+		static const float density_threshold = 1.2;
 };
 
 /// Basic comparison that LessThan and GreaterThan derive from
@@ -87,57 +102,25 @@ class OrderList<T>::OrderComparison
 {
 	public:
 		typedef			typename OrderList<T>::const_iterator		ComparableType;				
-
 		int 			compare(ComparableType a, ComparableType b) const;				/// (-1,0,1) = a (precedes, ==, succeeds) b 
-};
-
-/// Determines if the first element is less than the second one
-template<class T>
-class OrderList<T>::LessThanComparison: public OrderComparison 
-{
-	public:
-		typedef			OrderComparison								Parent;
-		typedef			typename Parent::ComparableType				ComparableType;				
-		
-		int 			compare(ComparableType a, ComparableType b) const;	
-		bool 			operator()(ComparableType a, ComparableType b) const;
-};
-
-/// Determines if the first element is greater than the second one
-template<class T>
-class OrderList<T>::GreaterThanComparison: public OrderComparison 
-{
-	public:
-		typedef			OrderComparison								Parent;
-		typedef			typename Parent::ComparableType				ComparableType;				
-		
-		int 			compare(ComparableType a, ComparableType b) const;
-		bool 			operator()(ComparableType a, ComparableType b) const;
-};
-
-/// Determines the order of the two elements in the consistency order (that doesn't change during the execution)
-template<class T>
-class OrderList<T>::ConsistencyComparison
-{
-	public:
-		typedef			typename OrderList<T>::const_iterator		ComparableType;				
-		
-		int 			compare(ComparableType a, ComparableType b) const;				///< (-1,0,1) = a (precedes, ==, succeeds) b 
-		bool 			operator()(ComparableType a, ComparableType b) const;		
 };
 
 /// Structure storing auxilliary information requred for each node of OrderList
 template<class T>
 struct OrderListNode
 {
-	OrderListNode(const T& d, unsigned int orig, unsigned int cur):
-		data(d), original(orig), current(cur)
+	OrderListNode(const T& d, unsigned int t):
+		data(d), tag(t)
 	{}
 	
 	T 				data;
-	OrderType		original;
-	OrderType		current;
+	OrderType		tag;
+	
+	std::ostream& 		operator<<(std::ostream& out) const					{ return out << data << ": " << tag; }
 };
+
+template<class T>
+std::ostream&			operator<<(std::ostream& out, const OrderListNode<T>& n)	{ return n.operator<<(out); }
 
 template<class T>
 class OrderListIterator: public boost::iterator_adaptor<OrderListIterator<T>,
@@ -162,7 +145,7 @@ class OrderListIterator: public boost::iterator_adaptor<OrderListIterator<T>,
 						OrderListIterator(const OrderListIterator<T>& other):
 							OrderListIterator::iterator_adaptor_(other.base())			
 						{}
-
+	
 	private:
 		friend class	boost::iterator_core_access;
 		reference		dereference() const							{ return Parent::base_reference()->data; }
@@ -204,8 +187,8 @@ class const_OrderListIterator: public boost::iterator_adaptor<const_OrderListIte
 		const base_type&
 						get_base()									{ return Parent::base_reference(); }
 
+		friend class 	OrderList<T>;
 		friend class 	OrderList<T>::OrderComparison;
-		friend class 	OrderList<T>::ConsistencyComparison;
 };
 
 

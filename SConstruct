@@ -72,7 +72,8 @@ external_sources = 		SConscript(['src/SConscript'], exports = ['env'])
 #SConscript				(['examples/SConscript',
 #						  'tools/SConscript'],
 #						 exports = ['env', 'external_sources'])
-SConscript				(['examples/SConscript'],
+SConscript				(['examples/SConscript', 
+						  'tests/SConscript'],
 						 exports = ['env', 'external_sources'])
 
 # vim: syntax=python
