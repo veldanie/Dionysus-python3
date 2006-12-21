@@ -1,0 +1,13 @@
+Import('*')
+
+# Libraries
+libraries =				['dsrpdb']
+
+# Sources
+sources = 				['test-grid2D.cpp', 'pdbdistance-vineyard.cpp']
+
+local_env = 			env.Copy()
+local_env.Append		(LIBS = libraries)
+
+for s in sources:
+	Default(local_env.Program([s] + external_sources))

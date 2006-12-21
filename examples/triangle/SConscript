@@ -1,20 +1,3 @@
 Import('*')
 
 Default(env.Program(['triangle.cpp'] + external_sources))
-
-## Common variables
-##libraries = 			['dsrpdb', 'boost_serialization']
-#
-## Sources
-#sources = 				[['triangle.cpp', []]]
-##, 'grid2D.cpp', 'alphashapes.cpp', 'euclidean.cpp', 
-##						 'combustion_vineyard.cpp', 'folding.cpp', 'pdbdistance.cpp',
-##						 'geodesic_vineyard.cpp']
-#
-#local_env = 			env.Copy()
-#				 
-## Build instructions
-#for sl in sources:
-#	s,l = sl
-#	o = local_env.Object(s)
-#	t = Default(local_env.Program(o + external_sources))

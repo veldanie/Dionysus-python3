@@ -202,8 +202,8 @@ public:
 
 	inline T& front() { return *begin(); }
 	inline const T& front() const { return *begin(); }
-	inline T& back() { return m_node->data; }
-	inline const T& back() const { return m_node->data; }
+	inline T& back() { return m_node->m_data; }
+	inline const T& back() const { return m_node->m_data; }
 
 	inline iterator begin() { return iterator(m_node->m_next); }
 	inline iterator end() { return iterator(m_node); }

@@ -9,6 +9,19 @@ swap(iterator i, iterator j)
 }
 
 template<class T>
+template<class BinaryPredicate>
+void 
+ConsistencyList<T>::
+sort(BinaryPredicate cmp)
+{
+	Parent::sort(cmp);
+	OrderType cur_order = 0;
+	for (typename Parent::iterator cur = begin(); cur != end(); ++cur)
+		cur->consistency = cur_order++;
+}
+
+
+template<class T>
 typename ConsistencyList<T>::iterator 
 ConsistencyList<T>::
 push_back(const_reference x)

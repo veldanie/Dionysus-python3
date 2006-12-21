@@ -22,8 +22,23 @@ Cycle(const Cycle& c): CycleRepresentation(c), sz(c.sz)
 template<class I, class OrderCmp, class ConsistencyCmp>
 void
 Cycle<I,OrderCmp,ConsistencyCmp>::
-append(const_reference x)						
-{ push_back(x); }
+append(const_reference x, const ConsistencyCmp& cmp)						
+{ 
+	// First try the special cases that x goes at the end
+	const_reference last = CycleRepresentation::back();
+	if (empty() || cmp(last, x))
+	{
+		push_back(x); 
+		return;
+	}
+
+	for (iterator cur = begin(); cur != end(); ++cur)
+		if (cmp(x, *cur))
+		{
+			insert(cur, x);
+			return;
+		}
+}
 		
 template<class I, class OrderCmp, class ConsistencyCmp>
 typename Cycle<I,OrderCmp,ConsistencyCmp>::const_reference				
@@ -140,7 +155,7 @@ operator<<(std::ostream& out) const
 {
 	for (const_iterator cur = begin(); cur != end(); ++cur)
 	{
-		out << **cur << " ";
+		out << **cur << ", ";
 	}
 	// out << "(last: " << *last << ")";  // For debugging only
 	return out;
@@ -158,7 +173,7 @@ typename Cycle<I, OrderCmp, ConsistencyCmp>::Self&
 Cycle<I, OrderCmp, ConsistencyCmp>::
 add(const Self& c, const ConsistencyCmp& cmp)
 {
-	Dout(dc::cycle, "Adding cycles");
+	Dout(dc::cycle, "Adding cycles: " << *this << " + " << c);
 	
 	iterator 			cur1 = begin();
 	const_iterator 		cur2 = c.begin();
@@ -168,12 +183,14 @@ add(const Self& c, const ConsistencyCmp& cmp)
 		if (cur1 == end())
 		{
 			while (cur2 != c.end())
-				append(*cur2++);
+				push_back(*cur2++);
+			Dout(dc::cycle, "After addition: " << *this);
 			return *this;
 		}
 
 		// mod 2
 		int res = cmp.compare(*cur1, *cur2);
+		Dout(dc::cycle, "Comparison result: " << res);
 		if (res == 0)		// *cur1 == *cur2
 		{
 			Dout(dc::cycle, "Equality");

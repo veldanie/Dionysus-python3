@@ -19,20 +19,22 @@ base_env = 				Environment(options = optns,
 									toolpath=["sconstools"])
 Help					(optns.GenerateHelpText(base_env))
 
-opt = 					base_env.Copy(CPPFLAGS = ['-O'])
 dbg =					base_env.Copy(CPPFLAGS = ['-g'])
-opt.Append				(CPPDEFINES = ['NDEBUG'])
+opt = 					base_env.Copy(CPPDEFINES = ['NDEBUG'])
 
 if ARGUMENTS.get('debug', 0):
-	env = dbg
-	env.Append(CPPDEFINES = ['CWDEBUG'])
-	env.Append(LIBS = ['cwd'])
+	env = 				dbg
+	env.Append			(CPPDEFINES = ['CWDEBUG'])
+	env.Append			(LIBS = ['cwd'])
+elif ARGUMENTS.get('optimize', 0):
+	opt.Append 			(CPPFLAGS = ['-O' + str(ARGUMENTS['optimize'])])
+	env =				opt
 else:
-	env = opt
+	opt.Append 			(CPPFLAGS = ['-O'])
+	env =				opt
 
 if ARGUMENTS.get('counters', 0):
 	env.Append			(CPPDEFINES = ['COUNTERS'])
-
 
 # Don't create .sconsign files all over the place
 SConsignFile()

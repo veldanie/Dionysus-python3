@@ -1,6 +1,6 @@
 Import('*')
 
-SConscript				(['triangle/SConscript'],
+SConscript				(['triangle/SConscript',
 #						  'alphashapes/SConscript',
-#						  'grid/SConscript'],
+						  'grid/SConscript'],
 						 exports=['env', 'external_sources'])

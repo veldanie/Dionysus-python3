@@ -1,11 +1,10 @@
-#include "vineyard.h"
+#include "filtration.h"
 #include "simplex.h"
 #include <vector>
 #include <iostream>
 
-typedef 		SimplexWithValue<int> 		Simplex;
-typedef			Vineyard<Simplex>			TriangleFiltration;
-//typedef			Filtration<Simplex>			TriangleFiltration;
+typedef 		SimplexWithValue<int> 			Simplex;
+typedef			Filtration<Simplex>				TriangleFiltration;
 
 void fillTriangleSimplices(TriangleFiltration& f)
 {
@@ -23,8 +22,6 @@ void fillTriangleSimplices(TriangleFiltration& f)
 	f.append(Simplex(bg + 1, bg + 3, 2.9));				// BC
 	f.append(Simplex(bg + 2, end, 3.5));				// CA
 	f.append(Simplex(bg,     bg + 3, 5));				// ABC
-
-	f.fill_simplex_index_map();
 }
 
 int main()
@@ -33,14 +30,19 @@ int main()
 	dionysus::debug::init();
 
 	Debug(dc::filtration.on());
-	Debug(dc::cycle.on());
+	Debug(dc::cycle.off());
 	Debug(dc::vineyard.on());
+	Debug(dc::transpositions.on());
 #endif
 
-	TriangleFiltration tf;
+	Evaluator<Simplex> e;
+	TriangleFiltration::Vineyard v(&e);
+	TriangleFiltration tf(&v);
 	fillTriangleSimplices(tf);
 	
-	tf.pair_simplices(tf.begin());
+	tf.fill_simplex_index_map();
+	tf.pair_simplices(tf.begin(), tf.end());
+	v.start_vines(tf.begin(), tf.end());
 	
 	std::cout << "Filtration size: " << tf.size() << std::endl;
 	std::cout << tf << std::endl;
@@ -52,6 +54,8 @@ int main()
 	std::cout << *tf.get_index(BC) << std::endl;
 	tf.transpose(tf.get_index(BC));
 	std::cout << tf;
+	std::cout << AB << std::endl;
+	std::cout << *tf.get_index(AB) << std::endl;
 	tf.transpose(tf.get_index(AB));
 	std::cout << tf;
 #endif

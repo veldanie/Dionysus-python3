@@ -1,6 +1,6 @@
 Import('*')
 
-sources = 			['test-orderlist.cpp', 'test-consistencylist.cpp']
+sources = 			['test-orderlist.cpp', 'test-consistencylist.cpp', 'test-realtype.cpp']
 
 for s in sources:
 	Default(env.Program([s] + external_sources))

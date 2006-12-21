@@ -64,6 +64,8 @@ class OrderList: public std::list<OrderListNode<T> >
 
 		/// \name Order operations
 		void			swap(iterator i, iterator j);				///< Exchanges the order of simplices pointed to by i and j
+		template<class BinaryPredicate>
+		void			sort(BinaryPredicate cmp);					///< Sorts the elements in accordance with cmp
 
 		/// \name Container operations
 		/// @{
@@ -116,7 +118,19 @@ struct OrderListNode
 	T 				data;
 	OrderType		tag;
 	
-	std::ostream& 		operator<<(std::ostream& out) const					{ return out << data << ": " << tag; }
+	std::ostream& 	operator<<(std::ostream& out) const				{ return out << data << ": " << tag; }
+};
+
+template<class T, class BinaryPredicate>
+class OrderListNodeComparison
+{
+	public:
+		typedef 		OrderListNode<T>								Node;
+		OrderListNodeComparison(BinaryPredicate cmp): cmp_(cmp) 		{}
+		bool operator()(const Node& a, const Node& b) const				{ return cmp_(a.data, b.data); }
+
+	private:
+		BinaryPredicate cmp_;
 };
 
 template<class T>

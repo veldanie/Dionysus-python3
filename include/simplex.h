@@ -50,7 +50,6 @@ class SimplexWithVertices
 		/// \name Core 
 		/// @{
 		Cycle					boundary() const;
-		virtual RealType		value() const 										{ return 0; }
 		Dimension				dimension() const									{ return vertices_.size()-1; }
 		/// @}
 		
@@ -113,11 +112,10 @@ class SimplexWithValue: public SimplexWithVertices<Vert>
 		/// \name Core
 		/// @{
 		void 					set_value(Value value)								{ val = value; }
-		virtual Value			value() const										{ return val; }
+		Value					get_value() const									{ return val; }
 		/// @}
 		
 		const Self&				operator=(const Self& s);
-
 		std::ostream&			operator<<(std::ostream& out) const;
 
 	private:
@@ -150,7 +148,7 @@ class SimplexWithAttachment: public SimplexWithVertices<V>
 		SimplexWithAttachment(const Parent& s):
 			Parent(s)																{}
 		SimplexWithAttachment(VertexIndex vi):
-			Parent(vi)																{}
+			Parent(vi), attachment(vi)												{}
 		/// @}
 
 		void 					set_attachment(VertexIndex v)						{ attachment = v; }

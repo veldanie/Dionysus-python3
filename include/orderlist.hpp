@@ -16,6 +16,18 @@ swap(iterator i, iterator j)
 }
 
 template<class T>
+template<class BinaryPredicate>
+void 
+OrderList<T>::
+sort(BinaryPredicate cmp)
+{
+	Parent::sort(OrderListNodeComparison<T, BinaryPredicate>(cmp));
+	OrderType cur_order = 0;
+	for (typename Parent::iterator cur = begin(); cur != end(); ++cur)
+		cur->tag = cur_order++;
+}
+
+template<class T>
 typename OrderList<T>::iterator 
 OrderList<T>::
 push_back(const_reference x)

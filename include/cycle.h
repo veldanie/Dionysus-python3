@@ -63,7 +63,7 @@ class Cycle: public List<Itm>
 		/// \name Modifiers
 		/// @{
 		using 			CycleRepresentation::erase;
-		void			append(const_reference x);
+		void			append(const_reference x, const ConsistencyComparison& cmp);
 		/// @}
 		
 		/// \name Accessors
@@ -96,6 +96,7 @@ class Cycle: public List<Itm>
 		typedef			std::list<Item>									TemporaryCycleRepresenation;
 		
 		using 			CycleRepresentation::push_back;
+		using 			CycleRepresentation::insert;
 
 	private:
 		size_t sz;

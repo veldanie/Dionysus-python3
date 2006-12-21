@@ -11,6 +11,7 @@
 
 #include "filtrationcontainer.h"
 #include "filtrationsimplex.h"
+#include "vineyard.h"
 
 #include <map>
 #include <vector>
@@ -23,15 +24,14 @@
  * for the simplex order stored in the filtration. Iterators remain valid 
  * through all the operations.
  */
-template<class Smplx, class FltrSmplx = FiltrationSimplex<Smplx> >
+template<class Smplx, class FltrSmplx = FiltrationSimplex<Smplx>, class Vnrd = Vineyard<FltrSmplx> >
 class Filtration: public FltrSmplx::Container
 {
 	public:
 		typedef 	Smplx															Simplex;
 		typedef		FltrSmplx														FiltrationSimplex;
-		typedef		Filtration<Simplex, FiltrationSimplex>							Self;
-
-	public:
+		typedef		Vnrd															Vineyard;
+		
 		/// \name Container Types
 		/// @{
 		/** The actual container type (which is the parent of the Filtration) */
@@ -51,28 +51,35 @@ class Filtration: public FltrSmplx::Container
 		typedef		typename Trail::iterator										TrailIterator;
 		/// @}
 		
+		typedef		Filtration<Simplex, FiltrationSimplex, Vineyard>				Self;
 		typedef		FiltrationContainer												Parent;
 
 	public:
-										Filtration();
-		template<class OtherFltrSmplx>	Filtration(const Filtration<Simplex,OtherFltrSmplx>& filtration);
-		virtual 						~Filtration();
+										Filtration(Vineyard* vineyard);
 	
 		/// \name Core Functionality
 		/// @{
-		/** Computes pairing of the simplices (RU decomposition) starting from bg, assuming that everything before bg has been paired */
-		void 							pair_simplices(Index bg);
+		/// Computes RU decomposition of the simplices in [bg, end) range, assuming that everything before bg has been paired 
+		void 							pair_simplices(Index bg, Index end);
+		bool							transpose(Index i);
 		bool							is_paired() const;
 		Index							append(const Simplex& s);					///< Appends s to the filtration
+		Index							insert(Index prior, const Simplex& s);		///< Inserts s after prior
 		const_Index						get_index(const Simplex& s) const;			/**< Returns the iterator pointing to s 
 																						 (end() if s not in filtration) */
 		Index							get_index(const Simplex& s);				///< \overload
 		void							fill_simplex_index_map();					///< Fills the mapping for get_index()
 		/// @}
+		
+		/// \name Accessors
+		/// @{
+		Vineyard*						vineyard()									{ return vineyard_; }
+		const Vineyard*					vineyard() const							{ return vineyard_; }
+		/// @}
 	
 	protected:
 		using 							Parent::swap;
-		
+		bool 							transpose_simplices(Index i);				
 
 	public:
 		/// \name Container Operations
@@ -84,10 +91,6 @@ class Filtration: public FltrSmplx::Container
 		
 		std::ostream& 					operator<<(std::ostream& out) const;
 
-		/** The usual rebind trick in absence of template typedefs */
-		template<class OtherFltrSmplx>
-		struct rebind					{ typedef Filtration<Simplex, OtherFltrSmplx> other; };
-
 	protected:
 		/// \name Comparator accessors (protected)
 		/// @{
@@ -95,19 +98,18 @@ class Filtration: public FltrSmplx::Container
 		const CyclesComparator& 		get_cycles_cmp() const						{ return cycles_cmp; }
 		const TrailsComparator& 		get_trails_cmp() const						{ return trails_cmp; }
 		/// @}
-		
-		/*
-		template<class Cmp> void		sort_simplices(const Cmp& cmp);
-		*/
 
 	private:
 		typedef							std::map<Simplex, Index>					SimplexMap;
 
-		/** Initializes the cycle  with the indices of the simplices in the boundary, and the trail with the index of this simplex */
+		/// Initializes the cycle  with the indices of the simplices in the boundary, and the trail with the index of this simplex
 		void							init_cycle_trail(Index j);
+		void							pairing_switch(Index i, Index j);
 		
 		bool 							paired;
 		SimplexMap						inverse_simplices;
+
+		Vineyard*						vineyard_;
 
 		CyclesComparator				cycles_cmp;
 		TrailsComparator				trails_cmp;
@@ -116,7 +118,7 @@ class Filtration: public FltrSmplx::Container
 	private:
 		/* Serialization */
 		friend class boost::serialization::access;
-		
+										
 		typedef		std::map<const_Index, SizeType, ConsistencyComparator>			IndexIntMap;
 		typedef		std::vector<Index>												IndexVector;
 		

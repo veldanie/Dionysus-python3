@@ -13,12 +13,10 @@ namespace dionysus
 			{
 		        // Add new debug channels here.
 				channel_ct filtration("FILTRATION");
-				channel_ct transpositions("TRANSPOSITIONS");
+				channel_ct transpositions("TRANSPOS");
 				channel_ct vineyard("VINEYARD");
 				channel_ct cycle("CYCLE");
 				channel_ct lsfiltration("LSFILTRATION");
-				channel_ct lsvineyard("LSVINEYARD");
-				channel_ct vertex_transpositions("VERTEX_TRANSPOS");
 				channel_ct orderlist("ORDERLIST");
 			}
     	} // namespace DEBUGCHANNELS

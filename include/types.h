@@ -1,7 +1,7 @@
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
-#include <iostream>
+#include <limits>
 
 /* Types */
 typedef 	bool					Sign;
@@ -11,41 +11,8 @@ const 		Sign					NEG = false;
 typedef		double					RealType;
 typedef		unsigned int			SizeType;
 
+static RealType Infinity = std::numeric_limits<RealType>::infinity();
+
 typedef 	const unsigned int&		version_type;
-
-
-/**
- * Rational number type
- */
-template<typename T>
-class Rational
-{
-	public:
-		typedef			Rational<T>			Self;
-	
-		Rational(T v);
-		Rational(const Self& other);
-
-		Self& operator/=(const Self& rhs);
-
-		/// \name Comparisons
-		/// Assume denominator is positive.
-		/// @{
-		bool operator<(const Self& rhs) const;
-		bool operator<=(const Self& rhs) const;
-		bool operator>(const Self& rhs) const;
-		bool operator>=(const Self& rhs) const;
-		/// @}
-		
-		Self& operator=(const Self& rhs);
-		RealType to_real() const;
-
-		std::ostream& operator<<(std::ostream& out) const;
-
-	private:
-		T numerator, denominator;
-};
-
-#include "types.hpp"
 
 #endif // __TYPES_H__

@@ -51,14 +51,16 @@ class ConsistencyList: public OrderList<ConsistencyListNode<T> >
 		typedef			T											value_type;
 		typedef			T&											reference;
 		typedef			const T&									const_reference;
-		typedef			ConsistencyListIterator<T>						iterator;
-		typedef			const_ConsistencyListIterator<T>					const_iterator;
+		typedef			ConsistencyListIterator<T>					iterator;
+		typedef			const_ConsistencyListIterator<T>			const_iterator;
 	
 						ConsistencyList(): sz(0)					{}
 						~ConsistencyList() 							{ clear(); }
 	
 		/// \name Order operations
 		void			swap(iterator i, iterator j);				///< Exchanges the order of simplices pointed to by i and j
+		template<class BinaryPredicate>
+		void			sort(BinaryPredicate cmp);					///< Sorts the elements in accordance with cmp
 
 		/// \name Container operations
 		/// @{

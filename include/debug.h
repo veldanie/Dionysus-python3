@@ -65,8 +65,6 @@ namespace dionysus
 				extern channel_ct vineyard;
 				extern channel_ct cycle;
 				extern channel_ct lsfiltration;
-				extern channel_ct lsvineyard;
-				extern channel_ct vertex_transpositions;
 				extern channel_ct orderlist;
 			} // namespace dc
 		} // namespace DEBUGCHANNELS
@@ -76,8 +74,8 @@ namespace dionysus
 
 #define AssertMsg(TEST,MSG)                                           \
 				 ( (TEST) ? (void)0                                   \
-						  : (std::cerr << __FILE__ " (" << __LINE__    \
-								  << "): Assertion failed " #TEST     \
+						  : (std::cerr << __FILE__ ":" << __LINE__    \
+								  << ": Assertion failed " #TEST      \
 								  << " - " << MSG << std::endl,abort()))
 /*
 #define AssertMsg(TEST,STRM,MSG)                                      \
