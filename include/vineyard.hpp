@@ -90,6 +90,7 @@ save_edges(const std::string& filename) const
 		for (typename VineList::const_iterator vi = vines[i].begin(); vi != vines[i].end(); ++vi)
 			for (typename Vine::const_iterator ki = vi->begin(), kiprev = ki++; ki != vi->end(); kiprev = ki++)
 			{
+				if (kiprev->is_infinite() || ki->is_infinite()) continue;
 				out << kiprev->birth << ' ' << kiprev->death << ' ' << kiprev->time << std::endl;
 				out << ki->birth << ' ' << ki->death << ' ' << ki->time << std::endl;
 			}

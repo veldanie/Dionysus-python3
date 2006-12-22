@@ -1,5 +1,5 @@
 /* Implementation */
-		
+	
 Grid2DVineyard::
 Grid2DVineyard(Grid2D* g): vertices_(g->size())
 {
@@ -33,7 +33,7 @@ compute_pairing()
 
 void					
 Grid2DVineyard::
-compute_vineyard(Grid2D* g)
+compute_vineyard(Grid2D* g, bool explicit_events)
 {
 	AssertMsg(filtration_->is_paired(), "Simplices must be paired for a vineyard to be computed");
 	
@@ -48,6 +48,7 @@ compute_vineyard(Grid2D* g)
 	Sort sort(tr, SortVisitor(this));
 	
 	// Setup the (linear) trajectories
+	std::cout << "Setting up trajectories" << std::endl;
 	CF cf; 
 	kinetic_map_.clear();
 	for (VertexIndex cur = vertices_.begin(); cur != vertices_.end(); ++cur)
@@ -58,24 +59,28 @@ compute_vineyard(Grid2D* g)
 		Point p(x);
 		cur->set_kinetic_key(apt->insert(p));
 		kinetic_map_[cur->kinetic_key()] = cur->get_order();
+		if (cur->index() % 10000 == 0)
+			std::cout << "Added trajectory: " << cur->index() << " " << val0 << " " << val1 << std::endl;
 	}
 	
 	// Process all the events (compute the vineyard in the process)
 	change_evaluator(new KineticEvaluator(sp, apt, num_grids() - 1));
-	/*
-	while (sp->next_event_time() < 1)
+	if (explicit_events)
 	{
-		std::cout << "Next event time: " << sp->next_event_time() << std::endl;
-		sp->set_current_event_number(sp->current_event_number() + 1);
-		std::cout << "Processed event" << std::endl;
-	}
-	*/
-	sp->set_current_time(1.0);
+		while (sp->next_event_time() < 1)
+		{
+			std::cout << "Next event time: " << sp->next_event_time() << std::endl;
+			sp->set_current_event_number(sp->current_event_number() + 1);
+			std::cout << "Processed event" << std::endl;
+		}
+	} else
+		sp->set_current_time(1.0);
 	std::cout << "Processed " << sp->current_event_number() << " events" << std::endl;
 	
 	// Add the grid to the stack
 	grid_stack_.push_back(g); 
 	change_evaluator(new StaticEvaluator(grid(), num_grids() - 1));
+	vineyard_->record_diagram(filtration_->begin(), filtration_->end());
 }
 		
 void 					

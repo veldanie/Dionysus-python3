@@ -13,7 +13,8 @@ Configuration
 Building
   To build examples run "scons" at the top level, or "scons -u" in the specific
   examples/ subdirectory.
-  "scons debug=1" turns on debugging. "scons counters=1" turns on counters.
+  "scons debug=1" turns on debugging. "scons counters=1" turns on counters. 
+  "scons optimize=3" turns on -O3 optimizations.
 
 Author
   Dmitriy Morozov <morozov@cs.duke.edu>

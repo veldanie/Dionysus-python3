@@ -58,7 +58,7 @@ class Grid2DVineyard
 								~Grid2DVineyard();
 
 		void					compute_pairing();
-		void					compute_vineyard(Grid2D* grid);
+		void					compute_vineyard(Grid2D* grid, bool explicit_events = false);
 		
 		Grid2D*					grid() const										{ return grid_stack_.back(); }
 		Grid2D*					grid(int i) const									{ return grid_stack_[i]; }
