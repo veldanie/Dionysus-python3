@@ -41,7 +41,7 @@ int main()
 	fillTriangleSimplices(tf);
 	
 	tf.fill_simplex_index_map();
-	tf.pair_simplices(tf.begin(), tf.end());
+	tf.pair_simplices();
 	v.start_vines(tf.begin(), tf.end());
 	
 	std::cout << "Filtration size: " << tf.size() << std::endl;
