@@ -1,7 +1,7 @@
 #include "orderlist.h"
 #include <iostream>
 
-typedef OrderList<int> 					OList;
+typedef OrderList<int> 				OList;
 typedef OList::OrderComparison		Comparison;
 typedef OList::iterator 			iterator;
 
@@ -42,4 +42,8 @@ int main()
 	std::cout << "60 < 40: " << cmp.compare(i60,i40) << std::endl;
 	std::cout << "50 < 70: " << cmp.compare(i50,i70) << std::endl;
 	std::cout << "60 < 70: " << cmp.compare(i60,i70) << std::endl;
+	std::cout << std::endl;
+	
+	std::cout << "60 < 40: " << cmp(i60, i40) << std::endl;
+	std::cout << "60 < 70: " << cmp(i60, i70) << std::endl;
 }

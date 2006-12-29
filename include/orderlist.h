@@ -105,6 +105,7 @@ class OrderList<T>::OrderComparison
 	public:
 		typedef			typename OrderList<T>::const_iterator		ComparableType;				
 		int 			compare(ComparableType a, ComparableType b) const;				/// (-1,0,1) = a (precedes, ==, succeeds) b 
+		bool			operator()(ComparableType a, ComparableType b) const;
 };
 
 /// Structure storing auxilliary information requred for each node of OrderList

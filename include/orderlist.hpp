@@ -108,3 +108,11 @@ compare(ComparableType a, ComparableType b) const
 	if (a.get_base()->tag < b.get_base()->tag)			return -1;
 	return 1;
 }
+
+template<class T>
+bool
+OrderList<T>::OrderComparison::
+operator()(ComparableType a, ComparableType b) const
+{
+	return (compare(a,b) < 0);
+}
