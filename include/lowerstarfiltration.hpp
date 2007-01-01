@@ -137,7 +137,7 @@ transpose(Index i)
 	assert_pairing(i);
 	assert_pairing(j);
 
-	bool res = Parent::transpose(i);
+	bool res = Parent::transpose(i, false);
 	Dout(dc::lsfiltration, "    " << *j << ": " << *(j->pair()) << ", " << *i << ": " << *(i->pair()));
 
 	assert_pairing(j);

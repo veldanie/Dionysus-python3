@@ -1,5 +1,6 @@
 #include "counter.h"
 #include "types.h"
+#include <algorithm>
 
 #include <boost/utility.hpp>
 #include <boost/serialization/vector.hpp>
@@ -74,14 +75,14 @@ is_paired() const
 template<class S, class FS, class V>
 bool
 Filtration<S,FS,V>::
-transpose(Index i)
+transpose(Index i, bool maintain_lazy)
 {
 	AssertMsg(vineyard() != 0, "We must have a vineyard for transpositions");
 	
 	Index i_orig = i++;
 	
 	AssertMsg(i_orig->pair() != i, "Transposing simplices must not be paired");
-	bool result = transpose_simplices(i_orig);
+	bool result = transpose_simplices(i_orig, maintain_lazy);
 	AssertMsg(i_orig == boost::next(i), "Wrong indices after transposition");
 	
 	if (result) vineyard()->switched(i, i_orig);
@@ -163,7 +164,7 @@ operator<<(std::ostream& out) const
 template<class S, class FS, class V>
 bool 
 Filtration<S,FS,V>::
-transpose_simplices(Index i)
+transpose_simplices(Index i, bool maintain_lazy)
 {
 	AssertMsg(is_paired(), "Pairing must be computed before transpositions");
 	counters.inc("SimplexTransposition");
@@ -184,11 +185,11 @@ transpose_simplices(Index i)
 		Dout(dc::transpositions, "Trail prev: " << i_prev->trail());
 
 		// Case 1
-		TrailIterator i_prev_second = i_prev->trail().get_second(Filtration::get_trails_cmp());
-		if (*i_prev_second == i)
+		TrailIterator i_in_i_prev = std::find(i_prev->trail().begin(), i_prev->trail().end(), i);
+		if (i_in_i_prev != i_prev->trail().end())
 		{
 			Dout(dc::transpositions, "Case 1, U[i,i+1] = 1");
-			i_prev->trail().erase(i_prev_second);
+			i_prev->trail().erase(i_in_i_prev);
 		}
 
 		Index k = i_prev->pair();
@@ -204,7 +205,7 @@ transpose_simplices(Index i)
 			return false;
 		} else if (k == i_prev)
 		{
-			if (*(l->cycle().get_second(Filtration::get_cycles_cmp())) != i_prev)
+			if (std::find(l->cycle().begin(), l->cycle().end(), i_prev) == l->cycle().end())
 			{
 				// Case 1.2
 				swap(i_prev, i);
@@ -225,9 +226,18 @@ transpose_simplices(Index i)
 		}
 		
 		Dout(dc::transpositions, "l cycle: " << l->cycle());
-		if (*(l->cycle().get_second(Filtration::get_cycles_cmp())) != i_prev)
+		if (std::find(l->cycle().begin(), l->cycle().end(), i_prev) == l->cycle().end())
 		{
 			// Case 1.2
+			if (maintain_lazy)
+			{
+				TrailIterator k_in_l = std::find(l->trail().begin(), l->trail().end(), k);
+				if (k_in_l != l->trail().end())
+				{
+					l->trail().add(k->trail(), Filtration::get_consistency_cmp());		// Add row k to l
+					k->cycle().add(l->cycle(), Filtration::get_consistency_cmp());		// Add column l to k
+				}
+			}
 			swap(i_prev, i);
 			Dout(dc::transpositions, "Case 1.2");
 			counters.inc("Case 1.2");
@@ -259,7 +269,7 @@ transpose_simplices(Index i)
 	} else if (!si && !sii)
 	{
 		// Case 2
-		if (*(i_prev->trail().get_second(Filtration::get_trails_cmp())) != i)
+		if (std::find(i_prev->trail().begin(), i_prev->trail().end(), i) == i_prev->trail().end())
 		{
 			// Case 2.2
 			swap(i_prev, i);
@@ -293,9 +303,8 @@ transpose_simplices(Index i)
 	} else if (!si && sii)
 	{
 		// Case 3
-		if (*(i_prev->trail().get_second(Filtration::get_trails_cmp())) != i)
+		if (std::find(i_prev->trail().begin(), i_prev->trail().end(), i) == i_prev->trail().end())
 		{
-			//AssertMsg(pair(i)->cycle_get_second(cycles_cmp) != i, dc::transpositions, "Problem in Case 3");
 			// Case 3.2
 			swap(i_prev, i);
 			Dout(dc::transpositions, "Case 3.2");
@@ -317,11 +326,11 @@ transpose_simplices(Index i)
 	} else if (si && !sii)
 	{
 		// Case 4
-		TrailIterator i_prev_second = i_prev->trail().get_second(Filtration::get_trails_cmp());
-		if (*i_prev_second == i)
+		TrailIterator i_in_i_prev = std::find(i_prev->trail().begin(), i_prev->trail().end(), i);
+		if (i_in_i_prev != i_prev->trail().end())
 		{
 			Dout(dc::transpositions, "Case 4, U[i,i+1] = 1");
-			i_prev->trail().erase(i_prev_second);
+			i_prev->trail().erase(i_in_i_prev);
 		}
 		swap(i_prev, i);
 		Dout(dc::transpositions, "Case 4");

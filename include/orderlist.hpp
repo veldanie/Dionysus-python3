@@ -23,7 +23,7 @@ sort(BinaryPredicate cmp)
 {
 	Parent::sort(OrderListNodeComparison<T, BinaryPredicate>(cmp));
 	OrderType cur_order = 0;
-	for (typename Parent::iterator cur = begin(); cur != end(); ++cur)
+	for (typename Parent::iterator cur = Parent::begin(); cur != Parent::end(); ++cur)
 		cur->tag = cur_order++;
 }
 

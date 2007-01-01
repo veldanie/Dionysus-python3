@@ -56,7 +56,7 @@ class CounterFactory
 		CounterType lookup(const KeyType& key, int num = 0) const
 		{
 #ifdef COUNTERS
-			return ctrs[key][num];
+			return const_cast<KeyMap&>(ctrs)[key][num];
 #endif // COUNTERS
 		}
 };
