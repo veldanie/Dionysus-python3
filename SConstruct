@@ -1,16 +1,23 @@
 import os
 
-optns =					Options('config/' + os.uname()[1] + '.py')
-optns.AddOptions(
-						PathOption('cgal_path', 'where CGAL is installed', ''),
+# Get options
+options_filenames =		['config/' + os.uname()[1] + '.py', os.path.expanduser('~/.scons/config.py')]
+
+for fn in options_filenames:
+	if os.path.exists(fn):
+		optns =			Options(fn)
+		print "Found configuration:", fn
+		break
+else:
+		optns =			Options()
+
+optns.AddOptions		(PathOption('cgal_path', 'where CGAL is installed', ''),
 						('cgal_architecture', 'string describing CGAL architecture'),
 						('INCPATH', 'additional include paths separated with :',''),
 						('LIBPATH', 'additional library paths separated with :',''),
 						PathOption('qt4_includes', 'where Qt4 headers are installed', ''),
 						PathOption('qt4_libs', 'where Qt4 libraries are installed', ''),
 						('CXX', 'The C++ compiler'))
-
-
 
 # Setup environment
 base_env = 				Environment(options = optns,
@@ -64,8 +71,8 @@ env.Append				(CPPDEFINES = cgal_defines,
 						 LIBPATH = libpath + cgal_lib_paths, 
 						 LINKFLAGS = cgal_link_flags)
 
-# Build documentation (in doc/)
-env.Doxygen("Doxyfile")
+# Build documentation (in docs/)
+Default(env.Doxygen("Doxyfile"))
 
 # Build stuff in src/, and export it
 external_sources = 		SConscript(['src/SConscript'], exports = ['env'])
