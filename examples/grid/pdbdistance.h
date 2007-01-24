@@ -28,23 +28,35 @@ class PDBDistanceGrid: public Grid2D
 		PDBDistanceGrid()
 		{}
 	
-		PDBDistanceGrid(std::istream& in)
+		PDBDistanceGrid(std::istream& in, bool ca_only = true)
 		{
-			load_stream(in);
+			load_stream(in, ca_only);
 		}
 
-		void	load_stream(std::istream& in)
+		void	load_stream(std::istream& in, bool ca_only = true)
 		{
 			dsrpdb::Protein p(in);
-			std::vector<dsrpdb::Point> CAs(ca_coordinates_begin(p), ca_coordinates_end(p));
-			std::cout << "CAs created, size: " << CAs.size() << std::endl;
+			typedef std::vector<dsrpdb::Point> PointVector;
+			PointVector coordinates;
+			if (ca_only)
+			{
+				PointVector v(ca_coordinates_begin(p), ca_coordinates_end(p));
+				coordinates.swap(v);
+			}
+			else
+			{
+				PointVector v(backbone_coordinates_begin(p), backbone_coordinates_end(p));
+				coordinates.swap(v);
+			}
 
-			Grid2D::change_dimensions(CAs.size(), CAs.size());
-			for (Grid2D::CoordinateIndex i = 0; i < CAs.size(); ++i)
-				for (Grid2D::CoordinateIndex j = 0; j < CAs.size(); ++j)
+			std::cout << "Coordinatess created, size: " << coordinates.size() << std::endl;
+
+			Grid2D::change_dimensions(coordinates.size(), coordinates.size());
+			for (Grid2D::CoordinateIndex i = 0; i < coordinates.size(); ++i)
+				for (Grid2D::CoordinateIndex j = 0; j < coordinates.size(); ++j)
 				{
 					if (i < j)
-						Grid2D::operator()(i,j) = distance(CAs[i], CAs[j]);
+						Grid2D::operator()(i,j) = distance(coordinates[i], coordinates[j]);
 					else
 						Grid2D::operator()(i,j) = 0;
 				}

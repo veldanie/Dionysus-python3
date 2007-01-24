@@ -30,11 +30,12 @@ int main(int argc, char** argv)
 
 	if (argc < 5)
 	{
-		std::cout << "Usage: pdbdistance FILENAME LASTFRAME LASTSUBFRAME OUTFILENAME" << std::endl;
+		std::cout << "Usage: pdbdistance FILENAME LASTFRAME LASTSUBFRAME OUTFILENAME [CAs_ONLY]" << std::endl;
 		std::cout << "  FILENAME     - prefix of the filenames of the PDB frames" << std::endl;
 		std::cout << "  LASTFRAME    - the last frame number" << std::endl;
 		std::cout << "  LASTSUBFRAME - the last subframe number" << std::endl;
 		std::cout << "  OUTFILENAME  - filename prefix for the resulting vineyards" << std::endl;
+		std::cout << "  CAs_ONLY     - only use alpha carbons [1 = true, 0 = false, default: 1]" << std::endl;
 		std::cout << std::endl;
 		std::cout << "Computes a vineyard of the pairwise distance function for a sequence of PDB frames." << std::endl;
 		std::cout << "Frames are in files FILENAME#1_#2.pdb, where #1 goes from 0 to LASTFRAME, " << std::endl;
@@ -45,11 +46,14 @@ int main(int argc, char** argv)
 	int lastframe; std::istringstream(argv[2]) >> lastframe;
 	int lastsubframe; std::istringstream(argv[3]) >> lastsubframe;
 	std::string outfilename = argv[4];
+	bool cas_only = true;
+	if (argc > 5)
+		std::istringstream(argv[5]) >> cas_only;
 
 	// Compute initial filtration
 	int f = 0; int sf = 0;
 	std::ifstream in(frame_filename(infilename, f, sf++).c_str());
-	Grid2DVineyard v(new PDBDistanceGrid(in));
+	Grid2DVineyard v(new PDBDistanceGrid(in, cas_only));
 	in.close();
 	std::cout << "Filtration generated, size: " << v.filtration()->size() << std::endl;
 	v.compute_pairing();
@@ -61,7 +65,7 @@ int main(int argc, char** argv)
 		std::string fn = frame_filename(infilename, f, sf++);
 		std::cout << "Processing " << fn << std::endl;
 		in.open(fn.c_str());
-		v.compute_vineyard(new PDBDistanceGrid(in));
+		v.compute_vineyard(new PDBDistanceGrid(in, cas_only));
 		in.close();
 		if (sf == lastsubframe) { sf = 0; ++f; }
 	}
