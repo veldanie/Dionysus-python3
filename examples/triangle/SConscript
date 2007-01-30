@@ -1,3 +1,0 @@
-Import('*')
-
-Default(env.Program(['triangle.cpp'] + external_sources))

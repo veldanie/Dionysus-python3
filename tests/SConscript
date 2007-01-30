@@ -1,6 +1,0 @@
-Import('*')
-
-sources = 			['test-orderlist.cpp', 'test-consistencylist.cpp']
-
-for s in sources:
-	Default(env.Program([s] + external_sources))

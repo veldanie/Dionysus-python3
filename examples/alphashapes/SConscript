@@ -1,7 +1,0 @@
-Import('*')
-
-# Sources
-sources = 				['alphashapes3d.cpp', 'alpharadius.cpp']
-
-for s in sources:
-	Default				(env.Program([s] + external_sources))

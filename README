@@ -1,20 +1,27 @@
 Dependencies
   CGAL-3.2 -    for alpha-shapes and kinetic data structures
   DSR-PDB -     for reading in PDB files
-  scons -       for controlling the build process
+  cmake -       for controlling the build process
   boost -       great set of C++ libraries
   Doxygen -     for building documentation
+  libcwd -      for debugging only (is not needed by default)
 
 Configuration
-  Local configuration is read from config/HOSTNAME.py 
-  The path to and architecture of CGAL are important variables (cgal_path and
-  cgal_architecture respectively).
+  The path to CGAL's Makefile is expected to be set in $CGAL_MAKEFILE, the rest
+  is just usual CMake configuration
 
 Building
-  To build examples run "scons" at the top level, or "scons -u" in the specific
-  examples/ subdirectory.
-  "scons debug=1" turns on debugging. "scons counters=1" turns on counters. 
-  "scons optimize=3" turns on -O3 optimizations.
+  To build examples, create a directory build (to keep everything in one place),
+  go to that directory and run cmake and make:
+  mkdir build
+  cd build
+  cmake ..   (or "ccmake .." if you want a curses interface)
+  make
+  
+  In the cmake line you can provide -Ddebug:bool=on to turn on debugging,
+  -Dcounters:bool=on to turn on counters, -Doptimize:int=3 would set
+  optimization to -O3. All of this can be set using a text user interface by
+  running ccmake instead of cmake.
 
 Author
   Dmitriy Morozov <morozov@cs.duke.edu>
