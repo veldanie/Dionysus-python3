@@ -124,6 +124,17 @@ AlphaSimplex3D(const Cell& c): attached_(false)
 	alpha_ = CGAL::squared_radius(p1, p2, p3, p4);
 }
 
+AlphaSimplex3D::Cycle
+AlphaSimplex3D::boundary() const
+{
+	Cycle bdry;
+	Parent::Cycle pbdry = Parent::boundary();
+	for (Parent::Cycle::const_iterator cur = pbdry.begin(); cur != pbdry.end(); ++cur)
+		bdry.push_back(*cur);
+	return bdry;
+}
+
+
 bool 
 AlphaSimplex3D::AlphaOrder::
 operator()(const AlphaSimplex3D& first, const AlphaSimplex3D& second) const

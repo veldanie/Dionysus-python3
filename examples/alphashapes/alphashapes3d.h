@@ -41,6 +41,7 @@ class AlphaSimplex3D: public SimplexWithVertices<Vertex_handle>
 		typedef 	std::set<AlphaSimplex3D>							SimplexSet;
 		typedef		SimplexWithVertices<Vertex_handle>					Parent;
 		typedef		Parent::VertexContainer								VertexSet;
+		typedef		std::list<AlphaSimplex3D>							Cycle;
 
     public:
 									AlphaSimplex3D()					{}
@@ -61,6 +62,7 @@ class AlphaSimplex3D: public SimplexWithVertices<Vertex_handle>
 		virtual RealType			value() const						{ return CGAL::to_double(alpha_); }
 		RealValue					alpha() const						{ return alpha_; }
 		bool						attached() const					{ return attached_; }
+		Cycle						boundary() const;
 
 		// Ordering
 		struct AlphaOrder
