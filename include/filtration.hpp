@@ -30,8 +30,8 @@ pair_simplices(Index bg, Index end)
 		Cycle& bdry = j->cycle();
 		Dout(dc::finish, bdry);
 		
-		counters.inc("Boundaries", j->dimension());
-		counters.inc("SimplexCount");
+		CountNum("Boundaries", j->dimension());
+		Count("SimplexCount");
 
 		while(!bdry.empty())
 		{
@@ -46,7 +46,7 @@ pair_simplices(Index bg, Index end)
 				Dout(dc::filtration, "Pairing " << *i << " and " << *j << " with cycle " << j->cycle());
 				i->set_pair(j);
 				j->set_pair(i);
-				counters.inc("DepositedCycleLength", j->cycle().size());
+				CountNum("DepositedCycleLength", j->cycle().size());
 				break;
 			}
 
@@ -167,7 +167,7 @@ Filtration<S,FS,V>::
 transpose_simplices(Index i, bool maintain_lazy)
 {
 	AssertMsg(is_paired(), "Pairing must be computed before transpositions");
-	counters.inc("SimplexTransposition");
+	Count("SimplexTransposition");
 	
 	Index i_prev = i++;
 
@@ -175,7 +175,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 	{
 		swap(i_prev, i);
 		Dout(dc::transpositions, "Different dimension");
-		counters.inc("Case DiffDim");
+		Count("Case DiffDim");
 		return false;
 	}
 	
@@ -201,7 +201,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 			swap(i_prev, i);
 			Dout(dc::transpositions, "Case 1.2 --- unpaired");
 			Dout(dc::transpositions, *i_prev);
-			counters.inc("Case 1.2");
+			Count("Case 1.2");
 			return false;
 		} else if (k == i_prev)
 		{
@@ -211,7 +211,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 				swap(i_prev, i);
 				Dout(dc::transpositions, "Case 1.2 --- unpaired");
 				Dout(dc::transpositions, *i_prev);
-				counters.inc("Case 1.2");
+				Count("Case 1.2");
 				return false;
 			} else
 			{
@@ -220,7 +220,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 				pairing_switch(i_prev, i);
 				Dout(dc::transpositions, "Case 1.1.2 --- unpaired");
 				Dout(dc::transpositions, *i_prev);
-				counters.inc("Case 1.1.2");
+				Count("Case 1.1.2");
 				return true;
 			}
 		}
@@ -240,7 +240,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 			}
 			swap(i_prev, i);
 			Dout(dc::transpositions, "Case 1.2");
-			counters.inc("Case 1.2");
+			Count("Case 1.2");
 			return false;
 		} else
 		{
@@ -252,7 +252,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 				l->cycle().add(k->cycle(), Filtration::get_consistency_cmp());		// Add column k to l
 				k->trail().add(l->trail(), Filtration::get_consistency_cmp());		// Add row l to k
 				Dout(dc::transpositions, "Case 1.1.1");
-				counters.inc("Case 1.1.1");
+				Count("Case 1.1.1");
 				return false;
 			} else
 			{
@@ -262,7 +262,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 				l->trail().add(k->trail(), Filtration::get_consistency_cmp());		// Add row k to l
 				pairing_switch(i_prev, i);
 				Dout(dc::transpositions, "Case 1.1.2");
-				counters.inc("Case 1.1.2");
+				Count("Case 1.1.2");
 				return true;
 			}
 		}
@@ -274,7 +274,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 			// Case 2.2
 			swap(i_prev, i);
 			Dout(dc::transpositions, "Case 2.2");
-			counters.inc("Case 2.2");
+			Count("Case 2.2");
 			return false;
 		} else
 		{
@@ -291,13 +291,13 @@ transpose_simplices(Index i, bool maintain_lazy)
 				i->trail().add(i_prev->trail(), Filtration::get_consistency_cmp());			// Add row i to i_prev
 				pairing_switch(i_prev, i);
 				Dout(dc::transpositions, "Case 2.1.2");
-				counters.inc("Case 2.1.2");
+				Count("Case 2.1.2");
 				return true;
 			} 
 			
 			// Case 2.1.1
 			Dout(dc::transpositions, "Case 2.1.1");
-			counters.inc("Case 2.1.1");
+			Count("Case 2.1.1");
 			return false;
 		}
 	} else if (!si && sii)
@@ -308,7 +308,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 			// Case 3.2
 			swap(i_prev, i);
 			Dout(dc::transpositions, "Case 3.2");
-			counters.inc("Case 3.2");
+			Count("Case 3.2");
 			return false;
 		} else
 		{
@@ -320,7 +320,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 			i->trail().add(i_prev->trail(), Filtration::get_consistency_cmp());			// Add row i to i_prev
 			pairing_switch(i_prev, i);
 			Dout(dc::transpositions, "Case 3.1");
-			counters.inc("Case 3.1");
+			Count("Case 3.1");
 			return true;
 		}
 	} else if (si && !sii)
@@ -334,7 +334,7 @@ transpose_simplices(Index i, bool maintain_lazy)
 		}
 		swap(i_prev, i);
 		Dout(dc::transpositions, "Case 4");
-		counters.inc("Case 4");
+		Count("Case 4");
 		return false;
 	}
 	

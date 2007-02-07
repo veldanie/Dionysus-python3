@@ -12,17 +12,23 @@
 #include <string>
 #include <iostream>
 
+#ifndef COUNTERS
+#define Count(x)
+#define CountNum(x,y)
+#else // COUNTERS
+#define Count(x) counters.inc(x)
+#define CountNum(x,y) counters.inc(x,y)
+#endif
+
 typedef 		unsigned long 		CounterType;
 typedef			std::string			KeyType;
 
 class CounterFactory
 {
 	private:
-#ifdef COUNTERS
 		typedef				std::map<int, CounterType> 			CountersMap;
 		typedef				std::map<KeyType, CountersMap>		KeyMap;
 		KeyMap				ctrs;
-#endif // COUNTERS
 		
 	public:
 		~CounterFactory()
@@ -48,16 +54,12 @@ class CounterFactory
 
 		void inc(const KeyType& key, int num = 0)
 		{
-#ifdef COUNTERS
 			ctrs[key][num]++;
-#endif // COUNTERS
 		}
 
 		CounterType lookup(const KeyType& key, int num = 0) const
 		{
-#ifdef COUNTERS
 			return const_cast<KeyMap&>(ctrs)[key][num];
-#endif // COUNTERS
 		}
 };
 
