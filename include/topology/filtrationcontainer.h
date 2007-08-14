@@ -6,7 +6,7 @@
 #ifndef __FILTRATIONCONTAINER_H__
 #define __FILTRATIONCONTAINER_H__
 
-#include "consistencylist.h"
+#include "utilities/consistencylist.h"
 #include "cycle.h"
 
 /**

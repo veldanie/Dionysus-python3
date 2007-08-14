@@ -1,4 +1,4 @@
-#include "consistencylist.h"
+#include "utilities/consistencylist.h"
 #include <iostream>
 
 typedef ConsistencyList<int> 		OList;

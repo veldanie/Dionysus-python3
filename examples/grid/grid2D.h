@@ -18,7 +18,7 @@
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/nvp.hpp>
 
-#include "types.h"
+#include "utilities/types.h"
 
 #include <boost/serialization/export.hpp>
 

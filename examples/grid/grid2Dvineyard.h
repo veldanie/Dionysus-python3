@@ -6,11 +6,11 @@
 #ifndef __GRID2DVINEYARD_H__
 #define __GRID2DVINEYARD_H__
 
-#include "sys.h"
-#include "debug.h"
+#include "utilities/sys.h"
+#include "utilities/debug.h"
 
 #include "grid2D.h"
-#include "lowerstarfiltration.h"
+#include "topology/lowerstarfiltration.h"
 
 #include <CGAL/Kinetic/Inexact_simulation_traits_1.h>
 #include <CGAL/Kinetic/Sort.h>

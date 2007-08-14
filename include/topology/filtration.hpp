@@ -1,5 +1,5 @@
-#include "counter.h"
-#include "types.h"
+#include "utilities/counter.h"
+#include "utilities/types.h"
 #include <algorithm>
 
 #include <boost/utility.hpp>

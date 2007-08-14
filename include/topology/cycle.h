@@ -6,11 +6,11 @@
 #ifndef __CYCLE_H__
 #define __CYCLE_H__
 
-#include "sys.h"
-#include "debug.h"
+#include "utilities/sys.h"
+#include "utilities/debug.h"
 
-#include "types.h"
-#include "circular_list.h"
+#include "utilities/types.h"
+#include "utilities/circular_list.h"
 #include <list>
 #include <boost/serialization/access.hpp>
 

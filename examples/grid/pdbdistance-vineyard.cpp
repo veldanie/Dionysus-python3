@@ -1,6 +1,6 @@
 //#include <boost/archive/binary_oarchive.hpp>
-#include "sys.h"
-#include "debug.h"
+#include "utilities/sys.h"
+#include "utilities/debug.h"
 
 #include "pdbdistance.h"
 #include "grid2Dvineyard.h"

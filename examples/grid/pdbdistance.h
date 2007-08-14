@@ -16,7 +16,7 @@
 
 #include <boost/serialization/access.hpp>
 
-#include "types.h"
+#include "utilities/types.h"
 #include "grid2D.h"
 
 #include <boost/serialization/export.hpp>

@@ -1,8 +1,8 @@
-#include <sys.h>
-#include <debug.h>
+#include <utilities/sys.h>
+#include <utilities/debug.h>
 
 #include "alphashapes3d.h"
-#include <filtration.h>
+#include <topology/filtration.h>
 #include <iostream>
 #include <fstream>
 

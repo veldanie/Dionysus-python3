@@ -82,7 +82,7 @@ void
 Vineyard<FS>::
 save_edges(const std::string& filename) const
 {
-	for (int i = 0; i < vines.size(); ++i)
+	for (unsigned int i = 0; i < vines.size(); ++i)
 	{
 		std::ostringstream os; os << i;
 		std::string fn = filename + os.str() + ".edg";

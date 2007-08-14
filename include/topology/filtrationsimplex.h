@@ -6,12 +6,12 @@
 #ifndef __FILTRATIONSIMPLEX_H__
 #define __FILTRATIONSIMPLEX_H__
 
-#include "sys.h"
-#include "debug.h"
+#include "utilities/sys.h"
+#include "utilities/debug.h"
 
 #include "filtrationcontainer.h"
 #include "vineyard.h"
-#include "types.h"
+#include "utilities/types.h"
 
 #include <list>
 

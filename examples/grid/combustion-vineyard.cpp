@@ -3,8 +3,8 @@
  * Department of Computer Science, Duke University, 2005
  */
 
-#include <sys.h>
-#include <debug.h>
+#include <utilities/sys.h>
+#include <utilities/debug.h>
 
 #include <iostream>
 #include <fstream>

@@ -9,8 +9,8 @@
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Delaunay_triangulation_3.h>
 
-#include <simplex.h>
-#include <types.h>
+#include <topology/simplex.h>
+#include <utilities/types.h>
 
 #include <vector>
 #include <set>

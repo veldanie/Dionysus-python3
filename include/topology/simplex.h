@@ -6,14 +6,14 @@
 #ifndef __SIMPLEX_H__
 #define __SIMPLEX_H__
 
-#include "sys.h"
-#include "debug.h"
+#include "utilities/sys.h"
+#include "utilities/debug.h"
 
 #include <set>
 #include <list>
 #include <iostream>
 
-#include "types.h"
+#include "utilities/types.h"
 
 #include <boost/serialization/access.hpp>
 

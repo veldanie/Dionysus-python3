@@ -1,5 +1,5 @@
-#include "filtration.h"
-#include "simplex.h"
+#include "topology/filtration.h"
+#include "topology/simplex.h"
 #include <vector>
 #include <iostream>
 

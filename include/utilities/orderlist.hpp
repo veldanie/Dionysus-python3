@@ -76,7 +76,7 @@ insert(iterator p, const_reference x)
 	
 	// Reorder
 	AssertMsg((upper - lower + 1)/num_elements > 0, "Spacing between new tags must be non-zero");
-	for (int i = 0; i < num_elements; ++i)
+	for (unsigned int i = 0; i < num_elements; ++i)
 	{
 		(++prev)->tag = lower + i*((upper - lower + 1)/num_elements);
 		Dout(dc::orderlist, prev->tag);

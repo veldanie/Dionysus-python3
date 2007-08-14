@@ -6,8 +6,8 @@
 #ifndef __FILTRATION_H__
 #define __FILTRATION_H__
 
-#include "sys.h"
-#include "debug.h"
+#include "utilities/sys.h"
+#include "utilities/debug.h"
 
 #include "filtrationcontainer.h"
 #include "filtrationsimplex.h"

@@ -6,15 +6,15 @@
 #ifndef __LOWERSTARFILTRATION_H__
 #define __LOWERSTARFILTRATION_H__
 
-#include "sys.h"
-#include "debug.h"
+#include "utilities/sys.h"
+#include "utilities/debug.h"
 
 #include "filtration.h"
 #include "simplex.h"
-#include "consistencylist.h"
+#include "utilities/consistencylist.h"
 #include <boost/utility.hpp>
 #include <list>
-#include "types.h"
+#include "utilities/types.h"
 
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/vector.hpp>

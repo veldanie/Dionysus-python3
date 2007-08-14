@@ -1,8 +1,8 @@
-#include <sys.h>
-#include <debug.h>
+#include <utilities/sys.h>
+#include <utilities/debug.h>
 
-#include <simplex.h>
-#include <filtration.h>
+#include <topology/simplex.h>
+#include <topology/filtration.h>
 #include "Miniball_dynamic_d.h"
 #include <algorithm>
 
