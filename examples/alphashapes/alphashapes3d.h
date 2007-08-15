@@ -59,7 +59,7 @@ class AlphaSimplex3D: public SimplexWithVertices<Vertex_handle>
 	    
 									AlphaSimplex3D(const Cell& c);
 	    
-		virtual RealType			value() const						{ return CGAL::to_double(alpha_); }
+		RealType					value() const						{ return CGAL::to_double(alpha_); }
 		RealValue					alpha() const						{ return alpha_; }
 		bool						attached() const					{ return attached_; }
 		Cycle						boundary() const;
