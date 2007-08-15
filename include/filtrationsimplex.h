@@ -31,8 +31,10 @@ class Evaluator
 	public:
 		typedef					Smplx										Simplex;
 
-		virtual RealType		time()										{ return 0; }
-		virtual RealType		value(const Simplex& s)						{ return 0; }
+		virtual RealType		time() const								{ return 0; }
+		virtual RealType		value(const Simplex& s) const				{ return 0; }
+
+		virtual					~Evaluator()								{}
 };
 
 /**

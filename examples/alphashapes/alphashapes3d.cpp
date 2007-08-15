@@ -7,7 +7,6 @@
 #include <fstream>
 
 
-typedef std::vector<AlphaSimplex3D> 			SimplexVector;
 typedef Filtration<AlphaSimplex3D>				AlphaFiltration;
 
 int main(int argc, char** argv) 
@@ -30,7 +29,7 @@ int main(int argc, char** argv)
 
 	// Create the alpha-shape filtration
 	AlphaFiltration af;
-	for (SimplexVector::const_iterator cur = alpha_ordering.begin(); cur != alpha_ordering.end(); ++cur)
+	for (AlphaSimplex3DVector::const_iterator cur = alpha_ordering.begin(); cur != alpha_ordering.end(); ++cur)
 		af.append(*cur);
 	af.fill_simplex_index_map();
 	af.pair_simplices(af.begin(), af.end());
