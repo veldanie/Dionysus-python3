@@ -12,7 +12,7 @@
 #include "grid2D.h"
 #include "topology/lowerstarfiltration.h"
 
-#include <CGAL/Kinetic/Inexact_simulation_traits_1.h>
+#include <CGAL/Kinetic/Inexact_simulation_traits.h>
 #include <CGAL/Kinetic/Sort.h>
 #include <CGAL/Kinetic/Sort_visitor_base.h>
 
@@ -44,7 +44,7 @@ class Grid2DVineyard
 		typedef					Vineyard::Evaluator									Evaluator;
 
 		class					SortVisitor;
-		typedef 				CGAL::Kinetic::Inexact_simulation_traits_1 			Traits;
+		typedef 				CGAL::Kinetic::Inexact_simulation_traits 			Traits;
 		typedef					CGAL::Kinetic::Sort<Traits, SortVisitor>			Sort;
 		typedef 				Traits::Simulator 									Simulator;
 		typedef 				Traits::Active_points_1_table						ActivePointsTable;

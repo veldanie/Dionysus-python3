@@ -98,7 +98,7 @@ ARSimplex3D(const Edge& e, const Point& z, SimplexPhiMap& simplices, Facet_circu
 	if (phi_const_ < v2_iter->second) v2_iter->second = phi_const_;
 
 	
-	s_ = CGAL::squared_distance(z, CGAL::Segment_3<K>(p1,p2).supporting_line());
+	s_ = CGAL::squared_distance(z, K::Segment_3(p1,p2).supporting_line());
 	Point origin;
 	Point cc = origin + ((p1 - origin) + (p2 - origin))/2;		// CGAL is funny
 	v_ = CGAL::squared_distance(z, cc) - s_;
@@ -161,7 +161,7 @@ ARSimplex3D(const Facet& f, const Point& z, const SimplexPhiMap& simplices)
 	}
 
 	Point cc = CGAL::circumcenter(p1, p2, p3);
-	v_ = CGAL::squared_distance<K>(z, CGAL::Plane_3<K>(p1,p2,p3));
+	v_ = CGAL::squared_distance(z, K::Plane_3(p1,p2,p3));
 	s_ = CGAL::squared_distance(z, cc) - v_;
 }
 

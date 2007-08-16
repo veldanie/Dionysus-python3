@@ -38,11 +38,10 @@ compute_vineyard(Grid2D* g, bool explicit_events)
 	AssertMsg(filtration_->is_paired(), "Simplices must be paired for a vineyard to be computed");
 	
 	typedef Traits::Kinetic_kernel::Point_1 								Point;
-	typedef Traits::NT 														NT;
 	typedef Traits::Kinetic_kernel::Function_kernel::Construct_function 	CF; 
 	typedef Traits::Kinetic_kernel::Motion_function 						F; 
 	
-	Traits tr;
+	Traits tr(0,1);
 	Simulator::Handle sp = tr.simulator_handle();
 	ActivePointsTable::Handle apt = tr.active_points_1_table_handle();
 	Sort sort(tr, SortVisitor(this));

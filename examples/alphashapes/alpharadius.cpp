@@ -17,7 +17,7 @@ struct SimplexWithDistance: public AlphaSimplex3D
 	void set_distance(const Point& p)
 	{
 		AlphaSimplex3D::VertexContainer::const_iterator cur = vertices().begin();
-		CGAL::Vector_3<K> v = ((*cur)->point() - p);
+		K::Vector_3 v = ((*cur)->point() - p);
 		RealValue min_distance = v*v;
 	
 		while (cur != vertices().end())

@@ -12,7 +12,8 @@
 #include "topology/conesimplex.h"
 #include "topology/filtration.h"
 
-#include <CGAL/Kinetic/Inexact_simulation_traits_1.h>
+#include <CGAL/Kinetic/Inexact_simulation_traits.h>
+#include <CGAL/Kinetic/Event_base.h>
 #include <CGAL/Kinetic/Sort.h>
 #include <CGAL/Kinetic/Sort_visitor_base.h>
 
@@ -28,7 +29,7 @@ class ARVineyardBase
 		/// \name CGAL Kinetic Sort types
 		/// @{
 		class						SortVisitor;
-		typedef 					CGAL::Kinetic::Inexact_simulation_traits_1 					Traits;
+		typedef 					CGAL::Kinetic::Inexact_simulation_traits 					Traits;
 		typedef						CGAL::Kinetic::Sort<Traits, SortVisitor>					Sort;
 		typedef 					Traits::Simulator 											Simulator;
 		typedef 					Traits::Active_points_1_table								ActivePointsTable;
@@ -123,15 +124,16 @@ class ARVineyard: public ARVineyardBase
 //BOOST_CLASS_EXPORT(ARVineyard)
 
 
-class ARVineyardBase::MembershipFunctionChangeEvent
+class ARVineyardBase::MembershipFunctionChangeEvent: public CGAL::Kinetic::Event_base<int*>
 {
 	public:
 									MembershipFunctionChangeEvent(Key k, F function, 
 																  ActivePointsTable::Handle apt):
 										key_(k), function_(function), apt_(apt)					{}
 		
-		void						process(Simulator::Time t) const;
+		void						process() const;
 		std::ostream&				operator<<(std::ostream& out) const;
+		std::ostream&				write(std::ostream& out) const								{ return this->operator<<(out); }
 
 	private:
 		Key							key_;

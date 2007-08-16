@@ -3,7 +3,7 @@ include $(CGAL_MAKEFILE)
 all: libpath libpaths ldflags cxxflags
 
 libpath:
-	@echo "$(CGAL_LIB_DIR)/$(CGAL_OS_COMPILER)"
+	@echo "$(CGAL_LIB_DIR)"
 
 libpaths:
 	@echo "$(CGAL_LIBPATHFLAGS)"
