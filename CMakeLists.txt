@@ -29,7 +29,7 @@ string						(REPLACE "\n" "" cgal_libpath 	${cgal_libpath})
 add_definitions				(${cgal_cxxflags})
 find_library				(cgal_LIBRARY				NAMES CGAL
 														PATHS ${cgal_libpath})
-find_library				(core_LIBRARY				NAMES core++
+find_library				(core_LIBRARY				NAMES CGALcore++
 														PATHS ${cgal_libpath})
 find_library				(mpfr_LIBRARY				NAMES mpfr)
 find_library				(gmp_LIBRARY				NAMES gmp)

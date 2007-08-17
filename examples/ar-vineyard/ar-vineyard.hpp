@@ -82,7 +82,7 @@ compute_vineyard(bool explicit_events)
 	typedef Traits::Kinetic_kernel::Point_1 								Point_1;
 	typedef Simulator::Time													Time;
 	
-	Traits tr;
+	Traits tr(0,1);
 	Simulator::Handle sp = tr.simulator_handle();
 	ActivePointsTable::Handle apt = tr.active_points_1_table_handle();
 	Sort sort(tr, SortVisitor(this));
@@ -177,7 +177,7 @@ change_evaluator(Evaluator* eval)
 
 void 
 ARVineyardBase::MembershipFunctionChangeEvent::
-process(Simulator::Time t) const
+process() const
 {
 	apt_->set(key_, function_);
 	std::cout << "Updated for phi's dominance" << std::endl;
