@@ -11,67 +11,80 @@
 
 #include "topology/conesimplex.h"
 #include "topology/filtration.h"
-
-#include <CGAL/Kinetic/Inexact_simulation_traits_1.h>
-#include <CGAL/Kinetic/Sort.h>
-#include <CGAL/Kinetic/Sort_visitor_base.h>
+#include "geometry/kinetic-sort.h"
 
 #include <list>
 #include "ar-simplex3d.h"
 
-#include <vector>
 
-
-class ARVineyardBase
-{
-	public:
-		/// \name CGAL Kinetic Sort types
-		/// @{
-		class						SortVisitor;
-		typedef 					CGAL::Kinetic::Inexact_simulation_traits_1 					Traits;
-		typedef						CGAL::Kinetic::Sort<Traits, SortVisitor>					Sort;
-		typedef 					Traits::Simulator 											Simulator;
-		typedef 					Traits::Active_points_1_table								ActivePointsTable;
-		typedef 					ActivePointsTable::Key										Key;
-		
-		typedef 					Traits::Kinetic_kernel::
-											Function_kernel::Construct_function 				CF; 
-		typedef 					Traits::Kinetic_kernel::Motion_function 					F; 
-		/// @}
-		
-		class						ARConeSimplex;
-		class						MembershipFunctionChangeEvent;
-};
-
-class ARVineyardBase::ARConeSimplex: public ConeSimplex<ARSimplex3D>
+class ARConeSimplex: public ConeSimplex<ARSimplex3D>
 {
 	public:
 		typedef						ConeSimplex<ARSimplex3D>									Parent;
 		typedef						ARSimplex3D													ARSimplex3D;
+		typedef						Filtration<ARConeSimplex>									Filtration;
+		
+		/// \name Polynomial Kernel types
+		/// @{
+		typedef						double														FieldType;
+		typedef						UPolynomial<FieldType>										PolyKernel;
+		typedef						PolyKernel::Polynomial										Polynomial;
+		typedef						Simulator<PolyKernel>										Simulator;
+		
+		typedef						KineticSort<ARFiltration, SimplexTrajectoryExtractor, Simulator>
+																								SimplexSort;
+		typedef						SimplexSort::iterator										SimplexSortIterator;
+		typedef						SimplexSortIterator											Key;
+		/// @}
+
+		/// \name Kinetic Sort types
+		/// @{
+		typedef 					std::list<Polynomial>										ThresholdList;
+
+		struct 						ThresholdTrajectoryExtractor
+		{	Polynomial				operator()(ThresholdList::iterator i) const				{ return *i; } }
+		struct 						SimplexTrajectoryExtractor
+		{	Polynomial				operator()(ARFiltration::iterator i) const					{ i->thresholds().front(); }
+
+		typedef						KineticSort<ThresholdList, ThresholdTrajectoryExtractor, Simulator>	
+																								ThresholdSort;
+		/// @}
 
 									ARConeSimplex(const ARSimplex3D& s, bool coned = false): 
-										Parent(s, coned)										{}
+										Parent(s, coned), 
+										thresholds_sort_(&thresholds_)							{}
 
 		Key							kinetic_key() const											{ return key_; }
 		void						set_kinetic_key(Key k)										{ key_ = k; }
+		const ThresholdList&		thresholds() const											{ return thresholds_; }
+
+		void						schedule_thresholds(Simulator* simulator);
+
 								
 	private:
 		Key							key_;
+		ThresholdList				thresholds_;
+		ThresholdSort				thresholds_sort_;
+
+		void						swap_thresholds(ThresholdList* tl, typename ThresholdList::iterator i);
 };
 
 
-class ARVineyard: public ARVineyardBase
+class ARVineyard
 {
 	public:
 		typedef						ARVineyard													Self;
 		
-		typedef						Filtration<ARConeSimplex>									ARFiltration;	
+		typedef						ARConeSimplex::Filtration									ARFiltration;	
 		typedef						ARFiltration::Simplex										Simplex;
 		typedef						ARFiltration::Index											Index;
 		typedef						ARFiltration::Vineyard										Vineyard;
 		typedef						Vineyard::Evaluator											Evaluator;
-		typedef						std::map<Key, Index>										KeyIndexMap;
 		
+		typedef						ARConeSimplex::Simulator									Simulator;	
+		typedef						ARConeSimplex::SimplexSort									SimplexSort;	
+
+
 		typedef						std::list<Point>											PointList;
 
 		class						StaticEvaluator;
@@ -89,7 +102,7 @@ class ARVineyard: public ARVineyardBase
 
 	public:
 		// For Kinetic Sort
-		void 						swap(Key a, Key b);
+		static void 				swap(ARFiltration* filtration, Index i);
 	
 	private:
 		void 						add_simplices();
@@ -99,8 +112,6 @@ class ARVineyard: public ARVineyardBase
 		ARFiltration*				filtration_;
 		Vineyard*					vineyard_;
 		Evaluator*					evaluator_;
-
-		KeyIndexMap					kinetic_map_;
 
 		Point						z_;
 		Delaunay					dt_;
@@ -122,25 +133,6 @@ class ARVineyard: public ARVineyardBase
 
 //BOOST_CLASS_EXPORT(ARVineyard)
 
-
-class ARVineyardBase::MembershipFunctionChangeEvent
-{
-	public:
-									MembershipFunctionChangeEvent(Key k, F function, 
-																  ActivePointsTable::Handle apt):
-										key_(k), function_(function), apt_(apt)					{}
-		
-		void						process(Simulator::Time t) const;
-		std::ostream&				operator<<(std::ostream& out) const;
-
-	private:
-		Key							key_;
-		F							function_;
-		ActivePointsTable::Handle	apt_;
-};
-
-std::ostream& operator<<(std::ostream& out, const ARVineyardBase::MembershipFunctionChangeEvent& e)
-{ return e.operator<<(out); }
 
 class ARVineyard::StaticEvaluator: public Evaluator
 {
@@ -170,19 +162,6 @@ class ARVineyard::KineticEvaluator: public Evaluator
 		
 		Simulator::Handle			sp_;
 		ActivePointsTable::Handle 	apt_;
-};
-
-
-class ARVineyardBase::SortVisitor: public CGAL::Kinetic::Sort_visitor_base
-{
-	public:
-									SortVisitor(ARVineyard* arv): arv_(arv)						{}
-
-		template<class Vertex_handle>
-		void						before_swap(Vertex_handle a, Vertex_handle b) const;
-
-	private:
-		ARVineyard*					arv_;
 };
 
 

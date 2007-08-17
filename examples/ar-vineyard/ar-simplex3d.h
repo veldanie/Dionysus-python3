@@ -86,7 +86,7 @@ class ARSimplex3D: public SimplexWithVertices<Vertex_handle>
 		RealValue					rho_;		// rho_ 	is the squared radius of the smallest circumsphere
 		RealValue					s_;			// s_ 		is the squared distance from z to the affine hull of the simplex
 		RealValue					v_;			// v_ 		is the squared distance from z to the affine hull of the dual Voronoi cell
-		RealValue					phi_const_;	// see LHI paper, Appendix 1
+		RealValue					phi_const_;	// see LHI paper, Appendices A and B
 		bool 						attached_;
 
 };

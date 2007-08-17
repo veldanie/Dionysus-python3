@@ -1,49 +1,63 @@
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
-KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::
-KineticSort(SortDS* sort, Simulator* simulator, SwapCallback swap_callback):
-	sort_(sort), swap_callback_(swap_callback)
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
+KineticSort(Swap swap):
+	swap_(swap)
+{}	
+
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
+KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator):
+	swap_(swap)
 {
-	for (SortDSIterator cur = sort->begin(); cur != sort->end(); ++cur)
+	initialize(b, e, simulator);
+}
+
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
+void
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
+initialize(ElementIterator b, ElementIterator e,, Simulator* simulator)
+{
+	for (ElementIterator cur = b; cur != e; ++cur)
 		list_.push_back(Node(cur, simulator->null_key()));
 	schedule_swaps(list_.begin(), list_.end(), simulator);
 }
 
-
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
-template<class InputIterator>
+/// Adds elements in the range [f,l) of the underlying data structure to the management by the KineticSort.
+/// pos must be a valid iterator, i.e., it cannot be end().
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 void
-KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::
-insert(iterator pos, InputIterator f, InputIterator l, Simulator* simulator)
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
+insert(iterator pos, ElementIterator f, ElementIterator l, Simulator* simulator)
 {
 	iterator previous = pos; --previous;
 	if (previous != list_.end()) simulator->remove(previous->swap_event_key);
 
-	sort_->insert(pos->element, f, l);
-
-	SortDSIterator cur = boost::next(previous)->element;
+	ElementIterator cur = boost::next(previous)->element;
 	while(cur != pos->element)
-		list_.insert(pos->element, Node(cur++));
+		list_.insert(pos->element, Node(cur++, simulator->null_key()));
+
 	if (previous != list_.end()) 
 		schedule_swaps(previous, pos, simulator);
 	else
 		schedule_swaps(list_.begin(), pos, simulator);
 }
 
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
+/// Removes pos from the KineticSort structure. Assumes that the element of the underlying data structure 
+/// that *pos refers to has already been removed.
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 void
-KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 erase(iterator pos, Simulator* simulator)
 {
 	simulator->remove(pos->swap_event_key);
-	sort_->erase(pos->element);
 	iterator prev = pos; --prev;
 	list_.erase(pos);
 	schedule_swaps(prev, simulator);
 }
 
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 void
-KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 update_trajectory(iterator pos, Simulator* simulator)
 {
 	iterator prev = boost::prior(pos);
@@ -61,15 +75,15 @@ update_trajectory(iterator pos, Simulator* simulator)
 }
 
 
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 void						
-KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 swap(iterator pos, Simulator* simulator)
 {
-	swap_callback_(sort_, pos->element);
-	
-	// TODO: add assertion that boost::next(pos) != list_.end()
-	
+	AssertMsg(boost::next(pos) != list_.end(), "Cannot swap the last element");
+
+	swap(pos->element);
+
 	// Remove events
 	iterator prev = boost::prior(pos);
 	if (prev != list_.end())
@@ -88,9 +102,9 @@ swap(iterator pos, Simulator* simulator)
 	//audit(simulator);
 }
 
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 bool
-KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 audit(Simulator* simulator) const
 {
 	typedef 		typename Simulator::RationalFunction		RationalFunction;
@@ -126,9 +140,9 @@ audit(Simulator* simulator) const
 }
 
 		
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 void						
-KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 schedule_swaps(iterator b, iterator e, Simulator* simulator)
 {
 	typedef 		typename Simulator::RationalFunction		RationalFunction;
@@ -150,9 +164,9 @@ schedule_swaps(iterator b, iterator e, Simulator* simulator)
 	if (cur != e) schedule_swaps(cur, simulator);
 }
 
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 void						
-KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 schedule_swaps(iterator i, Simulator* simulator)
 {
 	typedef 		typename Simulator::RationalFunction		RationalFunction;
@@ -178,8 +192,8 @@ schedule_swaps(iterator i, Simulator* simulator)
 }
 
 /* SwapEvent */
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
-class KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::SwapEvent: public Simulator::Event
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
+class KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::SwapEvent: public Simulator::Event
 {
 	public:
 		typedef						typename Simulator::Event					Parent;
@@ -199,9 +213,9 @@ class KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::SwapEvent: public 
 		iterator					pos_;
 };
 
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 bool
-KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::SwapEvent::
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::SwapEvent::
 process(Simulator* s) const
 { 
 	std::cout << "Swapping. Current time: " << s->current_time() << std::endl;
@@ -209,9 +223,9 @@ process(Simulator* s) const
 	return true; 
 }
 
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
+template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 std::ostream&				
-KineticSort<SortDS_, TrajectoryExtractor_, Simulator_>::SwapEvent::
+KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::SwapEvent::
 print(std::ostream& out) const
 {
 	Parent::print(out) << ", SwapEvent at " << TrajectoryExtractor_()(position()->element);

@@ -10,33 +10,35 @@
  * Maintains elements of the given data structure in the sorted order assuming the elements follow 
  * trajectories given by TrajectoryExtractor_.
  *
- *  \arg SortDS_              should be forward and backward iterable, swaps are handles via SwapCallback
+ *  \arg ElementIterator_     iterator over the underlying data structure that's kept in sorted order
  *  \arg TrajectoryExtractor_ applied to the iterator into SortDS_ should return a rational 
  *                            function describing the 
  *  \arg Simulator_           the Simulator type, e.g. Simulator. Note that KineticSort does not store 
  *                            a pointer to the Simulator (so a pointer is passed in each relevant operation)
+ *  \arg Swap_                is called with an ElementIterator_ when a swap needs to be performed
  */
-template<class SortDS_, class TrajectoryExtractor_, class Simulator_>
+template<class ElementIterator_, class TrajectoryExtractor_, 
+		 class Simulator_, class Swap_ = boost::function<void(ElementIterator_ pos)>>
 class KineticSort
 {
 	public:
 		typedef						Simulator_									Simulator;
 		typedef						typename Simulator::PolynomialKernel		PolynomialKernel;
-		typedef						SortDS_										SortDS;
+		typedef						ElementIterator_							ElementIterator;
+		typedef						Swap_										Swap;
 		typedef						TrajectoryExtractor_						TrajectoryExtractor;
 		
 		typedef						typename Simulator::Key						SimulatorKey;
-		typedef						typename SortDS::iterator					SortDSIterator;
 
 									
 	private:
 		/* Implementation */
 		struct Node
 		{
-			SortDSIterator			element;
+			ElementIterator			element;
 			SimulatorKey			swap_event_key;		
 
-									Node(SortDSIterator e, SimulatorKey k): 
+									Node(ElementIterator e, SimulatorKey k): 
 										element(e), swap_event_key(k)			{}
 		};
 
@@ -44,22 +46,25 @@ class KineticSort
 
 	public:
 		typedef						typename NodeList::iterator					iterator;
-		typedef						boost::function<void(SortDS*, SortDSIterator pos)>	
-																				SwapCallback;
 
 
 		/// \name Core Functionality
 		/// @{
-									KineticSort(SortDS* sort, Simulator* simulator, SwapCallback swap_callback);
+									KineticSort(Swap swap);
+									KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator);
 
-		template<class InputIterator>
-		void						insert(iterator pos, InputIterator f, InputIterator l, Simulator* simulator);
+		void						insert(iterator pos, ElementIterator f, ElementIterator l, Simulator* simulator);
 		void						erase(iterator pos, Simulator* simulator);
 		void						update_trajectory(iterator pos, Simulator* simulator);
 
 		void						swap(iterator pos, Simulator* simulator);
 
 		bool						audit(Simulator* simulator) const;
+
+		iterator					begin() 									{ return list_.begin(); }
+		iterator					end() 										{ return list_.end(); }
+
+		void						initialize(ElementIterator b, ElementIterator e, Simulator* simulator);
 		/// @}
 
 	private:
@@ -69,8 +74,7 @@ class KineticSort
 
 	private:
 		NodeList					list_;
-		SortDS*						sort_;			
-		SwapCallback				swap_callback_;	
+		Swap						swap_;	
 };
 
 #include "kinetic-sort.hpp"

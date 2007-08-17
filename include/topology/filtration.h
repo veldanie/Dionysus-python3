@@ -38,6 +38,8 @@ class Filtration: public FltrSmplx::Container
 		typedef		typename FiltrationSimplex::Container							FiltrationContainer;
 		typedef		typename FiltrationContainer::Index								Index;
 		typedef		typename FiltrationContainer::const_Index						const_Index;
+		typedef		Index															iterator;
+		typedef		const_Index														const_iterator;
 		/// @}
 		
 		/// \name Cycles and Trails 

@@ -1,7 +1,27 @@
 /* Implementation */
 	
+void
+ARConeSimplex::
+swap_thresholds(ThresholdList* tl, typename ThresholdList::iterator i)
+{
+	AssertMsg(tl == &thresholds_, "Swap in the wrong list");		// might as well take advantage of the redundancy
+
+	typename ThresholdList::iterator n = boost::next(i);
+	tl->splice(i, *tl, n);
+	if (n == tl->begin())
+
+}
+
+void
+ARConeSimplex::
+schedule_thresholds(Simulator* simulator)
+{
+	thresholds_sort_.insert(thresholds_sort_.end(), thresholds_.begin(), thresholds_.end(), simulator);
+}
+
+
 ARVineyard::
-ARVineyard(const PointList& points, const Point& z): z_(z)
+ARVineyard(const PointList& points, const Point& z): simplex_sort_(0), z_(z)
 {
 	for (PointList::const_iterator cur = points.begin(); cur != points.end(); ++cur)
 		dt_.insert(*cur);
@@ -17,7 +37,7 @@ ARVineyard(const PointList& points, const Point& z): z_(z)
 	filtration_ = new ARFiltration(vineyard_);
 	for (ARSimplex3DVector::const_iterator cur = alpha_ordering.begin(); cur != alpha_ordering.end(); ++cur)
 	{
-		filtration_->append(*cur);						// Delaunay simplex
+		filtration_->append(ARConeSimplex(*cur));						// Delaunay simplex
 		filtration_->append(ARConeSimplex(*cur, true));	// Coned off delaunay simplex
 	}
 }
@@ -46,6 +66,19 @@ compute_vineyard(bool explicit_events)
 {
 	AssertMsg(filtration_->is_paired(), "Simplices must be paired for a vineyard to be computed");
 	
+	Simulator simulator;
+	SimplexSort	simplex_sort(filtration_, swap);
+
+
+
+
+
+
+
+	simplex_sort.initialize(&simulator);
+
+
+
 	typedef Traits::Kinetic_kernel::Point_1 								Point_1;
 	typedef Simulator::Time													Time;
 	

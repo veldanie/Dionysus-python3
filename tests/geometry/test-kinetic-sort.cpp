@@ -11,15 +11,16 @@ typedef		QQ								FieldType;
 typedef 	UPolynomial<FieldType>			PolyKernel;
 typedef		PolyKernel::Polynomial			Polynomial;
 typedef 	std::list<Polynomial>			SortDS;
+typedef 	SortDS::iterator				SortDSIterator;
 typedef		Simulator<PolyKernel>			SimulatorFT;
 
 class TrajectoryExtractor
 {
 	public:
-		Polynomial		operator()(SortDS::iterator i) const			{ return *i; }
+		Polynomial		operator()(SortDSIterator i) const			{ return *i; }
 };
 
-typedef		KineticSort<SortDS, TrajectoryExtractor, SimulatorFT>		KineticSortDS;
+typedef		KineticSort<SortDSIterator, TrajectoryExtractor, SimulatorFT>		KineticSortDS;
 
 struct EvaluatedComparison: public std::binary_function<const Polynomial&, const Polynomial&, bool>
 {
@@ -29,7 +30,7 @@ struct EvaluatedComparison: public std::binary_function<const Polynomial&, const
 	FieldType					vv;
 };
 
-void swap(SortDS* s, SortDS::iterator i)
+void swap(SortDS* s, SortDSIterator i)
 {
 	std::cout << "Swapping " << *i << " " << *boost::next(i) << std::endl;
 	s->splice(i, *s, boost::next(i));
@@ -52,7 +53,7 @@ int main()
 		std::cout << *cur << std::endl;
 
 	// Setup kinetic sort
-	KineticSortDS	ks(&list, &simulator, swap);
+	KineticSortDS	ks(list.begin(), list.end(), std::bind1st(&swap, &list), &simulator);
 
 	while(!simulator.reached_infinity() && simulator.current_time() < 1)
 	{
