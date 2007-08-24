@@ -5,8 +5,8 @@ solve(const RationalFunction& rf, RootStack& stack)
 {
 	typedef SYNAPS::Seq<RootType>		RootSeq;
 
-	RootSeq seq_num = SYNAPS::solve(rf.numerator(), Solver());
-	RootSeq seq_den = SYNAPS::solve(rf.denominator(), Solver());
+	RootSeq seq_num = SYNAPS::solve(SynapsTraits<T>::convert(rf.numerator()), Solver());
+	RootSeq seq_den = SYNAPS::solve(SynapsTraits<T>::convert(rf.denominator()), Solver());
 
 	// TODO: assert that all roots in seq_den have positive multiplicity
 	// TODO: deal with multiplicities for the numerator
@@ -32,3 +32,40 @@ sign_at(const RationalFunction& rf, const RootType& r)
 {
 	return SynapsTraits<T>::sign_at(rf.numerator(), r) * SynapsTraits<T>::sign_at(rf.denominator(), r);
 }
+
+template<class T>
+bool
+UPolynomial<T>::
+sign_at_negative_infinity(const RationalFunction& rf)
+{
+	const Polynomial& num = rf.numerator();
+	const Polynomial& den = rf.denominator();
+	unsigned int ndegree = num.get_degree();
+	unsigned int ddegree = den.get_degree();
+	return (((ndegree + 1) % 2 == 0) ^ (num[ndegree] > 0)) ^
+		   (((ddegree + 1) % 2 == 0) ^ (den[ddegree] > 0));
+}
+
+SynapsTraits<QQ>::RootType
+SynapsTraits<QQ>::
+root(const CoefficientType& r)
+{
+	ZZ p[2] = { -SYNAPS::numerator(r), SYNAPS::denominator(r) };
+	return SYNAPS::solve(SolverPolynomial(2, p), Solver(), 0); 
+}
+
+SynapsTraits<QQ>::SolverPolynomial
+SynapsTraits<QQ>::
+convert(const Polynomial& p)
+{
+	SolverPolynomial result(1, p.size() - 1);
+	assert(result.size() == p.size());
+	ZZ denominator_product = 1;
+	for (unsigned int i = 0; i < p.size(); ++i)
+		denominator_product *= SYNAPS::denominator(p[i]);
+	for (unsigned int i = 0; i < p.size(); ++i)
+		result[i] = SYNAPS::numerator(p[i]) * denominator_product / 
+					SYNAPS::denominator(p[i]);
+	return result;
+}
+

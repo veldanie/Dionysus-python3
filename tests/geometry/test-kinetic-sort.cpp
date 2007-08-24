@@ -4,10 +4,11 @@
 #include <iostream>
 
 #include <boost/utility.hpp>
+#include <boost/bind.hpp>
 
-//typedef		double							FieldType;
+typedef		double							FieldType;
 //typedef		ZZ								FieldType;
-typedef		QQ								FieldType;
+//typedef		QQ								FieldType;
 typedef 	UPolynomial<FieldType>			PolyKernel;
 typedef		PolyKernel::Polynomial			Polynomial;
 typedef 	std::list<Polynomial>			SortDS;
@@ -30,7 +31,7 @@ struct EvaluatedComparison: public std::binary_function<const Polynomial&, const
 	FieldType					vv;
 };
 
-void swap(SortDS* s, SortDSIterator i)
+void swap(SortDS* s, SortDSIterator i, SimulatorFT* simulator)
 {
 	std::cout << "Swapping " << *i << " " << *boost::next(i) << std::endl;
 	s->splice(i, *s, boost::next(i));
@@ -45,6 +46,9 @@ int main()
 	list.push_back(Polynomial("x^3 - 3"));
 	list.push_back(Polynomial("x^2 - 2*x - 2"));
 	list.push_back(Polynomial("2*x - 4"));
+	list.push_back(Polynomial("x"));
+	list.push_back(Polynomial("-x + 4"));
+	list.push_back(Polynomial("2"));
 	//list.sort(EvaluatedComparison(simulator.current_time()));
 	list.sort(EvaluatedComparison(0));
 
@@ -53,15 +57,14 @@ int main()
 		std::cout << *cur << std::endl;
 
 	// Setup kinetic sort
-	KineticSortDS	ks(list.begin(), list.end(), std::bind1st(&swap, &list), &simulator);
+	KineticSortDS	ks(list.begin(), list.end(), boost::bind(swap, &list, _1, _2), &simulator);
 
-	while(!simulator.reached_infinity() && simulator.current_time() < 1)
+	while(!simulator.reached_infinity() && simulator.current_time() < 4)
 	{
-		//std::cout << "Current time before: " << simulator.current_time() << std::endl;
-		if (!ks.audit(&simulator)) return 1;
+		std::cout << "Current time before: " << simulator.current_time() << std::endl;
+		//if (!ks.audit(&simulator)) return 1;
 		//simulator.print(std::cout << "Auditing ");
 		simulator.process();
-		//std::cout << "Current time after: " << simulator.current_time() << std::endl;
+		std::cout << "Current time after: " << simulator.current_time() << std::endl;
 	}
-
 }

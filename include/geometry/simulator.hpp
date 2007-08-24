@@ -17,8 +17,13 @@ add(const RationalFunction& f, const Event_& e)
 	Event* ee = new Event_(e);
 	//std::cout << "Solving: " << f << std::endl;
 	PolynomialKernel::solve(f, ee->root_stack());
+	bool sign = PolynomialKernel::sign_at_negative_infinity(f);
 	while (!ee->root_stack().empty() && ee->root_stack().top() < current_time())
+	{
 		ee->root_stack().pop();
+		sign = !sign;
+	}
+	if (sign) ee->root_stack().pop();			// TODO: double-check the logic
 	//std::cout << "Pushing: " << ee->root_stack().top() << std::endl;
 	return queue_.push(ee);
 }

@@ -5,8 +5,14 @@
 #include "polynomial.h"
 
 template<class Comparison>  						class IndirectComparison;
-template<class PolyKernel_, class Simulator_>		class Event;
 
+/**
+ * Simulator class. Keeps a queue of events. Infinity is reached if the Event 
+ * at the front of the queue has an empty root stack. Keeps track of current time, 
+ * Event addition, and processes events one by one. Degeneracies are handled by 
+ * assuming that the RationalFunction responsible for the event must be positive
+ * before the Event occurs.
+ */
 template<class PolyKernel_, template<class Event> class EventComparison_ = std::less>
 class Simulator
 {
@@ -56,6 +62,12 @@ class Simulator
 		bool						reached_infinity_;
 };
 
+
+/**
+ * Base class for events. Stores a root stack, subclasses need to define process(). 
+ * Event with an empty root stack compares greater than any other Event, 
+ * pushing those events to the end of the queue.
+ */
 template<class PolyKernel_, template<class Event> class EventComparison_>
 class Simulator<PolyKernel_, EventComparison_>::Event
 {
@@ -80,15 +92,16 @@ class Simulator<PolyKernel_, EventComparison_>::Event
 				return root_stack().top() < e.root_stack().top();
 		}
 
-		int							sign_before() const							{ return root_stack().top().sign_low(); }
-		int							sign_after() const							{ return root_stack().top().sign_high(); }
-
 		virtual std::ostream&		print(std::ostream& out) const				{ return out << "Event with " << root_stack_.size() << " roots"; }
 
 	private:
 		RootStack					root_stack_;
 };
 
+/**
+ * Compares elements pointed at by its arguments using the provided Comparison_ 
+ * (which must not take any arguments during construction).
+ */
 template<class Comparison_>
 class IndirectComparison: public std::binary_function<const typename Comparison_::first_argument_type*, 
 													  const typename Comparison_::second_argument_type*, 

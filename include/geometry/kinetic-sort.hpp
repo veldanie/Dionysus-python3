@@ -1,22 +1,21 @@
 template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
-KineticSort(Swap swap):
-	swap_(swap)
+KineticSort()
 {}	
 
 template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
-KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator):
-	swap_(swap)
+KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator)
 {
-	initialize(b, e, simulator);
+	initialize(b, e, swap, simulator);
 }
 
 template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 void
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
-initialize(ElementIterator b, ElementIterator e,, Simulator* simulator)
+initialize(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator)
 {
+	swap_ = swap;
 	for (ElementIterator cur = b; cur != e; ++cur)
 		list_.push_back(Node(cur, simulator->null_key()));
 	schedule_swaps(list_.begin(), list_.end(), simulator);
@@ -80,9 +79,9 @@ void
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 swap(iterator pos, Simulator* simulator)
 {
-	AssertMsg(boost::next(pos) != list_.end(), "Cannot swap the last element");
+	// TODO: AssertMsg(boost::next(pos) != list_.end(), "Cannot swap the last element");
 
-	swap(pos->element);
+	swap_(pos->element, simulator);
 
 	// Remove events
 	iterator prev = boost::prior(pos);

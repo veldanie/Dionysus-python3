@@ -18,7 +18,7 @@
  *  \arg Swap_                is called with an ElementIterator_ when a swap needs to be performed
  */
 template<class ElementIterator_, class TrajectoryExtractor_, 
-		 class Simulator_, class Swap_ = boost::function<void(ElementIterator_ pos)>>
+		 class Simulator_, class Swap_ = boost::function<void(ElementIterator_ pos, Simulator_* simulator)> >
 class KineticSort
 {
 	public:
@@ -50,8 +50,9 @@ class KineticSort
 
 		/// \name Core Functionality
 		/// @{
-									KineticSort(Swap swap);
+									KineticSort();
 									KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator);
+		void						initialize(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator);
 
 		void						insert(iterator pos, ElementIterator f, ElementIterator l, Simulator* simulator);
 		void						erase(iterator pos, Simulator* simulator);
@@ -60,12 +61,10 @@ class KineticSort
 		void						swap(iterator pos, Simulator* simulator);
 
 		bool						audit(Simulator* simulator) const;
+		/// @}
 
 		iterator					begin() 									{ return list_.begin(); }
 		iterator					end() 										{ return list_.end(); }
-
-		void						initialize(ElementIterator b, ElementIterator e, Simulator* simulator);
-		/// @}
 
 	private:
 		class SwapEvent;
