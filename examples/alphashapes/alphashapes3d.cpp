@@ -32,7 +32,16 @@ int main(int argc, char** argv)
 	for (AlphaSimplex3DVector::const_iterator cur = alpha_ordering.begin(); cur != alpha_ordering.end(); ++cur)
 		af.append(*cur);
 	af.fill_simplex_index_map();
+	std::cout << "Filled simplex-index map" << std::endl;
 	af.pair_simplices(af.begin(), af.end());
 	std::cout << "Simplices paired" << std::endl;
+
+	for (AlphaFiltration::Index i = af.begin(); i != af.end(); ++i)
+		if (i->is_paired())
+		{
+			if (i->sign())
+				std::cout << i->dimension() << " " << i->value() << " " << i->pair()->value() << std::endl;
+		} //else std::cout << i->value() << std::endl;
+
 }
 
