@@ -17,7 +17,7 @@ LowerStarFiltration(VertexIndex begin, VertexIndex end, const VertexCmp& cmp, Vi
 
 	// Record vertex order
 	for(typename VertexIndexList::const_iterator cur = tmp_list.begin(); cur != tmp_list.end(); ++cur)
-		(*cur)->set_order(vertex_order.push_back(VertexDescriptor(*cur, Parent::append(Simplex(*cur)))));
+		(*cur)->set_order(vertex_order.push_back(VertexDescriptor(*cur, Parent::append(Simplex(0, *cur)))));
 }
 
 template<class VI, class Smplx, class FltrSmplx, class Vnrd>
