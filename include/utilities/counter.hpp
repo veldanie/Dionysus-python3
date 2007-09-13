@@ -35,6 +35,8 @@ print()
 {
 	// FIXME: add (colored) timestamp
 	std::cout << "Counter [" << full_name_ << "]: " << count << std::endl;
+	for (SubCountMap::const_iterator cur = subcount.begin(); cur != subcount.end(); ++cur)
+		std::cout << "  " << cur->first << ": " << cur->second << std::endl;
 	for (SubCounterMap::iterator cur = subcounters_.begin(); cur != subcounters_.end(); ++cur)
 		cur->second->print();
 }	

@@ -1,4 +1,3 @@
-#include <utilities/log.h>
 #include <utilities/counter.h>
 
 static Counter* cTestElaborate = GetCounter("test/elaborate");
@@ -16,6 +15,16 @@ int main()
 	Count(cTestElaborate);
 	Count(cTestBasic);
 	Count(cTestElaborate);
+	Count(cTestBasic);
+	Count(cTestBasic);
+	CountNum(cTestBasic, 25)
+	CountNum(cTestBasic, 132)
+	CountNum(cTestBasic, 25)
+	CountNum(cTestBasic, 121)
+	CountNum(cTestBasic, 132)
+	CountNum(cTestBasic, 25)
+	
+	SetTrigger(cTestBasic, &rootCounter);
 	Count(cTestBasic);
 	Count(cTestBasic);
 	

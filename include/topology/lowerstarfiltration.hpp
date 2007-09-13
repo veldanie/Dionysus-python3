@@ -1,4 +1,9 @@
+#include "utilities/counter.h"
+
 /* Implementations */
+		
+static Counter*  cLowerStarTransposition =		 		GetCounter("lowerstar");
+static Counter*  cLowerStarChangedAttachment =		 	GetCounter("lowerstar/ChangedAttachment");
 
 template<class VI, class Smplx, class FltrSmplx, class Vnrd>
 template<class VertexCmp>
@@ -59,20 +64,7 @@ bool
 LowerStarFiltration<VI,Smplx,FltrSmplx,Vnrd>::
 transpose_vertices(const VertexOrderIndex& order)
 {
-	Count("VertexTransposition");
-
-#if COUNTERS
-	if ((counters.lookup("VertexTransposition") % 1000000) == 0)
-	{
-		Dout(dc::lsfiltration, "Vertex transpositions:  " << counters.lookup("VertexTransposition"));
-		Dout(dc::lsfiltration, "Simplex transpositions: " << counters.lookup("SimplexTransposition"));
-		Dout(dc::lsfiltration, "Attachment changed:     " << counters.lookup("ChangedAttachment"));
-		Dout(dc::lsfiltration, "Regular disconnected:   " << counters.lookup("RegularDisconnected"));
-		Dout(dc::lsfiltration, "Pairing Changed:        " << counters.lookup("ChangedPairing"));
-		Dout(dc::lsfiltration, "------------------------");
-	}
-#endif // COUNTERS
-	
+	Count(cLowerStarTransposition);
 	Dout(dc::lsfiltration, "Transposing vertices (" << order->vertex_index << ", " 
 													<< boost::next(order)->vertex_index << ")");
 
@@ -103,7 +95,7 @@ transpose_vertices(const VertexOrderIndex& order)
 		Dout(dc::lsfiltration, "  Considering " << *j);
 		if (nbghrs && j->contains(v_i))			// short circuit
 		{
-			Count("ChangedAttachment");
+			Count(cLowerStarChangedAttachment);
 			Dout(dc::lsfiltration, "  Attachment changed for " << *j);
 			j->set_attachment(v_i);
 			++j;
