@@ -5,11 +5,11 @@ Dependencies
   boost -       great set of C++ libraries
   Doxygen -     for building documentation
   libcwd -      for debugging only (is not needed by default)
-  synaps -      for solving polynomial (for kinetic kernel), which in turn requires GMP
+  synaps -      for solving polynomials (for kinetic kernel), which in turn requires GMP
 
 Configuration
   The path to CGAL's Makefile is expected to be set in $CGAL_MAKEFILE, the rest
-  is just usual CMake configuration
+  is just the usual CMake configuration
 
 Building
   To build examples, create a directory build (to keep everything in one place),

@@ -16,13 +16,28 @@ boundary() const
 
 	for (typename VertexContainer::const_iterator cur = vertices_.begin(); cur != vertices_.end(); ++cur)
 	{
-		bdry.push_back(*this);
+		bdry.push_back(Self(dimension() - 1));
 		Self& s = bdry.back();
-		s.vertices_.erase(*cur);
+		std::remove_copy(vertices_.begin(), vertices_.end(), s.vertices_.begin(), *cur);
 	}
 
 	return bdry;
 }
+
+template<class V>
+bool
+SimplexWithVertices<V>::
+contains(const Vertex& v) const
+{ 
+	typename VertexContainer::const_iterator location = std::lower_bound(vertices_.begin(), vertices_.end(), v); 
+	return ((location == vertices_.end()) || (*location == v)); 
+}
+		
+template<class V>
+void
+SimplexWithVertices<V>::
+add(const Vertex& v)
+{ vertices_.push_back(v); std::sort(vertices_.begin(), vertices_.end()); }
 
 template<class V>
 std::ostream&			

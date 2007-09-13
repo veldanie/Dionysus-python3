@@ -1,6 +1,6 @@
 /*
  * Author: Dmitriy Morozov
- * Department of Computer Science, Duke University, 2005 -- 2006
+ * Department of Computer Science, Duke University, 2005 -- 2007
  */
 
 #ifndef __SIMPLEX_H__
@@ -9,7 +9,8 @@
 #include "utilities/sys.h"
 #include "utilities/debug.h"
 
-#include <set>
+#include <vector>
+#include <algorithm>
 #include <list>
 #include <iostream>
 
@@ -30,7 +31,7 @@ class SimplexWithVertices
 		typedef		V																Vertex;
 		typedef		SimplexWithVertices<Vertex>										Self;
 	
-		typedef		std::set<Vertex>												VertexContainer;
+		typedef		std::vector<Vertex>												VertexContainer;
 		typedef		std::list<Self>													Cycle;
 		
 		/// \name Constructors 
@@ -43,8 +44,10 @@ class SimplexWithVertices
 			vertices_(bg, end)														{}
 		SimplexWithVertices(const VertexContainer& v):	
 			vertices_(v)															{}
-		SimplexWithVertices(Vertex v):	
-			vertices_()																{ vertices_.insert(v); }
+		SimplexWithVertices(Dimension d, Vertex v):	
+			vertices_()																{ vertices_.reserve(d+1); add(v); }
+		SimplexWithVertices(Dimension d): 
+			vertices_(d+1)															{}
 		/// @}
 		
 		/// \name Core 
@@ -55,9 +58,9 @@ class SimplexWithVertices
 		
 		/// \name Vertex manipulation
 		/// @{
-		bool					contains(const Vertex& v) const						{ return (vertices_.find(v) != vertices_.end()); }
+		bool					contains(const Vertex& v) const;
 		const VertexContainer&	vertices() const									{ return vertices_; }
-		void					add(const Vertex& v) 								{ vertices_.insert(v); }
+		void					add(const Vertex& v);
 		/// @}
 
 		/// \name Assignment and comparison
@@ -147,8 +150,8 @@ class SimplexWithAttachment: public SimplexWithVertices<V>
 			Parent(bg, end)															{}
 		SimplexWithAttachment(const Parent& s):
 			Parent(s)																{}
-		SimplexWithAttachment(VertexIndex vi):
-			Parent(vi), attachment(vi)												{}
+		SimplexWithAttachment(Dimension d, VertexIndex vi):
+			Parent(d, vi), attachment(vi)											{}
 		/// @}
 
 		void 					set_attachment(VertexIndex v)						{ attachment = v; }

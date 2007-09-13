@@ -22,9 +22,13 @@ void
 Filtration<S, FS, V>::
 pair_simplices(Index bg, Index end)
 {
+	int i = 0;
 	Dout(dc::filtration, "Entered: compute_pairing");
 	for (Index j = bg; j != end; ++j)
 	{
+		if (i++ % 10000 == 0)
+			std::cout << i << " simplices processed" << std::endl;
+
 		Dout(dc::filtration|flush_cf|continued_cf, *j << ": ");
 		init_cycle_trail(j); 
 		Cycle& bdry = j->cycle();
