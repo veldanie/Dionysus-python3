@@ -1,5 +1,4 @@
-#include <utilities/sys.h>
-#include <utilities/debug.h>
+#include <utilities/log.h>
 
 #include "alphashapes3d.h"
 #include <topology/filtration.h>
@@ -48,11 +47,12 @@ struct RadiusOrder
 
 int main(int argc, char** argv) 
 {
-#ifdef CWDEBUG
-	Debug(dc::filtration.on());
-	//Debug(dc::cycle.on());
+#ifdef LOGGING
+	rlog::RLogInit(argc, argv);
 
-	dionysus::debug::init();
+	stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
+	stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
+	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/cycle") );
 #endif
 
 	std::istream& in = std::cin;

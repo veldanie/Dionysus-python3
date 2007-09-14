@@ -6,9 +6,6 @@
 #ifndef __GRID2DVINEYARD_H__
 #define __GRID2DVINEYARD_H__
 
-#include "utilities/sys.h"
-#include "utilities/debug.h"
-
 #include "grid2D.h"
 #include "topology/lowerstarfiltration.h"
 

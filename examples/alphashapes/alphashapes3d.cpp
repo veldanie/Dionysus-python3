@@ -1,5 +1,4 @@
-#include <utilities/sys.h>
-#include <utilities/debug.h>
+#include <utilities/log.h>
 
 #include "alphashapes3d.h"
 #include <topology/filtration.h>
@@ -11,6 +10,16 @@ typedef Filtration<AlphaSimplex3D>				AlphaFiltration;
 
 int main(int argc, char** argv) 
 {
+#ifdef LOGGING
+	rlog::RLogInit(argc, argv);
+
+	stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
+	stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
+	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/cycle") );
+#endif
+
+	SetFrequency(GetCounter("filtration/pair"), 10000);
+
 	// Read in the point set and compute its Delaunay triangulation
 	std::istream& in = std::cin;
 	double x,y,z;

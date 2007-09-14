@@ -6,8 +6,7 @@
 #ifndef __LOWERSTARFILTRATION_H__
 #define __LOWERSTARFILTRATION_H__
 
-#include "utilities/sys.h"
-#include "utilities/debug.h"
+#include "utilities/log.h"
 
 #include "filtration.h"
 #include "simplex.h"

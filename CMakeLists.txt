@@ -11,9 +11,6 @@ find_package				(Doxygen)
 find_library				(dsrpdb_LIBRARY 			NAMES dsrpdb)
 find_path					(dsrpdb_INCLUDE_DIR 		dsrpdb/Protein.h)
 
-set							(libraries 					${libraries}
-														${dsrpdb_LIBRARY})
-
 #CGAL
 execute_process				(COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_SOURCE_DIR}/FindCGAL.Makefile libpaths
 							 OUTPUT_VARIABLE cgal_libpaths)
@@ -46,12 +43,6 @@ set							(cgal_libraries 			${cgal_LIBRARY}
 
 # Debugging
 if							(debug)
-#	find_library			(cwd_LIBRARY				NAMES cwd)
-#	find_path				(cwd_INCLUDE_DIR			libcwd/debug.h)
-#	set 					(cwd_INCLUDE_DIR			${cwd_INCLUDE_DIR}/libcwd)
-#	add_definitions			(-DCWDEBUG -g)
-#	set						(external_sources			${CMAKE_CURRENT_SOURCE_DIR}/src/debug.cpp)
-#	set						(libraries 					${libraries} ${cwd_LIBRARY})
 	add_definitions			(-g)
 else						(debug)
 	add_definitions			(-DNDEBUG)
@@ -95,6 +86,6 @@ if							(DOXYGEN_FOUND)
 #							DEPENDS Doxyfile)
 endif						(DOXYGEN_FOUND)
 
-# Set external sources
+# Process subdirectories
 add_subdirectory			(examples)
 add_subdirectory			(tests)

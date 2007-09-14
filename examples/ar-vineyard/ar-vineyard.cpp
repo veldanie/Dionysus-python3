@@ -1,5 +1,4 @@
-#include <utilities/sys.h>
-#include <utilities/debug.h>
+#include <utilities/log.h>
 
 #include "ar-vineyard.h"
 
@@ -9,14 +8,15 @@
 
 int main(int argc, char** argv) 
 {
-#ifdef CWDEBUG
-	Debug(dc::filtration.off());
-	Debug(dc::cycle.off());
-	Debug(dc::vineyard.off());
-	Debug(dc::transpositions.off());
-	Debug(dc::lsfiltration.off());
+#ifdef LOGGING
+	rlog::RLogInit(argc, argv);
 
-	dionysus::debug::init();
+	stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
+	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
+	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/cycle") );
+	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/vineyard") );
+	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration/transpositions") );
+	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/lowerstar") );
 #endif
 
 	// Read command-line arguments

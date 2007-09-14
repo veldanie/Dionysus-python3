@@ -6,8 +6,7 @@
 #ifndef __FILTRATION_H__
 #define __FILTRATION_H__
 
-#include "utilities/sys.h"
-#include "utilities/debug.h"
+#include "utilities/log.h"
 
 #include "filtrationcontainer.h"
 #include "filtrationsimplex.h"
@@ -92,8 +91,8 @@ class Filtration: public FltrSmplx::Container
 		
 		std::ostream& 					operator<<(std::ostream& out) const;
 
-	protected:
-		/// \name Comparator accessors (protected)
+	public:		// doesn't really need to be public, except for assertions
+		/// \name Comparator accessors
 		/// @{
 		const ConsistencyComparator& 	get_consistency_cmp() const					{ return consistency_cmp; }
 		const CyclesComparator& 		get_cycles_cmp() const						{ return cycles_cmp; }

@@ -3,6 +3,6 @@ set							(targets
 							 alpharadius)
 							 
 foreach 					(t ${targets})
-	add_executable			(${t} ${t}.cpp ${external_sources})
-	target_link_libraries	(${t} ${cgal_libraries})
+	add_executable			(${t} ${t}.cpp)
+	target_link_libraries	(${t} ${libraries} ${cgal_libraries})
 endforeach 					(t ${targets})

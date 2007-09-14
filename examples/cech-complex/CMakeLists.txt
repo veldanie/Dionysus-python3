@@ -2,6 +2,6 @@ set							(targets
 							 cech-complex)
 							 
 foreach 					(t ${targets})
-	add_executable			(${t} ${t}.cpp ${external_sources})
-	target_link_libraries	(${t} ${libraries} ${cgal_libraries})
+	add_executable			(${t} ${t}.cpp)
+	target_link_libraries	(${t} ${libraries})
 endforeach 					(t ${targets})

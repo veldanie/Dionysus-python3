@@ -13,7 +13,11 @@
 template<class T>
 std::string tostring(const T& t) { std::ostringstream out; out << t; return out.str(); }
 
+#define AssertMsg(cond, message, ...)		do { if (!(cond)) { rError(message, ##__VA_ARGS__); rAssertSilent(cond); } } while (0)
+	
 #else // LOGGING
+
+#include <unistd.h>		// for STDOUT_FILENO and STDERR_FILENO
 
 #define rDebug(...)
 #define rInfo(...)
@@ -27,6 +31,33 @@ std::string tostring(const T& t) { std::ostringstream out; out << t; return out.
 #define DEF_CHANNEL(...) 0
 #define RLOG_CHANNEL(...) 0
 
+#define AssertMsg(cond, ...)
+
+// To avoid undefined errors for RLogChannel, we create a dummy namespace
+namespace rlog
+{
+	typedef		void			RLogChannel;
+
+	class StdioNode
+	{
+		public:
+								StdioNode(int,int)					{}
+			void				subscribeTo(RLogChannel*)			{}
+
+			static const int 	OutputColor = 0;
+			static const int	OutputChannel = 0;
+	};
+}
+
 #endif // LOGGING
+
+static rlog::StdioNode stdoutLog(STDOUT_FILENO,
+								 rlog::StdioNode::OutputColor + 
+								 rlog::StdioNode::OutputChannel);
+
+static rlog::StdioNode stderrLog(STDERR_FILENO,
+								 rlog::StdioNode::OutputColor + 
+								 rlog::StdioNode::OutputChannel);
+
 
 #endif //__LOG_H__

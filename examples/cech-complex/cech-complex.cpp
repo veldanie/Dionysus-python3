@@ -1,5 +1,4 @@
-#include <utilities/sys.h>
-#include <utilities/debug.h>
+#include <utilities/log.h>
 
 #include <topology/simplex.h>
 #include <topology/filtration.h>

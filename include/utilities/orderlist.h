@@ -12,15 +12,13 @@
 #ifndef __ORDERLIST_H__
 #define __ORDERLIST_H__
 
-#include "sys.h"
-#include "debug.h"
+#include "log.h"
 
 #include <iterator>
 #include <iostream>
 #include <list>
 
 #include "types.h"
-//#include "counter.h"
 
 #include <boost/utility.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>

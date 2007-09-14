@@ -6,9 +6,6 @@
 #ifndef __SIMPLEX_H__
 #define __SIMPLEX_H__
 
-#include "utilities/sys.h"
-#include "utilities/debug.h"
-
 #include <vector>
 #include <algorithm>
 #include <list>
@@ -41,9 +38,9 @@ class SimplexWithVertices
 			vertices_(s.vertices_)													{}
 		template<class Iterator>
 		SimplexWithVertices(Iterator bg, Iterator end):
-			vertices_(bg, end)														{}
+			vertices_(bg, end)														{ std::sort(vertices_.begin(), vertices_.end()); }
 		SimplexWithVertices(const VertexContainer& v):	
-			vertices_(v)															{}
+			vertices_(v)															{ std::sort(vertices_.begin(), vertices_.end()); }
 		SimplexWithVertices(Dimension d, Vertex v):	
 			vertices_()																{ vertices_.reserve(d+1); add(v); }
 		SimplexWithVertices(Dimension d): 
