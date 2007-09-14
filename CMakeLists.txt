@@ -24,7 +24,6 @@ execute_process				(COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_SOURCE_DIR}
 #string						(REPLACE "\n" "" cgal_ldflags 	${cgal_ldflags})
 string						(REPLACE "\n" "" cgal_cxxflags 	${cgal_cxxflags})
 string						(REPLACE "\n" "" cgal_libpath 	${cgal_libpath})
-add_definitions				(${cgal_cxxflags})
 find_library				(cgal_LIBRARY				NAMES CGAL
 														PATHS ${cgal_libpath})
 find_library				(core_LIBRARY				NAMES CGALcore++
@@ -43,10 +42,19 @@ set							(cgal_libraries 			${cgal_LIBRARY}
 
 # Debugging
 if							(debug)
-	add_definitions			(-g)
+	if 						(optimize)
+			set				(cxx_flags					${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+	else					(optimize)
+			set				(cxx_flags					${CMAKE_CXX_FLAGS_DEBUG})
+	endif					(optimize)
 else						(debug)
-	add_definitions			(-DNDEBUG)
+	if 						(optimize)
+			set				(cxx_flags					${CMAKE_CXX_FLAGS_RELEASE})
+	else					(optimize)
+			set				(cxx_flags					${CMAKE_CXX_FLAGS})
+	endif					(optimize)
 endif						(debug)
+add_definitions				(${cxx_flags})
 
 # Logging
 if 							(logging)
@@ -61,14 +69,6 @@ endif						(logging)
 if							(counters)
 	add_definitions			(-DCOUNTERS)
 endif						(counters)
-
-# Optimization
-if							(optimize GREATER 0)
-	add_definitions			(-O${optimize})
-elseif						(optimize)
-	add_definitions			(-O)
-endif						(optimize)
-endif						(optimize GREATER 0)
 
 
 # Set includes
