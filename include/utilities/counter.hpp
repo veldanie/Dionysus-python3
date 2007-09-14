@@ -1,3 +1,6 @@
+#include <ctime>
+#include <cstdio>
+
 Counter*
 Counter::
 get_child(const std::string& path, std::string::size_type pos)
@@ -33,10 +36,18 @@ void
 Counter::
 print()
 {
-	// FIXME: add (colored) timestamp
+	time_t rawtime; time(&rawtime);
+	struct tm* timeinfo = localtime(&rawtime);
+
+	printf("%s(%02i:%02i:%02i)%s ",
+		   "\033[32m",			// green color
+			timeinfo->tm_hour,
+			timeinfo->tm_min,
+			timeinfo->tm_sec,
+			"\033[0m");			// normal color
 	std::cout << "Counter [" << full_name_ << "]: " << count << std::endl;
 	for (SubCountMap::const_iterator cur = subcount.begin(); cur != subcount.end(); ++cur)
-		std::cout << "  " << cur->first << ": " << cur->second << std::endl;
+		std::cout << "    " << cur->first << ": " << cur->second << std::endl;
 	for (SubCounterMap::iterator cur = subcounters_.begin(); cur != subcounters_.end(); ++cur)
 		cur->second->print();
 }	

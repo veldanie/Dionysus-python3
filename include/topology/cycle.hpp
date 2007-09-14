@@ -7,6 +7,7 @@
 #include <boost/utility.hpp>
 
 #include "utilities/log.h"
+#include "utilities/counter.h"
 
 using boost::serialization::make_nvp;
 using boost::serialization::make_binary_object;
@@ -14,6 +15,11 @@ using boost::serialization::make_binary_object;
 #ifdef LOGGING
 static rlog::RLogChannel* rlCycle = 				DEF_CHANNEL( "topology/cycle", rlog::Log_Debug);
 #endif // LOGGING
+
+#ifdef COUNTERS
+static Counter*  cCycleAddBasic =		 			GetCounter("cycle/add/basic");
+static Counter*  cCycleAddComparison =		 		GetCounter("cycle/add/comparison");
+#endif // COUNTERS
 
 template<class I, class OrderCmp, class ConsistencyCmp>
 Cycle<I,OrderCmp,ConsistencyCmp>::
@@ -189,13 +195,17 @@ add(const Self& c, const ConsistencyCmp& cmp)
 		if (cur1 == end())
 		{
 			while (cur2 != c.end())
+			{
 				push_back(*cur2++);
+				Count(cCycleAddBasic);
+			}
 			rLog(rlCycle, "After addition: %s", tostring(*this).c_str());
 			return *this;
 		}
 
 		// mod 2
 		int res = cmp.compare(*cur1, *cur2);
+		Count(cCycleAddComparison);
 		rLog(rlCycle, "Comparison result: %i", res);
 		if (res == 0)		// *cur1 == *cur2
 		{
@@ -214,6 +224,7 @@ add(const Self& c, const ConsistencyCmp& cmp)
 			++cur2;
 			++sz;
 		}
+		Count(cCycleAddBasic);
 	}
 
 	rLog(rlCycle, "After addition: %s", tostring(*this).c_str());

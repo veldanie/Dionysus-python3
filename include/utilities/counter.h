@@ -53,7 +53,6 @@ class Counter
 	private:	
 		SubCounterMap			subcounters_;
 		std::string				full_name_;
-
 };
 
 static		Counter				rootCounter;

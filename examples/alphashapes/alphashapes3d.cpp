@@ -19,6 +19,7 @@ int main(int argc, char** argv)
 #endif
 
 	SetFrequency(GetCounter("filtration/pair"), 10000);
+	SetTrigger(GetCounter("filtration/pair"), GetCounter(""));
 
 	// Read in the point set and compute its Delaunay triangulation
 	std::istream& in = std::cin;
