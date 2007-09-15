@@ -1,6 +1,21 @@
 #include <ctime>
 #include <cstdio>
 
+Counter::
+Counter(const std::string& full_name,
+		CounterType freq):
+		count(0), frequency(freq), trigger(this), full_name_(full_name)
+{ 
+	if (isatty(STDOUT_FILENO)) 
+	{
+		start_color = green_color; 
+		finish_color = normal_color;
+	} 
+	else
+	{	start_color = finish_color = empty_string;	}
+}
+
+
 Counter*
 Counter::
 get_child(const std::string& path, std::string::size_type pos)
@@ -40,11 +55,11 @@ print()
 	struct tm* timeinfo = localtime(&rawtime);
 
 	printf("%s(%02i:%02i:%02i)%s ",
-		   "\033[32m",			// green color
+		    start_color,	
 			timeinfo->tm_hour,
 			timeinfo->tm_min,
 			timeinfo->tm_sec,
-			"\033[0m");			// normal color
+			finish_color);
 	std::cout << "Counter [" << full_name_ << "]: " << count << std::endl;
 	for (SubCountMap::const_iterator cur = subcount.begin(); cur != subcount.end(); ++cur)
 		std::cout << "    " << cur->first << ": " << cur->second << std::endl;

@@ -26,6 +26,7 @@
 #include <string>
 #include <iostream>
 #include <limits>
+#include <unistd.h>
 
 class Counter
 {
@@ -42,9 +43,7 @@ class Counter
 
 	public:
 								Counter(const std::string& full_name = "",
-										CounterType freq = std::numeric_limits<CounterType>::max()):
-										count(0), frequency(freq), trigger(this), full_name_(full_name)
-								{}
+										CounterType freq = std::numeric_limits<CounterType>::max());
 								~Counter();
 
 		Counter*				get_child(const std::string& path, std::string::size_type pos);
@@ -53,7 +52,18 @@ class Counter
 	private:	
 		SubCounterMap			subcounters_;
 		std::string				full_name_;
+		
+		static const char*		start_color;
+		static const char*		finish_color;
+		static const char		green_color[];
+		static const char 		normal_color[];
+		static const char 		empty_string[];
 };
+const char Counter::green_color[] 		= "\033[32m";
+const char Counter::normal_color[] 		= "\033[0m";
+const char Counter::empty_string[] 		= "";
+const char* Counter::start_color 		= 0;
+const char* Counter::finish_color 		= 0;
 
 static		Counter				rootCounter;
 
