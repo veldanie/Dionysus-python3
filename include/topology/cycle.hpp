@@ -23,12 +23,12 @@ static Counter*  cCycleAddComparison =		 		GetCounter("cycle/add/comparison");
 
 template<class I, class OrderCmp, class ConsistencyCmp>
 Cycle<I,OrderCmp,ConsistencyCmp>::
-Cycle(): sz(0)
+Cycle()
 {}
 
 template<class I, class OrderCmp, class ConsistencyCmp>
 Cycle<I,OrderCmp,ConsistencyCmp>::
-Cycle(const Cycle& c): CycleRepresentation(c), sz(c.sz)					
+Cycle(const Cycle& c): CycleRepresentation(c)
 {}
 
 template<class I, class OrderCmp, class ConsistencyCmp>
@@ -71,7 +71,6 @@ Cycle<I,OrderCmp,ConsistencyCmp>::
 swap(Cycle& c)
 {
 	CycleRepresentation::swap(c);
-	std::swap(sz, c.sz);
 }
 
 template<class I, class OrderCmp, class ConsistencyCmp>
@@ -211,7 +210,6 @@ add(const Self& c, const ConsistencyCmp& cmp)
 		{
 			rLog(rlCycle, "Equality");
 			cur1 = erase(cur1);		// erase cur1 --- as a result cur1 will be pointing at old_cur1++
-			--sz;
 			++cur2;
 		} else if (res < 0)	// *cur1 < *cur2
 		{
@@ -222,7 +220,6 @@ add(const Self& c, const ConsistencyCmp& cmp)
 			rLog(rlCycle, "Greater than");
 			insert(cur1, *cur2);
 			++cur2;
-			++sz;
 		}
 		Count(cCycleAddBasic);
 	}
@@ -255,7 +252,6 @@ Cycle<I,OrderCmp,ConsistencyCmp>::
 serialize(Archive& ar, version_type )
 {
 	ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Parent);
-	ar & make_nvp("size", sz);;
 }
 
 
