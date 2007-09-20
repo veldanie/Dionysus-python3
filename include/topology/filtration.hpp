@@ -21,6 +21,7 @@ static rlog::RLogChannel* rlFiltrationTranspositions = 	DEF_CHANNEL("topology/fi
 static Counter*  cFiltrationPair =		 			GetCounter("filtration/pair");
 static Counter*  cFiltrationPairBoundaries = 		GetCounter("filtration/pair/boundaries");
 static Counter*  cFiltrationPairCycleLength = 		GetCounter("filtration/pair/cyclelength");
+static Counter*  cFiltrationPairTrailLength = 		GetCounter("filtration/pair/traillength");
 static Counter*  cFiltrationTransposition = 		GetCounter("filtration/transposition");
 static Counter*  cFiltrationTranspositionDiffDim = 	GetCounter("filtration/transposition/diffdim");
 static Counter*  cFiltrationTranspositionCase12 = 	GetCounter("filtration/transposition/case/1/2");
@@ -73,6 +74,7 @@ pair_simplices(Index bg, Index end)
 				i->set_pair(j);
 				j->set_pair(i);
 				CountNum(cFiltrationPairCycleLength, j->cycle().size());
+				CountBy(cFiltrationPairCycleLength, j->cycle().size());
 				break;
 			}
 
@@ -80,6 +82,7 @@ pair_simplices(Index bg, Index end)
 							   tostring(bdry).c_str(), tostring(i->pair()->cycle()).c_str());
 			bdry.add(i->pair()->cycle(), get_consistency_cmp());
 			i->pair()->trail().append(j, get_consistency_cmp());
+			Count(cFiltrationPairTrailLength);
 			rLog(rlFiltration, "After addition: %s", tostring(bdry).c_str());
 		}
 		rLog(rlFiltration, "Finished with %s: %s", 

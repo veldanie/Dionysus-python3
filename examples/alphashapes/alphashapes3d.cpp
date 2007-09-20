@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 	rlog::RLogInit(argc, argv);
 
 	stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
-	stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
+	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/cycle") );
 #endif
 
