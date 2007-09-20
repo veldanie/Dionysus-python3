@@ -59,8 +59,8 @@ class Filtration: public FltrSmplx::Container
 		/// \name Core Functionality
 		/// @{
 		/// Computes RU decomposition of the simplices in [bg, end) range, assuming that everything before bg has been paired 
-		void 							pair_simplices(Index bg, Index end);
-		void 							pair_simplices()							{ pair_simplices(begin(), end()); }
+		void 							pair_simplices(Index bg, Index end, bool store_trails = true);
+		void 							pair_simplices(bool store_trails = true)	{ pair_simplices(begin(), end(), store_trails); }
 		bool							transpose(Index i, bool maintain_lazy = true);
 		bool							is_paired() const;
 		Index							append(const Simplex& s);					///< Appends s to the filtration
@@ -107,6 +107,7 @@ class Filtration: public FltrSmplx::Container
 		void							pairing_switch(Index i, Index j);
 		
 		bool 							paired;
+		bool							trails_stored;
 		SimplexMap						inverse_simplices;
 
 		Vineyard*						vineyard_;

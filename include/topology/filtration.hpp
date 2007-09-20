@@ -44,8 +44,13 @@ Filtration(Vineyard* vnrd = 0): paired(false), vineyard_(vnrd)
 template<class S, class FS, class V>
 void 
 Filtration<S, FS, V>::
-pair_simplices(Index bg, Index end)
+pair_simplices(Index bg, Index end, bool store_trails)
 {
+	if (!is_paired())
+		trails_stored = store_trails;
+	else
+		trails_stored &= store_trails;
+
 	rLog(rlFiltration, "Entered: compute_pairing");
 	for (Index j = bg; j != end; ++j)
 	{
@@ -81,7 +86,7 @@ pair_simplices(Index bg, Index end)
 			rLog(rlFiltration, "  Adding: [%s] + [%s]", 
 							   tostring(bdry).c_str(), tostring(i->pair()->cycle()).c_str());
 			bdry.add(i->pair()->cycle(), get_consistency_cmp());
-			i->pair()->trail().append(j, get_consistency_cmp());
+			if (store_trails)	i->pair()->trail().append(j, get_consistency_cmp());
 			Count(cFiltrationPairTrailLength);
 			rLog(rlFiltration, "After addition: %s", tostring(bdry).c_str());
 		}
@@ -107,6 +112,7 @@ Filtration<S,FS,V>::
 transpose(Index i, bool maintain_lazy)
 {
 	AssertMsg(vineyard() != 0, "We must have a vineyard for transpositions");
+	AssertMsg(trails_stored, "We must have trails (matrix U) to perform transpositions");
 	
 	Index i_orig = i++;
 	

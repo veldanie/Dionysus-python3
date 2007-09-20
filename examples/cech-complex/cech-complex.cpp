@@ -73,6 +73,9 @@ void add_simplices(SimplexVector& sv, int d, const PointContainer& points)
 
 int main(int argc, char** argv) 
 {
+	SetFrequency(GetCounter("filtration/pair"), 10000);
+	SetTrigger(GetCounter("filtration/pair"), GetCounter(""));
+
 	// Read in the point set and compute its Delaunay triangulation
 	std::istream& in = std::cin;
 	int ambient_d, homology_d;	
@@ -114,7 +117,7 @@ int main(int argc, char** argv)
 
 	// Compute persistence
 	cf.fill_simplex_index_map();
-	cf.pair_simplices(cf.begin(), cf.end());
+	cf.pair_simplices(cf.begin(), cf.end(), false);
 	std::cout << "Simplices paired" << std::endl;
 
 	for (CechFiltration::Index i = cf.begin(); i != cf.end(); ++i)

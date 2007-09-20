@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 		af.append(*cur);
 	af.fill_simplex_index_map();
 	std::cout << "Filled simplex-index map" << std::endl;
-	af.pair_simplices(af.begin(), af.end());
+	af.pair_simplices(af.begin(), af.end(), false);
 	std::cout << "Simplices paired" << std::endl;
 
 	for (AlphaFiltration::Index i = af.begin(); i != af.end(); ++i)
