@@ -1,5 +1,6 @@
 set							(targets						
 							 alphashapes3d
+							 alphashapes2d
 							 alpharadius)
 							 
 add_definitions				(${cgal_cxxflags})

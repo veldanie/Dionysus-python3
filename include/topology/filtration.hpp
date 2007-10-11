@@ -387,8 +387,8 @@ init_cycle_trail(Index j)
 
 	for (typename Simplex::Cycle::const_iterator cur = bdry.begin(); cur != bdry.end(); ++cur)
 	{
-		rLog(rlFiltrationTranspositions, "Appending in init_cycle_trail(): %s", 
-										 tostring(*cur).c_str());
+		rLog(rlFiltration, "Appending in init_cycle_trail(): %s", 
+						   tostring(*cur).c_str());
 		AssertMsg(get_index(*cur) != end(), "Non-existent simplex in the cycle");
 		j->cycle().append(get_index(*cur), get_consistency_cmp());
 	}
