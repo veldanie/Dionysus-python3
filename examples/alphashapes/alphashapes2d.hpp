@@ -105,13 +105,13 @@ void fill_alpha_order(const Delaunay& Dt, AlphaSimplex2DVector& alpha_order)
 	AlphaSimplex2D::SimplexSet simplices;
 	for(Face_iterator cur = Dt.finite_faces_begin(); cur != Dt.finite_faces_end(); ++cur)
 		simplices.insert(AlphaSimplex2D(*cur));
-	std::cout << "Faces inserted" << std::endl;
+	rInfo("Faces inserted");
 	for(Edge_iterator cur = Dt.finite_edges_begin(); cur != Dt.finite_edges_end(); ++cur)
 		simplices.insert(AlphaSimplex2D(*cur, simplices));
-	std::cout << "Edges inserted" << std::endl;
+	rInfo("Edges inserted");
 	for(Vertex_iterator cur = Dt.finite_vertices_begin(); cur != Dt.finite_vertices_end(); ++cur)
 		simplices.insert(AlphaSimplex2D(*cur));
-	std::cout << "Vertices inserted" << std::endl;
+	rInfo("Vertices inserted");
     
 	// Sort simplices by their alpha values
 	alpha_order.resize(simplices.size());

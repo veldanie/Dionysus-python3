@@ -50,6 +50,7 @@ int main(int argc, char** argv)
 #ifdef LOGGING
 	rlog::RLogInit(argc, argv);
 
+	stdoutLog.subscribeTo( RLOG_CHANNEL("info") );
 	stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
 	stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/cycle") );
@@ -66,7 +67,7 @@ int main(int argc, char** argv)
 		Point p(x,y,z);
 		Dt.insert(p);
 	}
-	std::cout << "Delaunay triangulation computed" << std::endl;
+	rInfo("Delaunay triangulation computed");
  
 	AlphaSimplex3DVector alpha_ordering;
 	fill_alpha_order(Dt, alpha_ordering);
@@ -83,17 +84,17 @@ int main(int argc, char** argv)
 			continue;
 		
 		double current_alpha = CGAL::to_double(cur->value());
-		std::cout << "Current alpha: " << current_alpha << std::endl;
+		rInfo("Current alpha: %f", current_alpha);
 		std::sort(radius_ordering.begin(), radius_ordering.end(), ro);
-		std::cout << "Radius ordering size: " << radius_ordering.size() << std::endl;
+		rInfo("Radius ordering size: %i", radius_ordering.size());
 
 		RadiusFiltration rf;
 		for (SimplexVector::const_iterator cur = radius_ordering.begin(); cur != radius_ordering.end(); ++cur)
 			rf.append(*cur);
 		rf.fill_simplex_index_map();
-		std::cout << "Simplex index map filled" << std::endl;
+		rInfo("Simplex index map filled");
 		rf.pair_simplices(rf.begin(), rf.end());
-		std::cout << "Pairing computed" << std::endl;
+		rInfo("Pairing computed");
 	
 		for (RadiusFiltration::const_Index cur = rf.begin(); cur != rf.end(); ++cur)
 		{
@@ -101,7 +102,7 @@ int main(int argc, char** argv)
 	
 			RealValue d1 = cur->distance;
 			//if (cur == cur->pair())
-			//	std::cout << "Unpaired " << cur->dimension() << ' ' << CGAL::to_double(d1) << std::endl;
+			//	rInfo("Unpaired %d %f", cur->dimension(), CGAL::to_double(d1));
 			
 			RealValue d2 = cur->pair()->distance;
 			if (d1 == d2)	continue;

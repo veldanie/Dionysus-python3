@@ -14,6 +14,7 @@ int main(int argc, char** argv)
 	rlog::RLogInit(argc, argv);
 
 	stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
+	stdoutLog.subscribeTo( RLOG_CHANNEL("info") );
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/cycle") );
 #endif
@@ -31,11 +32,11 @@ int main(int argc, char** argv)
 		Point p(x,y);
 		Dt.insert(p);
 	}
-	std::cout << "Delaunay triangulation computed" << std::endl;
+	rInfo("Delaunay triangulation computed");
    
 	AlphaSimplex2DVector alpha_ordering;
 	fill_alpha_order(Dt, alpha_ordering);
-	std::cout << "Simplices: " << alpha_ordering.size() << std::endl;
+	rInfo("Simplices: %i", alpha_ordering.size());
 
 	// Create the alpha-shape filtration
 	AlphaFiltration af;
@@ -43,9 +44,9 @@ int main(int argc, char** argv)
 											  cur != alpha_ordering.end(); ++cur)
 		af.append(*cur);
 	af.fill_simplex_index_map();
-	std::cout << "Filled simplex-index map" << std::endl;
+	rInfo("Filled simplex-index map");
 	af.pair_simplices(af.begin(), af.end(), false);
-	std::cout << "Simplices paired" << std::endl;
+	rInfo("Simplices paired");
 
 	for (AlphaFiltration::Index i = af.begin(); i != af.end(); ++i)
 		if (i->is_paired())

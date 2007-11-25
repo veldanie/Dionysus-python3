@@ -39,7 +39,7 @@ get_child(const std::string& path, std::string::size_type pos)
 Counter::
 ~Counter()
 { 
-	if (full_name_ == "")
+	if (full_name_ == "" && (!subcounters_.empty() || count))
 		print(); 
 
 	for (SubCounterMap::iterator cur = subcounters_.begin(); cur != subcounters_.end(); ++cur)
