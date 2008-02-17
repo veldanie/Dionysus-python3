@@ -11,6 +11,11 @@ static Counter*  cLowerStarTransposition =		 		GetCounter("lowerstar");
 static Counter*  cLowerStarChangedAttachment =		 	GetCounter("lowerstar/ChangedAttachment");
 #endif // COUNTERS
 
+
+/**
+ * Copies vertices [begin, end), orders them by cmp, and 
+ * records which vineyard to use in case of transpositions.
+ */
 template<class VI, class Smplx, class FltrSmplx, class Vnrd>
 template<class VertexCmp>
 LowerStarFiltration<VI,Smplx,FltrSmplx,Vnrd>::
