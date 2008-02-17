@@ -59,6 +59,9 @@ class AvidaPopulationDetail
 		OrganismVector	organisms_;
 };
 
+std::ostream& operator<<(std::ostream& out, AvidaPopulationDetail::OrganismIndex i)
+{ return (out << (i->id())); }
+
 
 #include "avida-population-detail.hpp"
 
