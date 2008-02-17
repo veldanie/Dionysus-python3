@@ -17,6 +17,7 @@ class AvidaOrganismDetail
 {
 	public:
 		typedef			int							IDType;
+		/// Distance between two genomes
 		typedef			unsigned int				DistanceType;
 		typedef			unsigned int				CountType;
 
@@ -48,6 +49,8 @@ class AvidaPopulationDetail
 {
 	public:
 		typedef			std::vector<AvidaOrganismDetail>				OrganismVector;
+        typedef         OrganismVector::const_iterator                  OrganismIndex;
+
 						AvidaPopulationDetail(std::string filename);
 
 		const OrganismVector& get_organisms() const						{ return organisms_; }

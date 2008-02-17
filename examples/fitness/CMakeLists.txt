@@ -1,5 +1,6 @@
 set							(targets						
-							 avida)
+							 avida-distance
+                             avida-landscape)
 							 
 foreach 					(t ${targets})
 	add_executable			(${t} ${t}.cpp)
