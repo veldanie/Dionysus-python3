@@ -1,6 +1,6 @@
 /*
  * Author: Dmitriy Morozov
- * Department of Computer Science, Duke University, 2005 -- 2006
+ * Department of Computer Science, Duke University, 2005 -- 2008
  */
 
 #ifndef __LOWERSTARFILTRATION_H__
@@ -40,6 +40,9 @@ class LowerStarFiltration: public Filtration<Smplx, FltrSmplx, Vnrd>
 		typedef					typename Parent::Cycle								Cycle;
 		typedef					typename Parent::Trail								Trail;
 		typedef					typename Simplex::Cycle 							SimplexBoundaryCycle;
+
+		template<class IndexType>		
+		class 					VertexType;
 
 		struct 					VertexDescriptor;
 		typedef					ConsistencyList<VertexDescriptor>					VertexOrder;
@@ -90,8 +93,34 @@ class LowerStarFiltration: public Filtration<Smplx, FltrSmplx, Vnrd>
 		BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
+/**
+ * Helper class that describes lower star vertex type. Defines essential
+ * methods that LowerStarFiltration expects from its vertex type. Actual 
+ * vertex types should inherit from it.
+ */
 template<class VI, class Smplx, class FltrSmplx, class Vnrd>
-struct LowerStarFiltration<VI,Smplx,FltrSmplx,Vnrd>::VertexDescriptor
+template<class IndexType_> 
+class LowerStarFiltration<VI,Smplx,FltrSmplx,Vnrd>::
+VertexType
+{
+	public:
+		typedef					IndexType_													IndexType;
+
+		VertexType(IndexType ii = 0): i_(ii)												{}
+		
+		IndexType				index() const												{ return i_; }
+		void					set_index(IndexType i)										{ i_ = i; }
+		VertexOrderIndex		get_order() const											{ return order_; }
+		void					set_order(const VertexOrderIndex& o)						{ order_ = o; }
+
+	private:
+		IndexType				i_;
+		VertexOrderIndex		order_;
+};
+
+template<class VI, class Smplx, class FltrSmplx, class Vnrd>
+struct LowerStarFiltration<VI,Smplx,FltrSmplx,Vnrd>::
+VertexDescriptor
 {
 	VertexDescriptor(VertexIndex vi, Index si): 
 		vertex_index(vi), simplex_index(si)		
@@ -102,7 +131,8 @@ struct LowerStarFiltration<VI,Smplx,FltrSmplx,Vnrd>::VertexDescriptor
 };
 
 template<class VI, class Smplx, class FltrSmplx, class Vnrd>
-struct LowerStarFiltration<VI,Smplx,FltrSmplx,Vnrd>::SimplexAttachmentComparison
+struct LowerStarFiltration<VI,Smplx,FltrSmplx,Vnrd>::
+SimplexAttachmentComparison
 {
 	bool operator()(const Simplex& first, const Simplex& second) const;
 	VertexOrderComparison	vertex_cmp;

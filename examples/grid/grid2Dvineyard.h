@@ -1,6 +1,6 @@
 /*
  * Author: Dmitriy Morozov
- * Department of Computer Science, Duke University, 2005 -- 2006
+ * Department of Computer Science, Duke University, 2005 -- 2008
  */
 
 #ifndef __GRID2DVINEYARD_H__
@@ -21,8 +21,11 @@ class Grid2DVineyard
 	public:
 		typedef					Grid2DVineyard										Self;
 			
-		class					VertexType;
-		typedef					std::vector<VertexType>								VertexVector;
+		typedef					Grid2D::CoordinateIndex								CoordinateIndex;
+		typedef					Grid2D::ValueType									ValueType;
+
+		class					KineticVertexType;
+		typedef					std::vector<KineticVertexType>						VertexVector;
 		typedef					VertexVector::iterator								VertexIndex;
 		
 		typedef					LowerStarFiltration<VertexIndex>					LSFiltration; 
@@ -31,12 +34,11 @@ class Grid2DVineyard
 		class					KineticEvaluator;
 		class 					VertexComparison;
 		
-		typedef					Grid2D::CoordinateIndex								CoordinateIndex;
-		typedef					Grid2D::ValueType									ValueType;
-
 		typedef					LSFiltration::Index									Index;
 		typedef					LSFiltration::Simplex								Simplex;
 		typedef					LSFiltration::VertexOrderIndex						VertexOrderIndex;
+		typedef					LSFiltration::VertexType<CoordinateIndex>			LSVertexType;
+
 		typedef					LSFiltration::Vineyard								Vineyard;
 		typedef					Vineyard::Evaluator									Evaluator;
 
@@ -103,22 +105,15 @@ class Grid2DVineyard
 
 //BOOST_CLASS_EXPORT(Grid2DVineyard)
 	
-class Grid2DVineyard::VertexType
+class Grid2DVineyard::KineticVertexType: public LSVertexType
 {
 	public:
-		VertexType(CoordinateIndex ii = 0): i_(ii)											{}
-		
-		CoordinateIndex			index() const												{ return i_; }
-		void					set_index(CoordinateIndex i)								{ i_ = i; }
-		VertexOrderIndex		get_order() const											{ return order_; }
-		void					set_order(const VertexOrderIndex& o)						{ order_ = o; }
+		typedef					LSVertexType												Parent;
 		
 		Key						kinetic_key() const											{ return key_; }
 		void					set_kinetic_key(Key k)										{ key_ = k; }
 		
 	private:
-		CoordinateIndex			i_;
-		VertexOrderIndex		order_;
 		Key						key_;
 };
 
