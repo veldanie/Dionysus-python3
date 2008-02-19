@@ -1,5 +1,9 @@
 /* Implementations */
 
+#ifdef LOGGING
+static rlog::RLogChannel* rlOrderList = 					DEF_CHANNEL("utilities/orderlist", rlog::Log_Debug);
+#endif // LOGGING
+
 template<class T>
 void 
 OrderList<T>::
@@ -70,16 +74,16 @@ insert(iterator p, const_reference x)
 	} while (inv_density * num_elements >= maximum);
 	++num_elements;			// for the extra element inserted
 
-	Dout(dc::orderlist, num_elements << ", " << lower << ", " << upper);
-	Dout(dc::orderlist, "prev is at the end: " << (prev == Parent::end()));
-	Dout(dc::orderlist, "next is at the end: " << (next == Parent::end()));
+	rLog(rlOrderList, "%i, %i, %i", num_elements, lower, upper);
+	rLog(rlOrderList, "prev is at the end: %i", (prev == Parent::end()));
+	rLog(rlOrderList, "next is at the end: %i", (next == Parent::end()));
 	
 	// Reorder
 	AssertMsg((upper - lower + 1)/num_elements > 0, "Spacing between new tags must be non-zero");
 	for (unsigned int i = 0; i < num_elements; ++i)
 	{
 		(++prev)->tag = lower + i*((upper - lower + 1)/num_elements);
-		Dout(dc::orderlist, prev->tag);
+		rLog(rlOrderList, "%i", prev->tag);
 		AssertMsg(prev->tag != 0 || prev == Parent::begin(), "Cannot assign 0 tag except at the beginning of OrderList");
 	}
 

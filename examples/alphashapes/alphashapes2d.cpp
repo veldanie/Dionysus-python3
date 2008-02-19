@@ -1,20 +1,20 @@
 #include <utilities/log.h>
 
-#include "alphashapes3d.h"
+#include "alphashapes2d.h"
 #include <topology/filtration.h>
 #include <iostream>
 #include <fstream>
 
 
-typedef Filtration<AlphaSimplex3D>				AlphaFiltration;
+typedef Filtration<AlphaSimplex2D>				AlphaFiltration;
 
 int main(int argc, char** argv) 
 {
 #ifdef LOGGING
 	rlog::RLogInit(argc, argv);
 
-	stdoutLog.subscribeTo( RLOG_CHANNEL("info") );
 	stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
+	stdoutLog.subscribeTo( RLOG_CHANNEL("info") );
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/cycle") );
 #endif
@@ -24,23 +24,24 @@ int main(int argc, char** argv)
 
 	// Read in the point set and compute its Delaunay triangulation
 	std::istream& in = std::cin;
-	double x,y,z;
+	double x,y;
 	Delaunay Dt;
 	while(in)
 	{
-		in >> x >> y >> z;
-		Point p(x,y,z);
+		in >> x >> y;
+		Point p(x,y);
 		Dt.insert(p);
 	}
 	rInfo("Delaunay triangulation computed");
    
-	AlphaSimplex3DVector alpha_ordering;
+	AlphaSimplex2DVector alpha_ordering;
 	fill_alpha_order(Dt, alpha_ordering);
-	rInfo("Simplices: %d", alpha_ordering.size());
+	rInfo("Simplices: %i", alpha_ordering.size());
 
 	// Create the alpha-shape filtration
 	AlphaFiltration af;
-	for (AlphaSimplex3DVector::const_iterator cur = alpha_ordering.begin(); cur != alpha_ordering.end(); ++cur)
+	for (AlphaSimplex2DVector::const_iterator cur = alpha_ordering.begin(); 
+											  cur != alpha_ordering.end(); ++cur)
 		af.append(*cur);
 	af.fill_simplex_index_map();
 	rInfo("Filled simplex-index map");

@@ -1,4 +1,15 @@
+#include "utilities/counter.h"
+
 /* Implementations */
+
+#ifdef LOGGING
+static rlog::RLogChannel* rlLowerStar = 				DEF_CHANNEL("lowerstar", rlog::Log_Debug);
+#endif // LOGGING
+
+#ifdef COUNTERS
+static Counter*  cLowerStarTransposition =		 		GetCounter("lowerstar");
+static Counter*  cLowerStarChangedAttachment =		 	GetCounter("lowerstar/ChangedAttachment");
+#endif // COUNTERS
 
 template<class VI, class Smplx, class FltrSmplx, class Vnrd>
 template<class VertexCmp>
@@ -17,7 +28,7 @@ LowerStarFiltration(VertexIndex begin, VertexIndex end, const VertexCmp& cmp, Vi
 
 	// Record vertex order
 	for(typename VertexIndexList::const_iterator cur = tmp_list.begin(); cur != tmp_list.end(); ++cur)
-		(*cur)->set_order(vertex_order.push_back(VertexDescriptor(*cur, Parent::append(Simplex(*cur)))));
+		(*cur)->set_order(vertex_order.push_back(VertexDescriptor(*cur, Parent::append(Simplex(0, *cur)))));
 }
 
 template<class VI, class Smplx, class FltrSmplx, class Vnrd>
@@ -59,22 +70,10 @@ bool
 LowerStarFiltration<VI,Smplx,FltrSmplx,Vnrd>::
 transpose_vertices(const VertexOrderIndex& order)
 {
-	Count("VertexTransposition");
-
-#if COUNTERS
-	if ((counters.lookup("VertexTransposition") % 1000000) == 0)
-	{
-		Dout(dc::lsfiltration, "Vertex transpositions:  " << counters.lookup("VertexTransposition"));
-		Dout(dc::lsfiltration, "Simplex transpositions: " << counters.lookup("SimplexTransposition"));
-		Dout(dc::lsfiltration, "Attachment changed:     " << counters.lookup("ChangedAttachment"));
-		Dout(dc::lsfiltration, "Regular disconnected:   " << counters.lookup("RegularDisconnected"));
-		Dout(dc::lsfiltration, "Pairing Changed:        " << counters.lookup("ChangedPairing"));
-		Dout(dc::lsfiltration, "------------------------");
-	}
-#endif // COUNTERS
-	
-	Dout(dc::lsfiltration, "Transposing vertices (" << order->vertex_index << ", " 
-													<< boost::next(order)->vertex_index << ")");
+	Count(cLowerStarTransposition);
+	rLog(rlLowerStar, "Transposing vertices (%s, %s)", 
+					  tostring(order->vertex_index).c_str(),
+					  tostring(boost::next(order)->vertex_index).c_str());
 
 	Index i = order->simplex_index;
 	Index i_prev = boost::prior(i);
@@ -94,17 +93,17 @@ transpose_vertices(const VertexOrderIndex& order)
 		result |= transpose(i_next_prev);
 		i_next_prev = boost::prior(i_next);
 	}
-	Dout(dc::lsfiltration, "Done moving the vertex");
+	rLog(rlLowerStar, "Done moving the vertex");
 
 	// Second, move the simplices attached to it
-	Dout(dc::lsfiltration, "Moving attached simplices");
+	rLog(rlLowerStar, "Moving attached simplices");
 	while (j != Parent::end() && j->get_attachment() == v_i_next)
 	{
-		Dout(dc::lsfiltration, "  Considering " << *j);
+		rLog(rlLowerStar, "  Considering %s", tostring(*j).c_str());
 		if (nbghrs && j->contains(v_i))			// short circuit
 		{
-			Count("ChangedAttachment");
-			Dout(dc::lsfiltration, "  Attachment changed for " << *j);
+			Count(cLowerStarChangedAttachment);
+			rLog(rlLowerStar, "  Attachment changed for %s", tostring(*j).c_str());
 			j->set_attachment(v_i);
 			++j;
 			continue;
@@ -114,13 +113,14 @@ transpose_vertices(const VertexOrderIndex& order)
 		while ((--j_prev)->get_attachment() != v_i_next) 		// i.e., until we have reached v_i_next 
 															// (and the simplices that follow it) again
 		{
-			Dout(dc::lsfiltration, "    Moving: " << *j_prev << ", " << *boost::next(j_prev));
+			rLog(rlLowerStar, "    Moving: %s, %s", 
+							  tostring(*j_prev).c_str(), tostring(*boost::next(j_prev)).c_str());
 			AssertMsg(j_prev->get_attachment() == v_i, "Simplex preceding the one being moved must be attached to v_i");
 			result |= transpose(j_prev);
 			--j_prev;
 		}
 	}
-	Dout(dc::lsfiltration, "Done moving attached simplices");
+	rLog(rlLowerStar, "Done moving attached simplices");
 	vertex_order.swap(order, boost::next(order));
 	
 	return result;
@@ -133,14 +133,17 @@ transpose(Index i)
 {
 	Index j = boost::next(i);
 	
-	Dout(dc::lsfiltration, "    Transposing (" << *i << ", " << *(i->pair()) << ") and (" 
-											   << *j << ", " << *(j->pair()) << ")");
+	rLog(rlLowerStar, "    Transposing (%s, %s) and (%s, %s)", 
+					  tostring(*i).c_str(), tostring(*(i->pair())).c_str(),
+					  tostring(*j).c_str(), tostring(*(j->pair())).c_str());
 
 	assert_pairing(i);
 	assert_pairing(j);
 
 	bool res = Parent::transpose(i, false);
-	Dout(dc::lsfiltration, "    " << *j << ": " << *(j->pair()) << ", " << *i << ": " << *(i->pair()));
+	rLog(rlLowerStar, "    %s: %s, %s: %s",
+					  tostring(*j).c_str(), tostring(*(j->pair())).c_str(),
+					  tostring(*i).c_str(), tostring(*(i->pair())).c_str());
 
 	assert_pairing(j);
 	assert_pairing(i);
@@ -159,10 +162,11 @@ assert_pairing(Index i)
 	{
 		if (i->pair() != i->cycle().top(Parent::get_cycles_cmp()))
 		{
-			Dout(dc::lsfiltration, "i (negative): " << *i);
-			Dout(dc::lsfiltration, "pair(i): " << *(i->pair()));
-			Dout(dc::lsfiltration, "i->cycle().top(): " << *(i->cycle().top(Parent::get_cycles_cmp())));
-			DoutFatal(dc::fatal, "Pairing not matching the matrix at " << *i);
+			rLog(rlLowerStar, "i (negative): %s", tostring(*i).c_str());
+			rLog(rlLowerStar, "pair(i): %s", tostring(*(i->pair())).c_str());
+			rLog(rlLowerStar, "i->cycle().top(): %s", 
+							  tostring(*(i->cycle().top(Parent::get_cycles_cmp()))).c_str());
+			AssertMsg(0, "Pairing not matching the matrix at %s", tostring(*i).c_str());
 		}
 	} else
 	{
@@ -170,11 +174,11 @@ assert_pairing(Index i)
 		{
 			if (i->pair()->cycle().top(Parent::get_cycles_cmp()) != i)
 			{
-				Dout(dc::lsfiltration, "i (positive): " << *i);
-				Dout(dc::lsfiltration, "pair(i): " << *(i->pair()));
-				Dout(dc::lsfiltration, "pair(i)->cycle(): " << i->pair()->cycle());
-				Dout(dc::lsfiltration, "pair->cycle().top(): " << *(i->pair()->cycle().top(Parent::get_cycles_cmp())));
-				DoutFatal(dc::fatal, "Pairing not matching the matrix at " << *(i->pair()));
+				rLog(rlLowerStar, "i (positive): %s", tostring(*i).c_str());
+				rLog(rlLowerStar, "pair(i): %s", tostring(*(i->pair())).c_str());
+				rLog(rlLowerStar, "pair(i)->cycle(): %s", tostring(i->pair()->cycle()).c_str());
+				rLog(rlLowerStar, "pair->cycle().top(): %s", tostring(*(i->pair()->cycle().top(Parent::get_cycles_cmp()))).c_str());
+				AssertMsg(0, "Pairing not matching the matrix at %s", tostring(*(i->pair())).c_str());
 			}
 		}
 	}

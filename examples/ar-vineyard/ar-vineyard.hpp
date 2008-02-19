@@ -1,3 +1,5 @@
+#include <utilities/log.h>
+
 /* Implementation */
 	
 void

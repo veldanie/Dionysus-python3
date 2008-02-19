@@ -3,6 +3,12 @@
 #include <fstream>
 #include <sstream>
 
+#include "utilities/log.h"
+
+#ifdef LOGGING
+static rlog::RLogChannel* rlVineyard =			DEF_CHANNEL("topology/vineyard", rlog::Log_Debug);
+#endif // LOGGING
+
 template<class FS>
 void
 Vineyard<FS>::
@@ -50,7 +56,7 @@ void
 Vineyard<FS>::
 start_vine(Index i)
 {
-	Dout(dc::vineyard, "Starting new vine");
+	rLog(rlVineyard, "Starting new vine");
 	AssertMsg(i->sign(), "Can only start vines for positive simplices");
 		
 	Dimension dim = i->dimension();
@@ -65,7 +71,7 @@ void
 Vineyard<FS>::
 record_diagram(Index bg, Index end)
 {
-	Dout(dc::vineyard, "Entered: record_diagram()");
+	rLog(rlVineyard, "Entered: record_diagram()");
 	AssertMsg(evaluator != 0, "Cannot record diagram with a null evaluator");
 	
 	for (Index i = bg; i != end; ++i)
@@ -104,7 +110,7 @@ void
 Vineyard<FS>::
 record_knee(Index i)
 {
-	Dout(dc::vineyard, "Entered record_knee()");
+	rLog(rlVineyard, "Entered record_knee()");
 	AssertMsg(evaluator != 0, "Cannot record knee with a null evaluator");
 	AssertMsg(i->vine() != 0, "Cannot add a knee to a null vine");
 	AssertMsg(i->sign(), "record_knee() must be called on a positive simplex");
@@ -113,23 +119,23 @@ record_knee(Index i)
 		i->vine()->add(evaluator->value(*i), Infinity, evaluator->time());
 	else
 	{
-		Dout(dc::vineyard, "Creating knee");
+		rLog(rlVineyard, "Creating knee");
 		Knee k(evaluator->value(*i), evaluator->value(*(i->pair())), evaluator->time());
-		Dout(dc::vineyard, "Knee created: " << k);
+		rLog(rlVineyard, "Knee created: %s", tostring(k).c_str());
 
 		if (!k.is_diagonal() || i->vine()->empty())			// non-diagonal k, or empty vine
 		{
-			Dout(dc::vineyard, "Extending a vine");
+			rLog(rlVineyard, "Extending a vine");
 			i->vine()->add(k);
 		}
 		else if (i->vine()->back().is_diagonal())			// last knee is diagonal
 		{
 			AssertMsg(i->vine()->size() == 1, "Only first knee may be diagonal for a live vine");
-			Dout(dc::vineyard, "Overwriting first diagonal knee");
+			rLog(rlVineyard, "Overwriting first diagonal knee");
 			i->vine()->back() = k;
 		} else												// finish this vine
 		{
-			Dout(dc::vineyard, "Finishing a vine");
+			rLog(rlVineyard, "Finishing a vine");
 			i->vine()->add(k);
 			start_vine(i);
 			i->vine()->add(k);
@@ -137,7 +143,7 @@ record_knee(Index i)
 	}
 	
 	i->vine()->back().set_cycle(resolve_cycle(i));
-	Dout(dc::vineyard, "Leaving record_knee()");
+	rLog(rlVineyard, "Leaving record_knee()");
 }
 
 template<class FS>
@@ -145,7 +151,7 @@ typename Vineyard<FS>::Knee::SimplexList
 Vineyard<FS>::
 resolve_cycle(Index i) const
 {
-	Dout(dc::vineyard, "Entered resolve_cycle");
+	rLog(rlVineyard, "Entered resolve_cycle");
 	const Cycle& cycle = i->cycle();
 	
 	// Resolve simplices

@@ -1,3 +1,5 @@
+#include <utilities/log.h>
+
 /* Implementation */
 	
 Grid2DVineyard::
@@ -108,25 +110,25 @@ add_simplices()
 			VertexIndex vv(&vertices_[grid()->seq(x,y+1)]);
 			VertexIndex vd(&vertices_[grid()->seq(x+1,y+1)]);
 
-			Simplex sh(v);
+			Simplex sh(2, v);
 			sh.add(vh);	filtration_->append(sh);		// Horizontal edge
 			sh.add(vd);	filtration_->append(sh);		// "Horizontal" triangle
 			
-			Simplex sv(v);
+			Simplex sv(2, v);
 			sv.add(vv);	filtration_->append(sv);		// Vertical edge
 			sv.add(vd);	filtration_->append(sv);		// "Vertical" triangle
 			
-			Simplex sd(v);
+			Simplex sd(2, v);
 			sd.add(vd); filtration_->append(sd);		// Diagonal edge
 
 			if (y == grid()->ysize() - 2)
 			{
-				Simplex s(vv); 
+				Simplex s(1, vv); 
 				s.add(vd); filtration_->append(s);		// Top edge
 			}
 			if (x == grid()->xsize() - 2)
 			{
-				Simplex s(vh); 
+				Simplex s(1, vh); 
 				s.add(vd); filtration_->append(s);		// Right edge
 			}
 		}

@@ -1,7 +1,8 @@
 project						(Dionysus)
 
-option						(debug				"Build Dionysus with debugging on" 		OFF)
+option						(logging 			"Build Dionysus with logging on" 		OFF)
 option						(counters			"Build Dionysus with counters on" 		OFF)
+option						(debug				"Build Dionysus with debugging on" 		OFF)
 option						(optimize			"Build Dionysus with optimization"		ON)
 
 # Find everything that's always required
@@ -9,9 +10,6 @@ find_package				(Boost REQUIRED)
 find_package				(Doxygen)
 find_library				(dsrpdb_LIBRARY 			NAMES dsrpdb)
 find_path					(dsrpdb_INCLUDE_DIR 		dsrpdb/Protein.h)
-
-set							(libraries 					${libraries}
-														${dsrpdb_LIBRARY})
 
 #CGAL
 execute_process				(COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_SOURCE_DIR}/FindCGAL.Makefile libpaths
@@ -26,7 +24,6 @@ execute_process				(COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_SOURCE_DIR}
 #string						(REPLACE "\n" "" cgal_ldflags 	${cgal_ldflags})
 string						(REPLACE "\n" "" cgal_cxxflags 	${cgal_cxxflags})
 string						(REPLACE "\n" "" cgal_libpath 	${cgal_libpath})
-add_definitions				(${cgal_cxxflags})
 find_library				(cgal_LIBRARY				NAMES CGAL
 														PATHS ${cgal_libpath})
 find_library				(core_LIBRARY				NAMES CGALcore++
@@ -52,28 +49,33 @@ set							(synaps_libraries			${synaps_LIBRARY}
 
 # Debugging
 if							(debug)
-	find_library			(cwd_LIBRARY				NAMES cwd)
-	find_path				(cwd_INCLUDE_DIR			libcwd/debug.h)
-	set 					(cwd_INCLUDE_DIR			${cwd_INCLUDE_DIR}/libcwd)
-	add_definitions			(-DCWDEBUG -g)
-	set						(external_sources			${CMAKE_CURRENT_SOURCE_DIR}/src/debug.cpp)
-	set						(libraries 					${libraries} ${cwd_LIBRARY})
+	if 						(optimize)
+			set				(cxx_flags					${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+	else					(optimize)
+			set				(cxx_flags					${CMAKE_CXX_FLAGS_DEBUG})
+	endif					(optimize)
 else						(debug)
-	add_definitions			(-DNDEBUG)
+	if 						(optimize)
+			set				(cxx_flags					${CMAKE_CXX_FLAGS_RELEASE})
+	else					(optimize)
+			set				(cxx_flags					${CMAKE_CXX_FLAGS})
+	endif					(optimize)
 endif						(debug)
+add_definitions				(${cxx_flags})
+
+# Logging
+if 							(logging)
+	find_library			(rlog_LIBRARY				NAMES rlog)
+	find_path				(rlog_INCLUDE_DIR			rlog/rlog.h)
+	set						(rlog_INCLUDE_DIR			${rlog_INCLUDE_DIR})
+	add_definitions			(-DLOGGING -DRLOG_COMPONENT=dionysus)
+	set						(libraries					${libraries} ${rlog_LIBRARY})
+endif						(logging)
 
 # Counters
 if							(counters)
 	add_definitions			(-DCOUNTERS)
 endif						(counters)
-
-# Optimization
-if							(optimize GREATER 0)
-	add_definitions			(-O${optimize})
-elseif						(optimize)
-	add_definitions			(-O)
-endif						(optimize)
-endif						(optimize GREATER 0)
 
 
 # Set includes
@@ -81,7 +83,8 @@ include_directories			(${CMAKE_CURRENT_BINARY_DIR}
 							 ${CMAKE_CURRENT_SOURCE_DIR}/include
 							 ${Boost_INCLUDE_DIR}
 							 ${dsrpdb_INCLUDE_DIR}
-							 ${cwd_INCLUDE_DIR})
+							 ${cwd_INCLUDE_DIR}
+							 ${rlog_INCLUDE_DIR})
 
 # Doxygen (FIXME)
 if							(DOXYGEN_FOUND)
@@ -90,6 +93,6 @@ if							(DOXYGEN_FOUND)
 #							DEPENDS Doxyfile)
 endif						(DOXYGEN_FOUND)
 
-# Set external sources
+# Process subdirectories
 add_subdirectory			(examples)
 add_subdirectory			(tests)

@@ -5,7 +5,7 @@
 
 /* Types */
 typedef 	bool					Sign;
-typedef		short int				Dimension;
+typedef		unsigned short int		Dimension;
 const 		Sign	 				POS = true;
 const 		Sign					NEG = false;
 typedef		double					RealType;

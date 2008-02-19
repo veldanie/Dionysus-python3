@@ -6,17 +6,29 @@
 #include <boost/serialization/binary_object.hpp>
 #include <boost/utility.hpp>
 
+#include "utilities/log.h"
+#include "utilities/counter.h"
+
 using boost::serialization::make_nvp;
 using boost::serialization::make_binary_object;
 
+#ifdef LOGGING
+static rlog::RLogChannel* rlCycle = 				DEF_CHANNEL( "topology/cycle", rlog::Log_Debug);
+#endif // LOGGING
+
+#ifdef COUNTERS
+static Counter*  cCycleAddBasic =		 			GetCounter("cycle/add/basic");
+static Counter*  cCycleAddComparison =		 		GetCounter("cycle/add/comparison");
+#endif // COUNTERS
+
 template<class I, class OrderCmp, class ConsistencyCmp>
 Cycle<I,OrderCmp,ConsistencyCmp>::
-Cycle(): sz(0)
+Cycle()
 {}
 
 template<class I, class OrderCmp, class ConsistencyCmp>
 Cycle<I,OrderCmp,ConsistencyCmp>::
-Cycle(const Cycle& c): CycleRepresentation(c), sz(c.sz)					
+Cycle(const Cycle& c): CycleRepresentation(c)
 {}
 
 template<class I, class OrderCmp, class ConsistencyCmp>
@@ -59,7 +71,6 @@ Cycle<I,OrderCmp,ConsistencyCmp>::
 swap(Cycle& c)
 {
 	CycleRepresentation::swap(c);
-	std::swap(sz, c.sz);
 }
 
 template<class I, class OrderCmp, class ConsistencyCmp>
@@ -80,7 +91,7 @@ get_second(const OrderComparison& cmp) const
 	AssertMsg(!empty(), "Cycle must not be empty for get_second()");
 	if (size() < 2)			return begin();					// Indicates that there is no second.
 
-	Dout(dc::cycle, "Looking for second");
+	rLog(rlCycle, "Looking for second");
 	AssertMsg(size() >= 2, "Cycle must have at least two elements for get_second()");
 	iterator min = begin();
 	iterator second = ++begin();
@@ -98,7 +109,7 @@ get_second(const OrderComparison& cmp) const
 		}
 	}
 	
-	Dout(dc::cycle, "Looked up: " << **second);
+	rLog(rlCycle, "Looked up: %s", tostring(**second).c_str());
 	return second;
 }
 
@@ -143,7 +154,7 @@ erase_between(const_reference i, const_reference j, const OrderComparison& cmp)
 	for (iterator cur = begin(); cur != end(); ++cur)
 		while ((cur != end()) && ((*cur == j) || (cmp(*cur, j) && cmp(i, *cur))))
 		{
-			Dout(dc::cycle, "Iteration of the erase while loop");
+			rLog(rlCycle, "Iteration of the erase while loop");
 			cur = erase(cur);
 		}
 }
@@ -173,7 +184,7 @@ typename Cycle<I, OrderCmp, ConsistencyCmp>::Self&
 Cycle<I, OrderCmp, ConsistencyCmp>::
 add(const Self& c, const ConsistencyCmp& cmp)
 {
-	Dout(dc::cycle, "Adding cycles: " << *this << " + " << c);
+	rLog(rlCycle, "Adding cycles: %s + %s",  tostring(*this).c_str(), tostring(c).c_str());
 	
 	iterator 			cur1 = begin();
 	const_iterator 		cur2 = c.begin();
@@ -183,34 +194,37 @@ add(const Self& c, const ConsistencyCmp& cmp)
 		if (cur1 == end())
 		{
 			while (cur2 != c.end())
+			{
 				push_back(*cur2++);
-			Dout(dc::cycle, "After addition: " << *this);
+				Count(cCycleAddBasic);
+			}
+			rLog(rlCycle, "After addition: %s", tostring(*this).c_str());
 			return *this;
 		}
 
 		// mod 2
 		int res = cmp.compare(*cur1, *cur2);
-		Dout(dc::cycle, "Comparison result: " << res);
+		Count(cCycleAddComparison);
+		rLog(rlCycle, "Comparison result: %i", res);
 		if (res == 0)		// *cur1 == *cur2
 		{
-			Dout(dc::cycle, "Equality");
+			rLog(rlCycle, "Equality");
 			cur1 = erase(cur1);		// erase cur1 --- as a result cur1 will be pointing at old_cur1++
-			--sz;
 			++cur2;
 		} else if (res < 0)	// *cur1 < *cur2
 		{
-			Dout(dc::cycle, "Less than");
+			rLog(rlCycle, "Less than");
 			cur1++;
 		} else if (res > 0) // *cur1 > *cur2
 		{
-			Dout(dc::cycle, "Greater than");
+			rLog(rlCycle, "Greater than");
 			insert(cur1, *cur2);
 			++cur2;
-			++sz;
 		}
+		Count(cCycleAddBasic);
 	}
 
-	Dout(dc::cycle, "After addition: " << *this);
+	rLog(rlCycle, "After addition: %s", tostring(*this).c_str());
 	return *this;
 }
 
@@ -238,7 +252,6 @@ Cycle<I,OrderCmp,ConsistencyCmp>::
 serialize(Archive& ar, version_type )
 {
 	ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Parent);
-	ar & make_nvp("size", sz);;
 }
 
 

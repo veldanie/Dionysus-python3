@@ -1,5 +1,5 @@
-#include "utilities/counter.h"
 #include "utilities/types.h"
+#include "utilities/counter.h"
 #include <algorithm>
 
 #include <boost/utility.hpp>
@@ -11,6 +11,30 @@
 using boost::serialization::make_nvp;
 
 /* Filtration Public */
+	
+#ifdef LOGGING
+static rlog::RLogChannel* rlFiltration = 			DEF_CHANNEL("topology/filtration", rlog::Log_Debug);
+static rlog::RLogChannel* rlFiltrationTranspositions = 	DEF_CHANNEL("topology/filtration/transpositions", rlog::Log_Debug);
+#endif // LOGGING
+
+#ifdef COUNTERS
+static Counter*  cFiltrationPair =		 			GetCounter("filtration/pair");
+static Counter*  cFiltrationPairBoundaries = 		GetCounter("filtration/pair/boundaries");
+static Counter*  cFiltrationPairCycleLength = 		GetCounter("filtration/pair/cyclelength");
+static Counter*  cFiltrationPairTrailLength = 		GetCounter("filtration/pair/traillength");
+static Counter*  cFiltrationTransposition = 		GetCounter("filtration/transposition");
+static Counter*  cFiltrationTranspositionDiffDim = 	GetCounter("filtration/transposition/diffdim");
+static Counter*  cFiltrationTranspositionCase12 = 	GetCounter("filtration/transposition/case/1/2");
+static Counter*  cFiltrationTranspositionCase112 = 	GetCounter("filtration/transposition/case/1/1/2");
+static Counter*  cFiltrationTranspositionCase111 = 	GetCounter("filtration/transposition/case/1/1/1");
+static Counter*  cFiltrationTranspositionCase22 = 	GetCounter("filtration/transposition/case/2/2");
+static Counter*  cFiltrationTranspositionCase212 = 	GetCounter("filtration/transposition/case/2/1/2");
+static Counter*  cFiltrationTranspositionCase211 = 	GetCounter("filtration/transposition/case/2/1/1");
+static Counter*  cFiltrationTranspositionCase32 = 	GetCounter("filtration/transposition/case/3/2");
+static Counter*  cFiltrationTranspositionCase31 = 	GetCounter("filtration/transposition/case/3/1");
+static Counter*  cFiltrationTranspositionCase4 = 	GetCounter("filtration/transposition/case/4");
+#endif // COUNTERS
+
 
 template<class S, class FS, class V>
 Filtration<S, FS, V>::
@@ -20,44 +44,54 @@ Filtration(Vineyard* vnrd = 0): paired(false), vineyard_(vnrd)
 template<class S, class FS, class V>
 void 
 Filtration<S, FS, V>::
-pair_simplices(Index bg, Index end)
+pair_simplices(Index bg, Index end, bool store_trails)
 {
-	Dout(dc::filtration, "Entered: compute_pairing");
+	if (!is_paired())
+		trails_stored = store_trails;
+	else
+		trails_stored &= store_trails;
+
+	rLog(rlFiltration, "Entered: compute_pairing");
 	for (Index j = bg; j != end; ++j)
 	{
-		Dout(dc::filtration|flush_cf|continued_cf, *j << ": ");
+		rLog(rlFiltration, "Simplex %s", tostring(*j).c_str());
 		init_cycle_trail(j); 
 		Cycle& bdry = j->cycle();
-		Dout(dc::finish, bdry);
+		rLog(rlFiltration, "  has boundary: %s", tostring(bdry).c_str());
 		
-		CountNum("Boundaries", j->dimension());
-		Count("SimplexCount");
+		CountNum(cFiltrationPairBoundaries, j->dimension());
+		Count(cFiltrationPair);
 
 		while(!bdry.empty())
 		{
 			Index i = bdry.top(cycles_cmp);
-			Dout(dc::filtration, *i << ": " << *(i->pair()));
-			AssertMsg(!cycles_cmp(i, j), "Simplices in the cycle must precede current simplex: " << 
-										 "(" << *i << " in cycle of " << *j << ")");
+			rLog(rlFiltration, "%s: %s", tostring(*i).c_str(), tostring(*(i->pair())).c_str());
+			AssertMsg(!cycles_cmp(i, j), 
+					  "Simplices in the cycle must precede current simplex: (%s in cycle of %s)",
+					  tostring(*i).c_str(), tostring(*j).c_str());
 
 			// i is not paired, so we pair j with i
 			if (i->pair() == i)
 			{
-				Dout(dc::filtration, "Pairing " << *i << " and " << *j << " with cycle " << j->cycle());
+				rLog(rlFiltration, "Pairing %s and %s with cycle %s", 
+								   tostring(*i).c_str(), tostring(*j).c_str(), 
+								   tostring(j->cycle()).c_str());
 				i->set_pair(j);
 				j->set_pair(i);
-				CountNum("DepositedCycleLength", j->cycle().size());
+				CountNum(cFiltrationPairCycleLength, j->cycle().size());
+				CountBy(cFiltrationPairCycleLength, j->cycle().size());
 				break;
 			}
 
-			// continue searching --- change the Dout to the continued mode with newlines FIXME
-			Dout(dc::filtration, "  Adding: [" << bdry << "] + ");
-			Dout(dc::filtration, "          [" << i->pair()->cycle() << "]");
+			rLog(rlFiltration, "  Adding: [%s] + [%s]", 
+							   tostring(bdry).c_str(), tostring(i->pair()->cycle()).c_str());
 			bdry.add(i->pair()->cycle(), get_consistency_cmp());
-			i->pair()->trail().append(j, get_consistency_cmp());
-			Dout(dc::filtration, "After addition: " << bdry);
+			if (store_trails)	i->pair()->trail().append(j, get_consistency_cmp());
+			Count(cFiltrationPairTrailLength);
+			rLog(rlFiltration, "After addition: %s", tostring(bdry).c_str());
 		}
-		Dout(dc::filtration, "Finished with " << *j << ": " << *(j->pair()));
+		rLog(rlFiltration, "Finished with %s: %s", 
+						   tostring(*j).c_str(), tostring(*(j->pair())).c_str());
 	}
 	paired = true;
 }
@@ -78,6 +112,7 @@ Filtration<S,FS,V>::
 transpose(Index i, bool maintain_lazy)
 {
 	AssertMsg(vineyard() != 0, "We must have a vineyard for transpositions");
+	AssertMsg(trails_stored, "We must have trails (matrix U) to perform transpositions");
 	
 	Index i_orig = i++;
 	
@@ -167,28 +202,28 @@ Filtration<S,FS,V>::
 transpose_simplices(Index i, bool maintain_lazy)
 {
 	AssertMsg(is_paired(), "Pairing must be computed before transpositions");
-	Count("SimplexTransposition");
+	Count(cFiltrationTransposition);
 	
 	Index i_prev = i++;
 
 	if (i_prev->dimension() != i->dimension())
 	{
 		swap(i_prev, i);
-		Dout(dc::transpositions, "Different dimension");
-		Count("Case DiffDim");
+		rLog(rlFiltrationTranspositions, "Different dimension");
+		Count(cFiltrationTranspositionDiffDim);
 		return false;
 	}
 	
 	bool si = i_prev->sign(), sii = i->sign();
 	if (si && sii)
 	{
-		Dout(dc::transpositions, "Trail prev: " << i_prev->trail());
+		rLog(rlFiltrationTranspositions, "Trail prev: %s", tostring(i_prev->trail()).c_str());
 
 		// Case 1
 		TrailIterator i_in_i_prev = std::find(i_prev->trail().begin(), i_prev->trail().end(), i);
 		if (i_in_i_prev != i_prev->trail().end())
 		{
-			Dout(dc::transpositions, "Case 1, U[i,i+1] = 1");
+			rLog(rlFiltrationTranspositions, "Case 1, U[i,i+1] = 1");
 			i_prev->trail().erase(i_in_i_prev);
 		}
 
@@ -199,9 +234,9 @@ transpose_simplices(Index i, bool maintain_lazy)
 		if (l == i)
 		{
 			swap(i_prev, i);
-			Dout(dc::transpositions, "Case 1.2 --- unpaired");
-			Dout(dc::transpositions, *i_prev);
-			Count("Case 1.2");
+			rLog(rlFiltrationTranspositions, "Case 1.2 --- unpaired");
+			rLog(rlFiltrationTranspositions, "%s", tostring(*i_prev).c_str());
+			Count(cFiltrationTranspositionCase12);
 			return false;
 		} else if (k == i_prev)
 		{
@@ -209,23 +244,23 @@ transpose_simplices(Index i, bool maintain_lazy)
 			{
 				// Case 1.2
 				swap(i_prev, i);
-				Dout(dc::transpositions, "Case 1.2 --- unpaired");
-				Dout(dc::transpositions, *i_prev);
-				Count("Case 1.2");
+				rLog(rlFiltrationTranspositions, "Case 1.2 --- unpaired");
+				rLog(rlFiltrationTranspositions, tostring(*i_prev).c_str());
+				Count(cFiltrationTranspositionCase12);
 				return false;
 			} else
 			{
 				// Case 1.1.2 --- special version (plain swap, but pairing switches)
 				swap(i_prev, i);
 				pairing_switch(i_prev, i);
-				Dout(dc::transpositions, "Case 1.1.2 --- unpaired");
-				Dout(dc::transpositions, *i_prev);
-				Count("Case 1.1.2");
+				rLog(rlFiltrationTranspositions, "Case 1.1.2 --- unpaired");
+				rLog(rlFiltrationTranspositions, tostring(*i_prev).c_str());
+				Count(cFiltrationTranspositionCase112);
 				return true;
 			}
 		}
 		
-		Dout(dc::transpositions, "l cycle: " << l->cycle());
+		rLog(rlFiltrationTranspositions, "l cycle: %s", tostring(l->cycle()).c_str());
 		if (std::find(l->cycle().begin(), l->cycle().end(), i_prev) == l->cycle().end())
 		{
 			// Case 1.2
@@ -239,8 +274,8 @@ transpose_simplices(Index i, bool maintain_lazy)
 				}
 			}
 			swap(i_prev, i);
-			Dout(dc::transpositions, "Case 1.2");
-			Count("Case 1.2");
+			rLog(rlFiltrationTranspositions, "Case 1.2");
+			Count(cFiltrationTranspositionCase12);
 			return false;
 		} else
 		{
@@ -251,8 +286,8 @@ transpose_simplices(Index i, bool maintain_lazy)
 				swap(i_prev, i);
 				l->cycle().add(k->cycle(), Filtration::get_consistency_cmp());		// Add column k to l
 				k->trail().add(l->trail(), Filtration::get_consistency_cmp());		// Add row l to k
-				Dout(dc::transpositions, "Case 1.1.1");
-				Count("Case 1.1.1");
+				rLog(rlFiltrationTranspositions, "Case 1.1.1");
+				Count(cFiltrationTranspositionCase111);
 				return false;
 			} else
 			{
@@ -261,8 +296,8 @@ transpose_simplices(Index i, bool maintain_lazy)
 				k->cycle().add(l->cycle(), Filtration::get_consistency_cmp());		// Add column l to k
 				l->trail().add(k->trail(), Filtration::get_consistency_cmp());		// Add row k to l
 				pairing_switch(i_prev, i);
-				Dout(dc::transpositions, "Case 1.1.2");
-				Count("Case 1.1.2");
+				rLog(rlFiltrationTranspositions, "Case 1.1.2");
+				Count(cFiltrationTranspositionCase112);
 				return true;
 			}
 		}
@@ -273,8 +308,8 @@ transpose_simplices(Index i, bool maintain_lazy)
 		{
 			// Case 2.2
 			swap(i_prev, i);
-			Dout(dc::transpositions, "Case 2.2");
-			Count("Case 2.2");
+			rLog(rlFiltrationTranspositions, "Case 2.2");
+			Count(cFiltrationTranspositionCase22);
 			return false;
 		} else
 		{
@@ -290,14 +325,14 @@ transpose_simplices(Index i, bool maintain_lazy)
 				i_prev->cycle().add(i->cycle(), Filtration::get_consistency_cmp());		// Add column i to i_prev (after transposition)
 				i->trail().add(i_prev->trail(), Filtration::get_consistency_cmp());			// Add row i to i_prev
 				pairing_switch(i_prev, i);
-				Dout(dc::transpositions, "Case 2.1.2");
-				Count("Case 2.1.2");
+				rLog(rlFiltrationTranspositions, "Case 2.1.2");
+				Count(cFiltrationTranspositionCase212);
 				return true;
 			} 
 			
 			// Case 2.1.1
-			Dout(dc::transpositions, "Case 2.1.1");
-			Count("Case 2.1.1");
+			rLog(rlFiltrationTranspositions, "Case 2.1.1");
+			Count(cFiltrationTranspositionCase211);
 			return false;
 		}
 	} else if (!si && sii)
@@ -307,8 +342,8 @@ transpose_simplices(Index i, bool maintain_lazy)
 		{
 			// Case 3.2
 			swap(i_prev, i);
-			Dout(dc::transpositions, "Case 3.2");
-			Count("Case 3.2");
+			rLog(rlFiltrationTranspositions, "Case 3.2");
+			Count(cFiltrationTranspositionCase32);
 			return false;
 		} else
 		{
@@ -319,8 +354,8 @@ transpose_simplices(Index i, bool maintain_lazy)
 			i_prev->cycle().add(i->cycle(), Filtration::get_consistency_cmp());			// Add column i_prev to i (after transposition)
 			i->trail().add(i_prev->trail(), Filtration::get_consistency_cmp());			// Add row i to i_prev
 			pairing_switch(i_prev, i);
-			Dout(dc::transpositions, "Case 3.1");
-			Count("Case 3.1");
+			rLog(rlFiltrationTranspositions, "Case 3.1");
+			Count(cFiltrationTranspositionCase31);
 			return true;
 		}
 	} else if (si && !sii)
@@ -329,12 +364,12 @@ transpose_simplices(Index i, bool maintain_lazy)
 		TrailIterator i_in_i_prev = std::find(i_prev->trail().begin(), i_prev->trail().end(), i);
 		if (i_in_i_prev != i_prev->trail().end())
 		{
-			Dout(dc::transpositions, "Case 4, U[i,i+1] = 1");
+			rLog(rlFiltrationTranspositions, "Case 4, U[i,i+1] = 1");
 			i_prev->trail().erase(i_in_i_prev);
 		}
 		swap(i_prev, i);
-		Dout(dc::transpositions, "Case 4");
-		Count("Case 4");
+		rLog(rlFiltrationTranspositions, "Case 4");
+		Count(cFiltrationTranspositionCase4);
 		return false;
 	}
 	
@@ -352,7 +387,8 @@ init_cycle_trail(Index j)
 
 	for (typename Simplex::Cycle::const_iterator cur = bdry.begin(); cur != bdry.end(); ++cur)
 	{
-		Dout(dc::filtration, "Appending in init_cycle_trail(): " << *cur);
+		rLog(rlFiltration, "Appending in init_cycle_trail(): %s", 
+						   tostring(*cur).c_str());
 		AssertMsg(get_index(*cur) != end(), "Non-existent simplex in the cycle");
 		j->cycle().append(get_index(*cur), get_consistency_cmp());
 	}
@@ -400,7 +436,7 @@ save(Archive& ar, version_type ) const
 
 	SizeType sz = size();
 	ar << make_nvp("size", sz);
-	Dout(dc::filtration, "Size: " << sz);
+	rLog(rlFiltration, "Size: %i", sz);
 
 	/* Record integer indices */
 	IndexIntMap index_map; SizeType i = 0;
@@ -416,7 +452,7 @@ save(Archive& ar, version_type ) const
 		//FiltrationSimplexSerialization simplex = FiltrationSimplexSerialization(*cur, index_map);
 		//ar << make_nvp("FiltrationSimplex", simplex);	
 	}
-	Dout(dc::filtration, count << " simplices serialized");
+	rLog(rlFiltration, "%i simplices serialized", count);
 }
 
 template<class S, class FS, class V>
@@ -425,16 +461,16 @@ void
 Filtration<S, FS, V>::
 load(Archive& ar, version_type )
 {
-	Dout(dc::filtration, "Starting to read filtration");
+	rLog(rlFiltration, "Starting to read filtration");
 	ar >> BOOST_SERIALIZATION_NVP(paired);
 	ar >> BOOST_SERIALIZATION_NVP(cycles_cmp);
 	ar >> BOOST_SERIALIZATION_NVP(trails_cmp);
 	ar >> BOOST_SERIALIZATION_NVP(consistency_cmp);
-	Dout(dc::filtration, "In Filtration: first block read");
+	rLog(rlFiltration, "In Filtration: first block read");
 
 	SizeType sz;
 	ar >> make_nvp("size", sz);
-	Dout(dc::filtration, "In Filtration: size read " << sz);
+	rLog(rlFiltration, "In Filtration: size read %i", sz);
 	
 	IndexVector index_vector(sz);
 	for (SizeType i = 0; i < sz; ++i)
@@ -449,10 +485,10 @@ load(Archive& ar, version_type )
 		//FiltrationSimplexSerialization simplex;
 		//ar >> make_nvp("FiltrationSimplex", simplex);
 		count++;
-		Dout(dc::filtration, "In Filtration: simplex read (" << count << ")");
+		rLog(rlFiltration, "In Filtration: simplex read (%i)", count);
 		//simplex.set_filtration_simplex(*index_vector[i], index_vector);
 	}
-	Dout(dc::filtration, "In Filtration: simplices read");
+	rLog(rlFiltration, "In Filtration: simplices read");
 }
 
 template<class S, class FS, class V>

@@ -163,16 +163,16 @@ void fill_alpha_order(const Delaunay& Dt, AlphaSimplex3DVector& alpha_order)
 	AlphaSimplex3D::SimplexSet simplices;
 	for(Cell_iterator cur = Dt.finite_cells_begin(); cur != Dt.finite_cells_end(); ++cur)
 		simplices.insert(AlphaSimplex3D(*cur));
-	std::cout << "Cells inserted" << std::endl;
+	rInfo("Cells inserted");
 	for(Facet_iterator cur = Dt.finite_facets_begin(); cur != Dt.finite_facets_end(); ++cur)
 		simplices.insert(AlphaSimplex3D(*cur, simplices));
-	std::cout << "Facets inserted" << std::endl;
+	rInfo("Facets inserted");
 	for(Edge_iterator cur = Dt.finite_edges_begin(); cur != Dt.finite_edges_end(); ++cur)
 		simplices.insert(AlphaSimplex3D(*cur, simplices, Dt.incident_facets(*cur)));
-	std::cout << "Edges inserted" << std::endl;
+	rInfo("Edges inserted");
 	for(Vertex_iterator cur = Dt.finite_vertices_begin(); cur != Dt.finite_vertices_end(); ++cur)
 		simplices.insert(AlphaSimplex3D(*cur));
-	std::cout << "Vertices inserted" << std::endl;
+	rInfo("Vertices inserted");
     
 	// Sort simplices by their alpha values
 	alpha_order.resize(simplices.size());

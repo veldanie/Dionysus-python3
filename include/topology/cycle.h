@@ -6,9 +6,6 @@
 #ifndef __CYCLE_H__
 #define __CYCLE_H__
 
-#include "utilities/sys.h"
-#include "utilities/debug.h"
-
 #include "utilities/types.h"
 #include "utilities/circular_list.h"
 #include <list>

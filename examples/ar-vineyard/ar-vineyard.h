@@ -6,9 +6,6 @@
 #ifndef __AR_VINEYARD_H__
 #define __AR_VINEYARD_H__
 
-#include "utilities/sys.h"
-#include "utilities/debug.h"
-
 #include "topology/conesimplex.h"
 #include "topology/filtration.h"
 #include "geometry/kinetic-sort.h"

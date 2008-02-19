@@ -1,3 +1,5 @@
+#include <utilities/log.h>
+
 #include "topology/filtration.h"
 #include "topology/simplex.h"
 #include <vector>
@@ -24,15 +26,14 @@ void fillTriangleSimplices(TriangleFiltration& f)
 	f.append(Simplex(bg,     bg + 3, 5));				// ABC
 }
 
-int main()
+int main(int argc, char** argv)
 {
-#ifdef CWDEBUG
-	dionysus::debug::init();
+#ifdef LOGGING
+	rlog::RLogInit(argc, argv);
 
-	Debug(dc::filtration.on());
-	Debug(dc::cycle.off());
-	Debug(dc::vineyard.on());
-	Debug(dc::transpositions.on());
+	stdoutLog.subscribeTo(RLOG_CHANNEL("topology/filtration"));
+	//stdoutLog.subscribeTo(RLOG_CHANNEL("topology/cycle"));
+	stdoutLog.subscribeTo(RLOG_CHANNEL("topology/vineyard"));
 #endif
 
 	Evaluator<Simplex> e;
