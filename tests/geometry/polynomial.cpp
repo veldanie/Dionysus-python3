@@ -75,8 +75,6 @@ int main()
 		while (!roots.empty()) { std::cout << roots.top() << std::endl; roots.pop(); }
 	}
 
-	return 0;
-
 	// Edges
 	{
 		PointContainer vertices(2);

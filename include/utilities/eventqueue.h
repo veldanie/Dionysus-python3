@@ -64,7 +64,7 @@ EventQueue<Event_, EventComparison_>::
 print(std::ostream& out, const std::string& prefix) const
 {
 	for (typename QueueRepresentation::const_iterator cur = queue_.begin(); cur != queue_.end(); ++cur)
-		(*cur)->print(out << prefix) << std::endl;
+		(*cur)->operator<<(out << prefix) << std::endl;
 	return out;
 }
 

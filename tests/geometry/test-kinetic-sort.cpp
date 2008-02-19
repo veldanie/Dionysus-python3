@@ -6,6 +6,8 @@
 #include <boost/utility.hpp>
 #include <boost/bind.hpp>
 
+#include <utilities/log.h>
+
 typedef		double							FieldType;
 //typedef		ZZ								FieldType;
 //typedef		QQ								FieldType;
@@ -37,8 +39,15 @@ void swap(SortDS* s, SortDSIterator i, SimulatorFT* simulator)
 	s->splice(i, *s, boost::next(i));
 }
 
-int main()
+int main(int argc, char** argv)
 {
+#ifdef LOGGING
+    rlog::RLogInit(argc, argv);
+
+    //stdoutLog.subscribeTo( RLOG_CHANNEL("geometry/simulator") );
+    stdoutLog.subscribeTo( RLOG_CHANNEL("geometry/kinetic-sort") );
+#endif
+
 	SimulatorFT		simulator;
 	SortDS 			list;
 
@@ -62,8 +71,8 @@ int main()
 	while(!simulator.reached_infinity() && simulator.current_time() < 4)
 	{
 		std::cout << "Current time before: " << simulator.current_time() << std::endl;
-		//if (!ks.audit(&simulator)) return 1;
-		//simulator.print(std::cout << "Auditing ");
+		if (!ks.audit(&simulator)) return 1;
+        std::cout << "Examining " << simulator;
 		simulator.process();
 		std::cout << "Current time after: " << simulator.current_time() << std::endl;
 	}

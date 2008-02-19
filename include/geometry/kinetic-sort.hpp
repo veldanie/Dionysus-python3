@@ -1,3 +1,19 @@
+#include "utilities/log.h"
+#include "utilities/counter.h"
+
+#ifdef LOGGING
+static rlog::RLogChannel* rlKineticSort =           DEF_CHANNEL("geometry/kinetic-sort", rlog::Log_Debug);
+static rlog::RLogChannel* rlKineticSortAudit =      DEF_CHANNEL("geometry/kinetic-sort/audit", rlog::Log_Debug);
+static rlog::RLogChannel* rlKineticSortSchedule =   DEF_CHANNEL("geometry/kinetic-sort/schedule", rlog::Log_Debug);
+static rlog::RLogChannel* rlKineticSortProcess =    DEF_CHANNEL("geometry/kinetic-sort/process", rlog::Log_Debug);
+#endif // LOGGING
+
+#ifdef COUNTERS
+static Counter*  cKineticSort =                     GetCounter("kinetic-sort");
+static Counter*  cKineticSortSwap =                 GetCounter("kinetic-sort/swap");
+#endif // COUNTERS
+
+
 template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 KineticSort()
@@ -81,6 +97,7 @@ swap(iterator pos, Simulator* simulator)
 {
 	// TODO: AssertMsg(boost::next(pos) != list_.end(), "Cannot swap the last element");
 
+    Count(cKineticSortSwap);
 	swap_(pos->element, simulator);
 
 	// Remove events
@@ -110,7 +127,7 @@ audit(Simulator* simulator) const
 	typedef 		typename Simulator::Time					Time;
 	
 	Time t = simulator->audit_time();
-	std::cout << "Auditing at " << t << std::endl;
+	rLog(rlKineticSortAudit, "Auditing at %s", tostring(t).c_str());
 
 	TrajectoryExtractor	te;
 	
@@ -119,22 +136,25 @@ audit(Simulator* simulator) const
 	RationalFunction cur_trajectory = te(cur->element);
 	while (next != list_.end())
 	{
-		(*(cur->swap_event_key))->print(std::cout << "  ") << std::endl;
+		rLog(rlKineticSortAudit, "  %s", intostring(**(cur->swap_event_key)).c_str());
 
 		RationalFunction next_trajectory = te(next->element);
-		std::cout << "  Auditing:   " << cur_trajectory << ", " << next_trajectory << std::endl;
-		std::cout << "  Difference: " << next_trajectory - cur_trajectory << std::endl;
-		std::cout << "  Sign at:    " << t << ", " << PolynomialKernel::sign_at(next_trajectory - cur_trajectory, t) << std::endl;
+		rLog(rlKineticSortAudit, "  Auditing:   %s, %s", tostring(cur_trajectory).c_str(),
+                                                         tostring(next_trajectory).c_str());
+		rLog(rlKineticSortAudit, "  Difference: %s", tostring(next_trajectory - cur_trajectory).c_str());
+		rLog(rlKineticSortAudit, "  Sign at:    %s, %s", tostring(t).c_str(),
+                                                         tostring(PolynomialKernel::sign_at(next_trajectory - cur_trajectory, t)).c_str());
 		if (PolynomialKernel::sign_at(next_trajectory - cur_trajectory, t) == -1)
 		{
-			std::cout << "Audit failed at " << *cur->element << ", " << *next->element << std::endl;
+			rError("Audit failed at %s, %s", tostring(*cur->element).c_str(), 
+                                             tostring(*next->element).c_str());
 			return false;
 		}
 
 		cur_trajectory = next_trajectory;
 		cur = next++;
 	}
-	if (cur != list_.end()) (*(cur->swap_event_key))->print(std::cout << "  ") << std::endl;
+	if (cur != list_.end()) rLog(rlKineticSortAudit, "  %s", intostring(**(cur->swap_event_key)).c_str());
 	return true;
 }
 
@@ -154,7 +174,7 @@ schedule_swaps(iterator b, iterator e, Simulator* simulator)
 	while (next != e)
 	{
 		RationalFunction next_trajectory = te(next->element);
-		std::cout << "Next trajectory: " << next_trajectory << std::endl;
+		rLog(rlKineticSortSchedule, "Next trajectory: %s", tostring(next_trajectory).c_str());
 		// TODO: add assertion that (next_trajectory - cur_trajectory)(s->curren_time()) > 0
 		cur->swap_event_key = simulator->add(next_trajectory - cur_trajectory, SwapEvent(this, cur));
 		cur = next++;
@@ -205,7 +225,7 @@ class KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::Sw
 		virtual bool				process(Simulator* s) const;
 		void						set_position(iterator i)					{ pos_ = i; }
 		iterator					position() const							{ return pos_; }
-		std::ostream&				print(std::ostream& out) const;
+		std::ostream&				operator<<(std::ostream& out) const;
 
 	private:
 		KineticSort*				sort_;
@@ -217,7 +237,7 @@ bool
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::SwapEvent::
 process(Simulator* s) const
 { 
-	std::cout << "Swapping. Current time: " << s->current_time() << std::endl;
+	rLog(rlKineticSortProcess, "Swapping. Current time: %s", tostring(s->current_time()).c_str());
 	sort_->swap(pos_, s); 
 	return true; 
 }
@@ -225,9 +245,8 @@ process(Simulator* s) const
 template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 std::ostream&				
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::SwapEvent::
-print(std::ostream& out) const
+operator<<(std::ostream& out) const
 {
-	Parent::print(out) << ", SwapEvent at " << TrajectoryExtractor_()(position()->element);
+	Parent::operator<<(out) << ", SwapEvent at " << TrajectoryExtractor_()(position()->element);
 	return out;
 }
-

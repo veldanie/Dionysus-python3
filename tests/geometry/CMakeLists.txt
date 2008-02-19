@@ -7,6 +7,6 @@ set							(targets
 
 foreach 					(t ${targets})
 	add_executable			(${t} ${t}.cpp)
-	target_link_libraries	(${t} ${synaps_libraries})
+	target_link_libraries	(${t} ${synaps_libraries} ${libraries})
 endforeach 					(t ${targets})
 

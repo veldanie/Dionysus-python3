@@ -53,7 +53,7 @@ class Simulator
 		Time						audit_time() const;
 		bool						reached_infinity() const					{ return reached_infinity_; }
 
-		std::ostream&				print(std::ostream& out) const;
+		std::ostream&				operator<<(std::ostream& out) const;
 
 	private:
 		void						update(Key i);
@@ -94,7 +94,7 @@ class Simulator<PolyKernel_, EventComparison_>::Event
 				return root_stack().top() < e.root_stack().top();
 		}
 
-		virtual std::ostream&		print(std::ostream& out) const				{ return out << "Event with " << root_stack_.size() << " roots"; }
+		virtual std::ostream&		operator<<(std::ostream& out) const				{ return out << "Event with " << root_stack_.size() << " roots"; }
 
 	private:
 		RootStack					root_stack_;
