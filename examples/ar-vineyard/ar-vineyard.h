@@ -23,6 +23,7 @@ class ARConeSimplex: public ConeSimplex<ARSimplex3D>
 		typedef						ConeSimplex<ARSimplex3D>									Parent;
 		typedef						ARSimplex3D													ARSimplex3D;
 		typedef						Filtration<ARConeSimplex>									Filtration;
+		typedef						Filtration::Index											Index;
 		
 		/// \name Polynomial Kernel types
 		/// @{
@@ -31,7 +32,7 @@ class ARConeSimplex: public ConeSimplex<ARSimplex3D>
 		typedef						PolyKernel::Polynomial										Polynomial;
 		typedef						Simulator<PolyKernel>										Simulator;
 		
-		typedef						KineticSort<ARFiltration, SimplexTrajectoryExtractor, Simulator>
+		typedef						KineticSort<Index, SimplexTrajectoryExtractor, Simulator>
 																								SimplexSort;
 		typedef						SimplexSort::iterator										SimplexSortIterator;
 		typedef						SimplexSortIterator											Key;
@@ -42,23 +43,22 @@ class ARConeSimplex: public ConeSimplex<ARSimplex3D>
 		typedef 					std::list<Polynomial>										ThresholdList;
 
 		struct 						ThresholdTrajectoryExtractor
-		{	Polynomial				operator()(ThresholdList::iterator i) const				{ return *i; } }
+		{	Polynomial				operator()(ThresholdList::iterator i) const					{ return *i; } }
 		struct 						SimplexTrajectoryExtractor
-		{	Polynomial				operator()(ARFiltration::iterator i) const					{ i->thresholds().front(); }
+		{	Polynomial				operator()(Index i) const									{ i->thresholds().front(); }
 
-		typedef						KineticSort<ThresholdList, ThresholdTrajectoryExtractor, Simulator>	
+		typedef						KineticSort<ThresholdList::iterator, ThresholdTrajectoryExtractor, Simulator>	
 																								ThresholdSort;
 		/// @}
 
 									ARConeSimplex(const ARSimplex3D& s, bool coned = false): 
-										Parent(s, coned), 
-										thresholds_sort_(&thresholds_)							{}
+										Parent(s, coned)										{}
 
 		Key							kinetic_key() const											{ return key_; }
 		void						set_kinetic_key(Key k)										{ key_ = k; }
-		const ThresholdList&		thresholds() const											{ return thresholds_; }
+		ThresholdList&				thresholds()												{ return thresholds_; }
 
-		void						schedule_thresholds(Simulator* simulator);
+		void						schedule_thresholds(SimplexSort* sort, Simulator* simulator);
 
 								
 	private:
@@ -66,7 +66,7 @@ class ARConeSimplex: public ConeSimplex<ARSimplex3D>
 		ThresholdList				thresholds_;
 		ThresholdSort				thresholds_sort_;
 
-		void						swap_thresholds(ThresholdList* tl, typename ThresholdList::iterator i);
+		void						swap_thresholds(SimplexSort* sort, ThresholdList::iterator i, Simulator* simulator);
 };
 
 
@@ -101,8 +101,7 @@ class ARVineyard
 		const Vineyard*				vineyard() const											{ return vineyard_; }
 
 	public:
-		// For Kinetic Sort
-		static void 				swap(ARFiltration* filtration, Index i);
+		void 						swap(Index i, Simulator* simulator);						///< For kinetic sort
 	
 	private:
 		void 						add_simplices();

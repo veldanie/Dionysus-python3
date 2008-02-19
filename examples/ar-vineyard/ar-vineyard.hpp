@@ -2,21 +2,20 @@
 	
 void
 ARConeSimplex::
-swap_thresholds(ThresholdList* tl, typename ThresholdList::iterator i)
+swap_thresholds(SimplexSort* sort, ThresholdList::iterator i, Simulator* simulator)
 {
-	AssertMsg(tl == &thresholds_, "Swap in the wrong list");		// might as well take advantage of the redundancy
-
 	typename ThresholdList::iterator n = boost::next(i);
 	tl->splice(i, *tl, n);
 	if (n == tl->begin())
-
+		sort->update_trajectory(kinetic_key(), simulator);
 }
 
 void
 ARConeSimplex::
-schedule_thresholds(Simulator* simulator)
+schedule_thresholds(SimplexSort* sort, Simulator* simulator)
 {
-	thresholds_sort_.insert(thresholds_sort_.end(), thresholds_.begin(), thresholds_.end(), simulator);
+	thresholds_sort_.initialize(thresholds_.begin(), thresholds_.end(), 
+								boost::bind(&ARConeSimplex::swap_thresholds, this, sort, _1, _2), simulator);
 }
 
 
@@ -67,36 +66,12 @@ compute_vineyard(bool explicit_events)
 	AssertMsg(filtration_->is_paired(), "Simplices must be paired for a vineyard to be computed");
 	
 	Simulator simulator;
-	SimplexSort	simplex_sort(filtration_, swap);
-
-
-
-
-
-
-
-	simplex_sort.initialize(&simulator);
-
-
-
-	typedef Traits::Kinetic_kernel::Point_1 								Point_1;
-	typedef Simulator::Time													Time;
+	SimplexSort	simplex_sort;
 	
-	Traits tr(0,1);
-	Simulator::Handle sp = tr.simulator_handle();
-	ActivePointsTable::Handle apt = tr.active_points_1_table_handle();
-	Sort sort(tr, SortVisitor(this));
-	
-	// Setup the kinetic sort and membership changes
-	std::cout << "Setting up the kinetic sort and membership events" << std::endl;
-	CF cf; 
-	kinetic_map_.clear();
+	// Set thresholds
 	for (Index cur = filtration_->begin(); cur != filtration_->end(); ++cur)
 	{
-		F x = cf(F::NT(CGAL::to_double(cur->alpha())));
-		Point_1 p(x);
-		cur->set_kinetic_key(apt->insert(p));
-		kinetic_map_[cur->kinetic_key()] = cur;
+		cur->thresholds.push_back(ARConeSimplex::Polynomial(CGAL::to_double(cur->alpha())));
 			
 		if (!cur->coned()) continue;						// non-coned simplices stay put, so we are done
 
@@ -132,7 +107,16 @@ compute_vineyard(bool explicit_events)
 		std::cout << "phi_lambda: " 		<< phi_lambda << std::endl;
 		std::cout << "s^2 + v^2: " 			<< sv << std::endl;
 		std::cout << std::endl;
+		
+		cur->set_kinetic_key();
 	}
+
+
+	// Once thresholds are set (and sorted), we can initialize the simplex_sort
+	simplex_sort.initialize(filtration_.begin(), filtration_.end(), 
+							boost::bind(&ARVineyard::swap, this, _1, _2), &simulator);
+
+
 	
 	// Process all the events (compute the vineyard in the process)
 	// FIXME: the time should not be 1, but something like twice the radius of
