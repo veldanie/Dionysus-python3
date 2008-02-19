@@ -20,6 +20,8 @@
  * SimplexWithVertices is a basic simplex class. It stores vertices of a given type, 
  * and knows how to compute its own boundary. It should probably be used as a base 
  * class for any explicit simplex representation.
+ *
+ * \ingroup topology
  */
 template<class V>
 class SimplexWithVertices
@@ -83,6 +85,8 @@ class SimplexWithVertices
 
 /**
  * SimplexWithValue explicitly adds a RealType value to the SimplexWithVertices.
+ *
+ * \ingroup topology
  */
 template<class Vert>
 class SimplexWithValue: public SimplexWithVertices<Vert>
@@ -130,6 +134,8 @@ class SimplexWithValue: public SimplexWithVertices<Vert>
 
 /**
  * SimplexWithAttachment stores the vertex to which the simplex is attached (meant for lower-star filtrations)
+ *
+ * \ingroup topology
  */
 template<typename V>
 class SimplexWithAttachment: public SimplexWithVertices<V>

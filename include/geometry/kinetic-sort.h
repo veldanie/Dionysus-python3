@@ -16,6 +16,8 @@
  *  \arg Simulator_           the Simulator type, e.g. Simulator. Note that KineticSort does not store 
  *                            a pointer to the Simulator (so a pointer is passed in each relevant operation)
  *  \arg Swap_                is called with an ElementIterator_ when a swap needs to be performed
+ *
+ *  \ingroup kinetic
  */
 template<class ElementIterator_, class TrajectoryExtractor_, 
 		 class Simulator_, class Swap_ = boost::function<void(ElementIterator_ pos, Simulator_* simulator)> >

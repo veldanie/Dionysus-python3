@@ -12,6 +12,8 @@ template<class Comparison>  						class IndirectComparison;
  * Event addition, and processes events one by one. Degeneracies are handled by 
  * assuming that the RationalFunction responsible for the event must be positive
  * before the Event occurs.
+ *
+ * \ingroup kinetic
  */
 template<class PolyKernel_, template<class Event> class EventComparison_ = std::less>
 class Simulator

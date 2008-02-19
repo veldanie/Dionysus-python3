@@ -22,6 +22,8 @@
  * and provides pair_simplices() method that computes the RU-decomposition
  * for the simplex order stored in the filtration. Iterators remain valid 
  * through all the operations.
+ *
+ * \ingroup topology
  */
 template<class Smplx, class FltrSmplx = FiltrationSimplex<Smplx>, class Vnrd = Vineyard<FltrSmplx> >
 class Filtration: public FltrSmplx::Container

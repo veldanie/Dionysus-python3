@@ -23,6 +23,8 @@ template<class Smplx>	class Vine;
 /**
  * Vineyard class. Keeps track of vines and knees. switched() is the key function called
  * by filtration when pairing switches after a Filtration::transpose().
+ *
+ * \ingroup topology
  */
 template<class FltrSmplx>
 class Vineyard
@@ -65,6 +67,8 @@ class Vineyard
 
 /**
  * Knee class stores the knee in R^3 as well as the cycle that is associated with the Simplex starting from the Knee.
+ *
+ * \ingroup topology
  */
 template<class S>
 class Knee
