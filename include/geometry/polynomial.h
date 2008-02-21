@@ -22,6 +22,7 @@ class UPolynomial
 	public:
 		typedef						typename SynapsTraits<T>::Polynomial				Polynomial;
 		typedef						RationalFunction<Polynomial>						RationalFunction;
+        typedef                     RationalFunction                                    Function;
 
 		typedef						typename SynapsTraits<T>::Solver					Solver;
 		typedef						typename SynapsTraits<T>::RootType					RootType;

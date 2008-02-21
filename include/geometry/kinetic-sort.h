@@ -11,8 +11,8 @@
  * trajectories given by TrajectoryExtractor_.
  *
  *  \arg ElementIterator_     iterator over the underlying data structure that's kept in sorted order
- *  \arg TrajectoryExtractor_ applied to the iterator into SortDS_ should return a rational 
- *                            function describing the 
+ *  \arg TrajectoryExtractor_ applied to the iterator into SortDS_ should return a function 
+ *                            (of type Simulator_::FunctionKernel::Function) describing the trajectory of the element
  *  \arg Simulator_           the Simulator type, e.g. Simulator. Note that KineticSort does not store 
  *                            a pointer to the Simulator (so a pointer is passed in each relevant operation)
  *  \arg Swap_                is called with an ElementIterator_ when a swap needs to be performed
@@ -25,7 +25,7 @@ class KineticSort
 {
 	public:
 		typedef						Simulator_									Simulator;
-		typedef						typename Simulator::PolynomialKernel		PolynomialKernel;
+		typedef						typename Simulator::FunctionKernel		    FunctionKernel;
 		typedef						ElementIterator_							ElementIterator;
 		typedef						Swap_										Swap;
 		typedef						TrajectoryExtractor_						TrajectoryExtractor;

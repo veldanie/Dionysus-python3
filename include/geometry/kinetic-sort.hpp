@@ -123,7 +123,7 @@ bool
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 audit(Simulator* simulator) const
 {
-	typedef 		typename Simulator::RationalFunction		RationalFunction;
+	typedef 		typename Simulator::Function		        Function;
 	typedef 		typename Simulator::Time					Time;
 	
 	Time t = simulator->audit_time();
@@ -133,18 +133,18 @@ audit(Simulator* simulator) const
 	
 	typename NodeList::const_iterator next = list_.begin();
 	typename NodeList::const_iterator cur = next++;
-	RationalFunction cur_trajectory = te(cur->element);
+	Function cur_trajectory = te(cur->element);
 	while (next != list_.end())
 	{
 		rLog(rlKineticSortAudit, "  %s", intostring(**(cur->swap_event_key)).c_str());
 
-		RationalFunction next_trajectory = te(next->element);
+		Function next_trajectory = te(next->element);
 		rLog(rlKineticSortAudit, "  Auditing:   %s, %s", tostring(cur_trajectory).c_str(),
                                                          tostring(next_trajectory).c_str());
 		rLog(rlKineticSortAudit, "  Difference: %s", tostring(next_trajectory - cur_trajectory).c_str());
 		rLog(rlKineticSortAudit, "  Sign at:    %s, %s", tostring(t).c_str(),
-                                                         tostring(PolynomialKernel::sign_at(next_trajectory - cur_trajectory, t)).c_str());
-		if (PolynomialKernel::sign_at(next_trajectory - cur_trajectory, t) == -1)
+                                                         tostring(FunctionKernel::sign_at(next_trajectory - cur_trajectory, t)).c_str());
+		if (FunctionKernel::sign_at(next_trajectory - cur_trajectory, t) == -1)
 		{
 			rError("Audit failed at %s, %s", tostring(*cur->element).c_str(), 
                                              tostring(*next->element).c_str());
@@ -164,16 +164,16 @@ void
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 schedule_swaps(iterator b, iterator e, Simulator* simulator)
 {
-	typedef 		typename Simulator::RationalFunction		RationalFunction;
+	typedef 		typename Simulator::Function		        Function;
 	
 	TrajectoryExtractor	te;
 	
 	iterator next = b; 
 	iterator cur = next++;
-	RationalFunction cur_trajectory = te(cur->element);
+	Function cur_trajectory = te(cur->element);
 	while (next != e)
 	{
-		RationalFunction next_trajectory = te(next->element);
+		Function next_trajectory = te(next->element);
 		rLog(rlKineticSortSchedule, "Next trajectory: %s", tostring(next_trajectory).c_str());
 		// TODO: add assertion that (next_trajectory - cur_trajectory)(s->curren_time()) > 0
 		cur->swap_event_key = simulator->add(next_trajectory - cur_trajectory, SwapEvent(this, cur));
@@ -188,7 +188,7 @@ void
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
 schedule_swaps(iterator i, Simulator* simulator)
 {
-	typedef 		typename Simulator::RationalFunction		RationalFunction;
+	typedef 		typename Simulator::Function		        Function;
 	
 	if (i == list_.end()) return;
 	if (boost::next(i) == list_.end())
@@ -200,8 +200,8 @@ schedule_swaps(iterator i, Simulator* simulator)
 	TrajectoryExtractor	te;
 	
 	iterator next = boost::next(i); 
-	RationalFunction i_trajectory = te(i->element);
-	RationalFunction next_trajectory = te(next->element);
+	Function i_trajectory = te(i->element);
+	Function next_trajectory = te(next->element);
 	
 	//std::cout << "Updating swaps for: " << i_trajectory << ", " << next_trajectory << std::endl;
 	//std::cout << "Difference:         " << next_trajectory - i_trajectory << std::endl;
