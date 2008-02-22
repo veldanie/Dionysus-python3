@@ -37,7 +37,10 @@ add(const Function& f, const Event_& e)
 		sign = !sign;
 	}
 	if (sign) ee->root_stack().pop();			// TODO: double-check the logic
-	rLog(rlSimulator, "Pushing: %s", tostring(ee->root_stack().top()).c_str());
+	if (ee->root_stack().empty())
+        rLog(rlSimulator, "Pushing event with empty root stack");
+    else
+        rLog(rlSimulator, "Pushing: %s", tostring(ee->root_stack().top()).c_str());
 	return queue_.push(ee);
 }
 		
