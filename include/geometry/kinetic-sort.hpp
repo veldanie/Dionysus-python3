@@ -247,6 +247,6 @@ std::ostream&
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::SwapEvent::
 operator<<(std::ostream& out) const
 {
-	Parent::operator<<(out) << ", SwapEvent at " << TrajectoryExtractor_()(position()->element);
+	Parent::operator<<(out) << "SwapEvent at " << TrajectoryExtractor_()(position()->element);
 	return out;
 }

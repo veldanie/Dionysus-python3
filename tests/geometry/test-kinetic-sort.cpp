@@ -44,7 +44,8 @@ int main(int argc, char** argv)
 #ifdef LOGGING
     rlog::RLogInit(argc, argv);
 
-    //stdoutLog.subscribeTo( RLOG_CHANNEL("geometry/simulator") );
+    stderrLog.subscribeTo( RLOG_CHANNEL("error") );
+    stdoutLog.subscribeTo( RLOG_CHANNEL("geometry/simulator") );
     stdoutLog.subscribeTo( RLOG_CHANNEL("geometry/kinetic-sort") );
 #endif
 
@@ -68,12 +69,21 @@ int main(int argc, char** argv)
 	// Setup kinetic sort
 	KineticSortDS	ks(list.begin(), list.end(), boost::bind(swap, &list, _1, _2), &simulator);
 
-	while(!simulator.reached_infinity() && simulator.current_time() < 4)
+    std::cout << "Examining " << simulator;
+
+	while(!simulator.reached_infinity() && simulator.current_time() < 5)
 	{
 		std::cout << "Current time before: " << simulator.current_time() << std::endl;
-		if (!ks.audit(&simulator)) return 1;
+		//if (!ks.audit(&simulator)) return 1;
+		ks.audit(&simulator);
         std::cout << "Examining " << simulator;
 		simulator.process();
 		std::cout << "Current time after: " << simulator.current_time() << std::endl;
 	}
+	ks.audit(&simulator);
+    std::cout << "Examining " << simulator;
+
+    std::cout << "Done at " << simulator.current_time() << std::endl;
+    for (SortDS::const_iterator cur = list.begin(); cur != list.end(); ++cur)
+        std::cout << "  " << *cur << std::endl;    
 }

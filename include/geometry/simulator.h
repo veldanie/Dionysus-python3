@@ -95,9 +95,13 @@ class Simulator<FuncKernel_, EventComparison_>::Event
 				return root_stack().top() < e.root_stack().top();
 		}
 
-		virtual std::ostream&		operator<<(std::ostream& out) const			{ return out << "Event with " 
-                                                                                             << root_stack_.size() 
-                                                                                             << " roots"; }
+		virtual std::ostream&		operator<<(std::ostream& out) const			
+        { 
+            out << "Event with " << root_stack_.size() << " roots"; 
+            if (!root_stack_.empty()) out << "; top root: " << root_stack_.top();
+            out << ", ";
+            return out;
+        }
 
 	private:
 		RootStack					root_stack_;

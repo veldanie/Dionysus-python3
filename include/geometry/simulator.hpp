@@ -70,8 +70,11 @@ process()
 	if (e->root_stack().empty()) 		{ reached_infinity_ = true; return; }
 	else 								{ current_ = e->root_stack().top(); e->root_stack().pop();  }
 	
-	if (e->process(this))				update(top);
-	else								{ queue_.pop(); delete e; }
+    // Get the top element out of the queue, put it back depending on what process() says
+    EventQueue tmp; tmp.prepend(top, queue_);
+
+	if (e->process(this))				{ queue_.prepend(top, tmp); update(top); }
+	else								{ delete e; }
 }
 
 template<class FuncKernel_, template<class Event> class EventComparison_>
