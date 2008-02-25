@@ -1,9 +1,13 @@
+#include <utilities/log.h>
+
 template<class T>
 void
 UPolynomial<T>::
 solve(const RationalFunction& rf, RootStack& stack)
 {
 	typedef SYNAPS::Seq<RootType>		RootSeq;
+
+    AssertMsg(stack.empty(), "Stack must be empty before solve");
 
 	RootSeq seq_num = SYNAPS::solve(SynapsTraits<T>::convert(rf.numerator()), Solver());
 	RootSeq seq_den = SYNAPS::solve(SynapsTraits<T>::convert(rf.denominator()), Solver());

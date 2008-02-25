@@ -2,7 +2,6 @@
 #define __SIMULATOR_H__
 
 #include "utilities/eventqueue.h"
-#include "polynomial.h"
 
 template<class Comparison>  						class IndirectComparison;
 
