@@ -1,12 +1,15 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <sstream>
+#include <string>
 #include "avida-population-detail.h"
+
+#include <boost/program_options.hpp>
 
 #include <topology/lowerstarfiltration.h>
 
 
+// Lower-star filtration
 typedef         AvidaPopulationDetail::OrganismIndex                OrganismIndex;
 struct          OrganismVertexType;
 typedef         std::vector<OrganismVertexType>                     VertexVector;
@@ -41,6 +44,14 @@ std::ostream& operator<<(std::ostream& out, VertexIndex i)
 { return (out << (i->index())); }
 
 
+// Distance filtration
+typedef         SimplexWithValue<VertexIndex>                       DistanceSimplex;
+typedef         std::vector<DistanceSimplex>                        DistanceSimplexVector;
+typedef         Filtration<DistanceSimplex>                         DistanceSimplexFiltration;
+
+
+namespace po = boost::program_options;
+
 int main(int argc, char** argv)
 {
 #ifdef LOGGING
@@ -49,15 +60,44 @@ int main(int argc, char** argv)
     //stdoutLog.subscribeTo(RLOG_CHANNEL("info"));
 #endif
 
-    if (argc < 3)
-    {
-        std::cout << "USAGE: avida FILENAME DISTANCE" << std::endl;
-        return 0;
+    typedef     AvidaOrganismDetail::DistanceType       DistanceType;
+
+    DistanceType connected_distance;
+    bool connect_mst = false;
+    std::string population_input_fn;
+
+    // Parse program options
+    po::options_description hidden("Hidden options");
+    hidden.add_options()
+        ("input-file",  po::value<std::string>(&population_input_fn),
+                        "Avida population file");
+
+    po::options_description visible("Allowed options");
+    visible.add_options()
+        ("help,h",      "produce help message")
+        ("distance,d",  po::value<DistanceType>(&connected_distance)->default_value(0), 
+                        "set connected distance")
+        ("mst,m",       "connect minimum spanning tree");
+    po::positional_options_description p;
+    p.add("input-file", 1);
+    
+    po::options_description all; all.add(visible).add(hidden);
+
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).
+                  options(all).positional(p).run(), vm);
+    po::notify(vm);
+
+    if (vm.count("mst"))            { connect_mst = true; }
+    if (vm.count("help") || !vm.count("input-file"))
+    { 
+        std::cout << "Usage: " << argv[0] << " [options] POPULATION" << std::endl;
+        std::cout << visible << std::endl; 
+        return 1; 
     }
 
-    AvidaPopulationDetail population(argv[1]);
-    AvidaOrganismDetail::DistanceType connected_distance;
-    std::istringstream(argv[2]) >> connected_distance;
+    // Read organisms
+    AvidaPopulationDetail population(population_input_fn);
     const AvidaPopulationDetail::OrganismVector& organisms = population.get_organisms();
 
     rInfo("Number of organisms: %d", organisms.size());
@@ -74,6 +114,48 @@ int main(int argc, char** argv)
     VertexVector        vertices;
     for (OrganismIndex cur = organisms.begin(); cur != organisms.end(); ++cur)  vertices.push_back(cur);
     LSFiltration        fitness_filtration(vertices.begin(), vertices.end(), OrganismVertexComparison(), &vineyard);
+
+    // Compute MST and insert its edges if asked
+    if (connect_mst)
+    {
+        DistanceSimplexFiltration filtration;
+        {   // Scope so that simplices is deleted once it's not needed
+            // Distance function filtration
+            DistanceSimplexVector simplices;
+        
+            // Insert edges
+            for (VertexIndex i = vertices.begin(); i != vertices.end(); ++i)
+            {
+                simplices.push_back(DistanceSimplex());
+                simplices.back().add(i);
+        
+                for (VertexIndex j = boost::next(i); j != vertices.end(); ++j)
+                {
+                    simplices.push_back(DistanceSimplex(i->index()->genome_distance(*(j->index()))));
+                    simplices.back().add(i);
+                    simplices.back().add(j);
+                }
+            }
+            std::sort(simplices.begin(), simplices.end(), DimensionValueComparison<DistanceSimplex>());
+        
+            for (DistanceSimplexVector::const_iterator  cur = simplices.begin(); 
+                                                        cur != simplices.end(); ++cur)
+                filtration.append(*cur);
+        }
+
+        filtration.fill_simplex_index_map();
+        filtration.pair_simplices(false);            // pair simplices without storing trails
+
+        for (DistanceSimplexFiltration::Index i = filtration.begin(); i != filtration.end(); ++i)
+        {
+            if (i->is_paired() && !i->sign())
+            {
+                Simplex s(*i);
+                if (i->get_value() > connected_distance)    // <= will be connected below
+                    fitness_filtration.append(s);
+            }
+        }
+    }
 
     // Add simplices
     for (VertexIndex cur = vertices.begin(); cur != vertices.end(); ++cur)
@@ -111,17 +193,4 @@ int main(int argc, char** argv)
                       << "unpaired" << std::endl;
         }
     }
-
-#if 0
-    // Produce histogram
-    std::sort(deaths.begin(), deaths.end());
-    for (DeathVector::iterator cur = deaths.begin(); cur != deaths.end(); )
-    {
-        DeathVector::iterator nw = std::find_if(cur, deaths.end(), 
-                                                std::bind2nd(std::greater<RealType>(), *cur));
-        std::cout << *cur << "\t" << (nw - cur) << std::endl;
-        cur = nw;
-    }
-    std::cout << "Total: " << deaths.size() + 1;        // +1 for the unpaired
-#endif
 }
