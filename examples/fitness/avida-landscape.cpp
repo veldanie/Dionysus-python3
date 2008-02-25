@@ -24,14 +24,17 @@ struct          OrganismVertexComparison
 {
     public:
         bool    operator()(VertexIndex i, VertexIndex j) const      
-        { return i->index()->fitness() < j->index()->fitness(); }
+        { return i->index()->fitness() > j->index()->fitness(); }       
+        // > because of -fitness, so that maxima turn into minima
 };
 
 typedef         LSFiltration::Vineyard                              LSVineyard;
 class           StaticEvaluator: public LSVineyard::Evaluator
 {
     public:
-        virtual RealType        value(const Simplex& s) const       { return s.get_attachment()->index()->fitness(); }
+        virtual RealType        
+                value(const Simplex& s) const       
+        { return s.get_attachment()->index()->fitness(); }
 };
 
 std::ostream& operator<<(std::ostream& out, VertexIndex i)
@@ -42,6 +45,7 @@ int main(int argc, char** argv)
 {
 #ifdef LOGGING
     rlog::RLogInit(argc, argv);
+    stderrLog.subscribeTo(RLOG_CHANNEL("error"));
     //stdoutLog.subscribeTo(RLOG_CHANNEL("info"));
 #endif
 
@@ -89,6 +93,7 @@ int main(int argc, char** argv)
     for (LSFiltration::Index i = fitness_filtration.begin(); i != fitness_filtration.end(); ++i)
     {
         if (i->is_paired())
+        {
             if (i->sign())
             {
                 AssertMsg(i->dimension() == 0, "Expecting only 0-dimensional diagram");
@@ -97,6 +102,14 @@ int main(int argc, char** argv)
                           << evaluator.value(*i) << " " 
                           << evaluator.value(*(i->pair())) << std::endl;
             }
+        }
+        else
+        {
+            if (i->dimension() != 0) continue;
+            std::cout << i->dimension() << " "
+                      << evaluator.value(*i) << " "
+                      << "unpaired" << std::endl;
+        }
     }
 
 #if 0
