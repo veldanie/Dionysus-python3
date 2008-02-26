@@ -1,0 +1,31 @@
+From artemis Tue Feb 26 10:25:07 2008
+From: Dmitriy Morozov <morozov@cs.duke.edu>
+Date: Tue, 26 Feb 2008 05:22:56 -0500
+State: fixed
+Subject: Non-optimized CGAL runtime error
+Message-Id: <c420501cc5285bbc-0-artemis@metatron>
+
+If the code is compiled with optimizations off or with debug on, CGAL gives a
+runtime error.
+
+From artemis Tue Feb 26 13:00:23 2008
+From: Dmitriy Morozov <morozov@cs.duke.edu>
+Date: Tue, 26 Feb 2008 08:00:23 -0500
+Subject: properties changes (state)
+Message-Id: <c420501cc5285bbc-e983173b6cd399a6-artemis@metatron>
+References: <c420501cc5285bbc-0-artemis@metatron>
+In-Reply-To: <c420501cc5285bbc-0-artemis@metatron>
+
+state=fixed
+
+From artemis Tue Feb 26 13:01:57 2008
+From: Dmitriy Morozov <morozov@cs.duke.edu>
+Date: Tue, 26 Feb 2008 08:00:50 -0500
+Subject: Fixed by adding CGAL_NO_ASSERTIONS
+Message-Id: <c420501cc5285bbc-d75d85d67d421f7e-artemis@metatron>
+References: <c420501cc5285bbc-0-artemis@metatron>
+In-Reply-To: <c420501cc5285bbc-0-artemis@metatron>
+
+I suspect the bug in CGAL (since everything works fine with CGAL_NO_ASSERTIONS
+set), so I disabled the offending assertion (and all the rest of them) by
+setting a CXX flag in CMakeLists.txt.

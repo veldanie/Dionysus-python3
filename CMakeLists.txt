@@ -39,6 +39,8 @@ set							(cgal_libraries 			${cgal_LIBRARY}
 														${gmp_LIBRARY} 
 														${gmpxx_LIBRARY} 
 														${m_LIBRARY})
+set                         (cgal_cxxflags              ${cgal_cxxflags}
+                                                        -DCGAL_NO_ASSERTIONS)
 
 # SYNAPS
 add_definitions				(-DBOOST_UBLAS_TYPE_CHECK=0)
