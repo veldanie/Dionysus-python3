@@ -30,17 +30,29 @@ add(const Function& f, const Event_& e)
 	Event* ee = new Event_(e);
 	rLog(rlSimulator, "Solving: %s", tostring(f).c_str());
 	FunctionKernel::solve(f, ee->root_stack());
+    rLog(rlSimulator, "Got solution with root stack size: %i", ee->root_stack().size());
+
 	bool sign = FunctionKernel::sign_at_negative_infinity(f);
+    rLog(rlSimulator, "Sign at -infinity: %i", sign);
 	while (!ee->root_stack().empty() && ee->root_stack().top() < current_time())
 	{
 		ee->root_stack().pop();
 		sign = !sign;
 	}
-	if (sign) ee->root_stack().pop();			// TODO: double-check the logic
+    if (!sign)
+    {
+        AssertMsg(ee->root_stack().top() == current_time(), 
+                  "If sign is negative, we must be in the degenerate case");
+        ee->root_stack().pop();
+    }
+
 	if (ee->root_stack().empty())
         rLog(rlSimulator, "Pushing event with empty root stack");
     else
+    {
+        rLog(rlSimulator, "Root stack size: %i", ee->root_stack().size());
         rLog(rlSimulator, "Pushing: %s", tostring(ee->root_stack().top()).c_str());
+    }
 	return queue_.push(ee);
 }
 		

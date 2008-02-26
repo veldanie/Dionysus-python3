@@ -46,8 +46,8 @@ sign_at_negative_infinity(const RationalFunction& rf)
 	const Polynomial& den = rf.denominator();
 	unsigned int ndegree = num.get_degree();
 	unsigned int ddegree = den.get_degree();
-	return (((ndegree + 1) % 2 == 0) ^ (num[ndegree] > 0)) ^
-		   (((ddegree + 1) % 2 == 0) ^ (den[ddegree] > 0));
+	return !((((ndegree + 1) % 2 == 0) ^ (num[ndegree] > 0)) ^
+		     (((ddegree + 1) % 2 == 0) ^ (den[ddegree] > 0)));
 }
 
 SynapsTraits<QQ>::RootType
