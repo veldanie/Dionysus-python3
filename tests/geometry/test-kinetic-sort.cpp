@@ -55,6 +55,7 @@ int main(int argc, char** argv)
 	// Insert polynomials and sort the list for current time
 	list.push_back(Polynomial("x^3 - 3"));
 	list.push_back(Polynomial("x^2 - 2*x - 2"));
+	list.push_back(Polynomial("x^2 - 2*x - 2"));
 	list.push_back(Polynomial("2*x - 4"));
 	list.push_back(Polynomial("x"));
 	list.push_back(Polynomial("-x + 4"));
@@ -71,7 +72,7 @@ int main(int argc, char** argv)
 
     std::cout << "Examining " << simulator;
 
-	while(!simulator.reached_infinity() && simulator.current_time() < 5)
+	while(!simulator.reached_infinity())
 	{
 		std::cout << "Current time before: " << simulator.current_time() << std::endl;
 		//if (!ks.audit(&simulator)) return 1;

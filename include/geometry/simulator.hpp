@@ -29,17 +29,20 @@ add(const Function& f, const Event_& e)
 {
 	Event* ee = new Event_(e);
 	rLog(rlSimulator, "Solving: %s", tostring(f).c_str());
-	FunctionKernel::solve(f, ee->root_stack());
-    rLog(rlSimulator, "Got solution with root stack size: %i", ee->root_stack().size());
-
-	bool sign = FunctionKernel::sign_at_negative_infinity(f);
+	int sign = FunctionKernel::sign_at_negative_infinity(f);
     rLog(rlSimulator, "Sign at -infinity: %i", sign);
+    if (sign != 0)
+    {
+    	FunctionKernel::solve(f, ee->root_stack());
+        rLog(rlSimulator, "Got solution with root stack size: %i", ee->root_stack().size());
+    }
+
 	while (!ee->root_stack().empty() && ee->root_stack().top() < current_time())
 	{
 		ee->root_stack().pop();
-		sign = !sign;
+		sign *= -1;
 	}
-    if (!sign)
+    if (sign == -1)
     {
         AssertMsg(ee->root_stack().top() == current_time(), 
                   "If sign is negative, we must be in the degenerate case");

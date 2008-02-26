@@ -38,16 +38,17 @@ sign_at(const RationalFunction& rf, const RootType& r)
 }
 
 template<class T>
-bool
+int
 UPolynomial<T>::
 sign_at_negative_infinity(const RationalFunction& rf)
 {
 	const Polynomial& num = rf.numerator();
 	const Polynomial& den = rf.denominator();
-	unsigned int ndegree = num.get_degree();
-	unsigned int ddegree = den.get_degree();
+	int ndegree = num.get_degree();
+	int ddegree = den.get_degree();
+    if (ndegree == -1) return 0;          // ndegree == -1 => num == 0, and 0 is 0 at -infinity
 	return !((((ndegree + 1) % 2 == 0) ^ (num[ndegree] > 0)) ^
-		     (((ddegree + 1) % 2 == 0) ^ (den[ddegree] > 0)));
+		     (((ddegree + 1) % 2 == 0) ^ (den[ddegree] > 0))) ? 1:-1;
 }
 
 SynapsTraits<QQ>::RootType

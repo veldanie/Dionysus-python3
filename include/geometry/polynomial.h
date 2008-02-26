@@ -32,7 +32,7 @@ class UPolynomial
 		static RootType				root(const T& r)									{ return SynapsTraits<T>::root(r); }
 		static int					sign_at(const RationalFunction& rf, const RootType& r);
 		static RootType				between(const RootType& r1, const RootType& r2)		{ return SynapsTraits<T>::between(r1,r2); }
-		static bool					sign_at_negative_infinity(const RationalFunction& rf);
+		static int					sign_at_negative_infinity(const RationalFunction& rf);
 };
 
 template<class T>
