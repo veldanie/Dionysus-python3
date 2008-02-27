@@ -122,6 +122,7 @@ record_knee(Index i)
 		rLog(rlVineyard, "Creating knee");
 		Knee k(evaluator->value(*i), evaluator->value(*(i->pair())), evaluator->time());
 		rLog(rlVineyard, "Knee created: %s", tostring(k).c_str());
+        rLog(rlVineyard, "Vine: %s", tostring(*(i->vine())).c_str());
 
 		if (!k.is_diagonal() || i->vine()->empty())			// non-diagonal k, or empty vine
 		{

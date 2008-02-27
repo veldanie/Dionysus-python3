@@ -107,7 +107,7 @@ compute_vineyard()
     std::vector<ThresholdChangeSlot> slots; 
     slots.reserve(filtration_->size());
     for (SimplexSortIterator cur = simplex_sort.begin(); cur != simplex_sort.end(); ++cur)
-        slots.push_back(ThresholdChangeSlot(cur, &simplex_sort));
+        slots.push_back(ThresholdChangeSlot(cur, &simplex_sort, vineyard_));
     rLog(rlARVineyardComputing, "Signals and slots connected");
 	
     // Simulate

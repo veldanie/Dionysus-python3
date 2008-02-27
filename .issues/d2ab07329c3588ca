@@ -1,0 +1,9 @@
+From artemis Wed Feb 27 21:31:41 2008
+From: Dmitriy Morozov <morozov@cs.duke.edu>
+Date: Wed, 27 Feb 2008 16:30:57 -0500
+State: new
+Subject: Segfault with topology/vineyard log enabled
+Message-Id: <d2ab07329c3588ca-0-artemis@metatron>
+
+The code segfaults in Vineyard::record_knee() if we subscribe to
+topology/vineyard log.

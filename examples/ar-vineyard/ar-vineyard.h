@@ -156,16 +156,31 @@ class ARVineyard
 
 //BOOST_CLASS_EXPORT(ARVineyard)
 
+#ifdef COUNTERS
+static Counter*  cARVineyardTrajectoryKnee =		 GetCounter("ar/vineyard/trajectoryknee");
+#endif
+
 class ARVineyard::ThresholdChangeSlot
 {   
     public:
-                                ThresholdChangeSlot(SimplexSortIterator iter, SimplexSort* sort):
-                                    iter_(iter), sort_(sort)                                    { iter_->element->new_max_signal().connect(*this); }
-        void                    operator()(Simulator* simulator)                                { sort_->update_trajectory(iter_, simulator); }
+                                ThresholdChangeSlot(SimplexSortIterator iter, SimplexSort* sort, Vineyard* vineyard):
+                                    iter_(iter), sort_(sort), vineyard_(vineyard)               { iter_->element->new_max_signal().connect(*this); }
+        void                    operator()(Simulator* simulator)                                
+        { 
+            Count(cARVineyardTrajectoryKnee); 
+            sort_->update_trajectory(iter_, simulator); 
+            if (iter_->element->sign()) 
+                vineyard_->record_knee(iter_->element);
+            else
+                vineyard_->record_knee(iter_->element->pair());
+        }
     
     private:
         SimplexSortIterator     iter_;
-        SimplexSort*            sort_;
+        SimplexSort*            sort_;              // could make both of these static
+        Vineyard*               vineyard_;          // currently inefficient since there is
+                                                    // only one SimplexSort and one Vineyard, 
+                                                    // but each is stored in every slot
 };
 
 class ARVineyard::StaticEvaluator: public Evaluator

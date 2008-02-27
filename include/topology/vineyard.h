@@ -47,6 +47,7 @@ class Vineyard
 
 		void							start_vines(Index bg, Index end);
 		void							switched(Index i, Index j);
+		void							record_knee(Index i);
 		void							record_diagram(Index bg, Index end);
 
 		void							set_evaluator(Evaluator* eval)				{ evaluator = eval; }
@@ -57,7 +58,6 @@ class Vineyard
 		typename Knee::SimplexList  	resolve_cycle(Index i) const;
 
 	private:
-		void							record_knee(Index i);
 		void							start_vine(Index i);
 
 	private:
@@ -126,6 +126,8 @@ class Vine: public std::list<Knee<S> >
 		void 					add(RealType b, RealType d, RealType t)			{ push_back(Knee(b,d,t)); }
 		void 					add(const Knee& k)								{ push_back(k); }
 
+        std::ostream&           operator<<(std::ostream& out) const             { for (const_knee_iterator cur = begin(); cur != end(); ++cur) out << *cur; return out; }
+
 		using VineRepresentation::begin;
 		using VineRepresentation::end;
 		using VineRepresentation::front;
@@ -142,6 +144,9 @@ class Vine: public std::list<Knee<S> >
 		template<class Archive>
 		void 					serialize(Archive& ar, version_type );
 };
+
+template<class S>
+std::ostream& operator<<(std::ostream& out, const Vine<S>& v) 					{ return v.operator<<(out); }
 
 
 #include "vineyard.hpp"
