@@ -9,6 +9,9 @@
 #include <list>
 #include <iostream>
 
+#include "utilities/types.h"
+
+
 template<class S>
 class ConeSimplex: public S
 {
@@ -24,6 +27,7 @@ class ConeSimplex: public S
 	    
 		Cycle					boundary() const;
 		bool					coned() const							{ return coned_; }
+        Dimension               dimension() const                       { return coned_ ? (Parent::dimension() + 1) : Parent::dimension(); }
 
 		std::ostream& 			operator<<(std::ostream& out) const;
 		
