@@ -35,7 +35,8 @@ class ARFunction
         ARSimplex3D*                simplex() const                                     { return simplex_; }
         ARSimplex3D*                simplex2() const                                    { return simplex2_; }
 
-        std::ostream&               operator<<(std::ostream& out) const                 { return (out << form_ << " " << form2_); }
+        std::ostream&               operator<<(std::ostream& out) const                 { return (out << "(" << form_ << ", " << simplex_ << "), (" 
+                                                                                                             << form2_ << ", " << simplex2_ << ")"); }
 
     private:
         FunctionForm                form_, form2_;      // the function is form_ - form2_
@@ -69,7 +70,7 @@ class ARFunctionKernel
         static RootType             root(SimplexFieldType r)                            { return CGAL::to_double(r); }
         static int                  sign_at(const Function& f, RootType r);
         static RootType             between(RootType r1, RootType r2)                   { return (r1 + r2)/2; }
-        static bool                 sign_at_negative_infinity(const Function& f);
+        static int                  sign_at_negative_infinity(const Function& f);
 
         static FieldType            value_at(const Function& f, RootType v);
 };

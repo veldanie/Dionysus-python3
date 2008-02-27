@@ -12,7 +12,9 @@ int main(int argc, char** argv)
 	rlog::RLogInit(argc, argv);
 
 	stderrLog.subscribeTo( RLOG_CHANNEL("error") );
-    stdoutLog.subscribeTo( RLOG_CHANNEL("ar-vineyard") );
+    //stdoutLog.subscribeTo( RLOG_CHANNEL("ar/vineyard") );
+    //stdoutLog.subscribeTo( RLOG_CHANNEL("ar/function-kernel/value") );
+    //stdoutLog.subscribeTo( RLOG_CHANNEL("geometry/simulator") );
 
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/cycle") );

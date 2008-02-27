@@ -46,7 +46,7 @@ class ARConeSimplex3D: public ConeSimplex<ARSimplex3D>
                                                 ThresholdTrajectoryExtractor, Simulator>		ThresholdSort;
 		/// @}
 
-        typedef                     boost::signal<void (Simulator*)>                            NewFrontSignal;
+        typedef                     boost::signal<void (Simulator*)>                            NewMaxSignal;
     
     public:
 									ARConeSimplex3D(const ARSimplex3D& s, bool coned = false);
@@ -55,18 +55,20 @@ class ARConeSimplex3D: public ConeSimplex<ARSimplex3D>
                                         thresholds_(other.thresholds_)                          {}
 
 		const ThresholdList&        thresholds() const											{ return thresholds_; }
-        NewFrontSignal&             new_front_signal()                                          { return new_front_signal_; }
 
+        NewMaxSignal&               new_max_signal()                                            { return new_max_signal_; }
+        const Function&             max_threshold() const                                       { return thresholds_.back(); }
 		void						schedule_thresholds(Simulator* simulator);
 
         // need explicit operator= because of the signal
         ARConeSimplex3D&            operator=(const ARConeSimplex3D& other)                     { Parent::operator=(other); thresholds_ = other.thresholds_; return *this; }
+        bool                        operator<(const ARConeSimplex3D& other) const               { if (coned() ^ other.coned()) return !coned(); else return Parent::operator<(other); }
 
 								
 	private:
 		ThresholdList				thresholds_;
 		ThresholdSort				thresholds_sort_;
-        NewFrontSignal              new_front_signal_;
+        NewMaxSignal                new_max_signal_;
 
 		void						swap_thresholds(ThresholdListIterator i, Simulator* simulator);
 };
@@ -99,12 +101,12 @@ class ARVineyard
         /// \name SimplexSort types
         /// @{
         struct 						SimplexTrajectoryExtractor
-		{	Function				operator()(Index i) const									{ return i->thresholds().front(); }};
+		{	Function				operator()(Index i) const									{ return i->max_threshold(); } };
 
 		typedef						KineticSort<Index, SimplexTrajectoryExtractor, Simulator>   SimplexSort;
 		typedef						SimplexSort::iterator										SimplexSortIterator;
 		
-        class                       ThresholdChangeSlot;              // used to notify of change in front threshold
+        class                       ThresholdChangeSlot;              // used to notify of change in max threshold
 		/// @}
 
 		typedef						std::list<Point>											PointList;
@@ -158,7 +160,7 @@ class ARVineyard::ThresholdChangeSlot
 {   
     public:
                                 ThresholdChangeSlot(SimplexSortIterator iter, SimplexSort* sort):
-                                    iter_(iter), sort_(sort)                                    { iter_->element->new_front_signal().connect(*this); }
+                                    iter_(iter), sort_(sort)                                    { iter_->element->new_max_signal().connect(*this); }
         void                    operator()(Simulator* simulator)                                { sort_->update_trajectory(iter_, simulator); }
     
     private:
@@ -182,7 +184,7 @@ class ARVineyard::KineticEvaluator: public Evaluator
                                         simulator_(simulator)                                   {}
 
 		virtual RealType			time() const												{ return simulator_->current_time(); }
-		virtual RealType			value(const Simplex& s)	const								{ return FunctionKernel::value_at(s.thresholds().front(), time()); }
+		virtual RealType			value(const Simplex& s)	const								{ return FunctionKernel::value_at(s.max_threshold(), time()); }
 
 	private:
 		Simulator*                  simulator_;

@@ -5,30 +5,27 @@
 #ifdef LOGGING
 static rlog::RLogChannel* rlARVineyard =                        DEF_CHANNEL("ar/vineyard", rlog::Log_Debug);
 static rlog::RLogChannel* rlARVineyardComputing =               DEF_CHANNEL("ar/vineyard/computing", rlog::Log_Debug);
+static rlog::RLogChannel* rlARVineyardSwap =                    DEF_CHANNEL("ar/vineyard/swap", rlog::Log_Debug);
+static rlog::RLogChannel* rlARVineyardConeSimplexSwap =         DEF_CHANNEL("ar/vineyard/conesimplex/swap", rlog::Log_Debug);
 #endif
 
 
 template <class Simulator_>
 ARConeSimplex3D<Simulator_>::
 ARConeSimplex3D(const ARSimplex3D& s, bool coned): Parent(s, coned)
-{
-    if (!coned) thresholds_.push_back(Function(Function::rho, this));
-    else        
-    { 
-        thresholds_.push_back(Function(Function::rho, this)); 
-        thresholds_.push_back(Function(Function::phi, this)); 
-    }
-}
+{}
 	
 template <class Simulator_>
 void
 ARConeSimplex3D<Simulator_>::
 swap_thresholds(ThresholdListIterator i, Simulator* simulator)
 {
+    rLog(rlARVineyardConeSimplexSwap, "Transposing %s and %s", tostring(*i).c_str(),
+                                                               tostring(*boost::next(i)).c_str());
 	typename ThresholdList::iterator n = boost::next(i);
 	thresholds_.splice(i, thresholds_, n);
-	if (n == thresholds_.begin())
-        new_front_signal_(simulator);
+	if (boost::next(i) == thresholds_.end())
+        new_max_signal_(simulator);
 }
 
 template <class Simulator_>
@@ -36,6 +33,13 @@ void
 ARConeSimplex3D<Simulator_>::
 schedule_thresholds(Simulator* simulator)
 {
+    if (!coned()) thresholds_.push_back(Function(Function::rho, this));
+    else        
+    { 
+        thresholds_.push_back(Function(Function::phi, this)); 
+        thresholds_.push_back(Function(Function::rho, this)); 
+    }
+
 	thresholds_sort_.initialize(thresholds_.begin(), thresholds_.end(), 
 								boost::bind(&ARConeSimplex3D::swap_thresholds, this, _1, _2), simulator);
 }
@@ -97,12 +101,14 @@ compute_vineyard()
 	// Once thresholds are scheduled, we can initialize the simplex_sort
 	simplex_sort.initialize(filtration_->begin(), filtration_->end(), 
 							boost::bind(&ARVineyard::swap, this, _1, _2), &simulator);
+    rLog(rlARVineyardComputing, "SimplexSort initialized");
 
     // Connect signals and slots
     std::vector<ThresholdChangeSlot> slots; 
     slots.reserve(filtration_->size());
     for (SimplexSortIterator cur = simplex_sort.begin(); cur != simplex_sort.end(); ++cur)
         slots.push_back(ThresholdChangeSlot(cur, &simplex_sort));
+    rLog(rlARVineyardComputing, "Signals and slots connected");
 	
     // Simulate
 	change_evaluator(new KineticEvaluator(&simulator));
@@ -119,6 +125,9 @@ void
 ARVineyard::
 swap(Index i, Simulator* simulator)
 {
+    rLog(rlARVineyardSwap, "Transposing %p and %p: %s and %s", 
+                            &(*i), &(*boost::next(i)),
+                            tostring(*i).c_str(), tostring(*boost::next(i)).c_str());
 	filtration_->transpose(i);
 }
 

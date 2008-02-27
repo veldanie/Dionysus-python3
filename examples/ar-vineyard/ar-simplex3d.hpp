@@ -215,7 +215,7 @@ ARSimplex3D::
 operator<<(std::ostream& out) const
 {
 	for (VertexSet::const_iterator cur = Parent::vertices().begin(); cur != Parent::vertices().end(); ++cur)
-		out << **cur << ", ";
+		out << &(**cur) << ", ";
 	out << "value = " << value();
 
 	return out;

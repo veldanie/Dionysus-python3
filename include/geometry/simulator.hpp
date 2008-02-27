@@ -81,6 +81,7 @@ process()
 	rLog(rlSimulator, "Queue size: %i", queue_.size());
 	Key top = queue_.top();
 	Event* e = *top;
+    rLog(rlSimulator, "Processing event: %s", intostring(*e).c_str());
 	
 	if (e->root_stack().empty()) 		{ reached_infinity_ = true; return; }
 	else 								{ current_ = e->root_stack().top(); e->root_stack().pop();  }
