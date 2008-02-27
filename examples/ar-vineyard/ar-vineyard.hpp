@@ -1,26 +1,69 @@
 #include <utilities/log.h>
 
 /* Implementation */
+
+#ifdef LOGGING
+static rlog::RLogChannel* rlARVineyard =                        DEF_CHANNEL("ar/vineyard", rlog::Log_Debug);
+static rlog::RLogChannel* rlARVineyardComputing =               DEF_CHANNEL("ar/vineyard/computing", rlog::Log_Debug);
+static rlog::RLogChannel* rlARVineyardSwap =                    DEF_CHANNEL("ar/vineyard/swap", rlog::Log_Debug);
+static rlog::RLogChannel* rlARVineyardConeSimplexSwap =         DEF_CHANNEL("ar/vineyard/conesimplex/swap", rlog::Log_Debug);
+#endif
+
+
+template <class Simulator_>
+ARConeSimplex3D<Simulator_>::
+ARConeSimplex3D(const ARSimplex3D& s, bool coned): Parent(s, coned)
+{}
 	
+template <class Simulator_>
+void
+ARConeSimplex3D<Simulator_>::
+swap_thresholds(ThresholdListIterator i, Simulator* simulator)
+{
+    rLog(rlARVineyardConeSimplexSwap, "Transposing %s and %s", tostring(*i).c_str(),
+                                                               tostring(*boost::next(i)).c_str());
+	typename ThresholdList::iterator n = boost::next(i);
+	thresholds_.splice(i, thresholds_, n);
+	if (boost::next(i) == thresholds_.end())
+        new_max_signal_(simulator);
+}
+
+template <class Simulator_>
+void
+ARConeSimplex3D<Simulator_>::
+schedule_thresholds(Simulator* simulator)
+{
+    if (!coned()) thresholds_.push_back(Function(Function::rho, this));
+    else        
+    { 
+        thresholds_.push_back(Function(Function::phi, this)); 
+        thresholds_.push_back(Function(Function::rho, this)); 
+    }
+
+	thresholds_sort_.initialize(thresholds_.begin(), thresholds_.end(), 
+								boost::bind(&ARConeSimplex3D::swap_thresholds, this, _1, _2), simulator);
+}
+
+
 ARVineyard::
 ARVineyard(const PointList& points, const Point& z): z_(z)
 {
 	for (PointList::const_iterator cur = points.begin(); cur != points.end(); ++cur)
 		dt_.insert(*cur);
-	std::cout << "Delaunay triangulation computed" << std::endl;
+	rLog(rlARVineyard, "Delaunay triangulation computed");
 
 	ARSimplex3DVector alpha_ordering;
 	fill_alpha_order(dt_, z_, alpha_ordering);
-	std::cout << "Delaunay simplices: " << alpha_ordering.size() << std::endl;
+	rLog(rlARVineyard, "Delaunay simplices: %i", alpha_ordering.size());
 		
-	evaluator_ = new StaticEvaluator(0);
+	evaluator_ = new StaticEvaluator;
 	vineyard_ = new Vineyard(evaluator_);
 
-	filtration_ = new ARFiltration(vineyard_);
+	filtration_ = new Filtration(vineyard_);
 	for (ARSimplex3DVector::const_iterator cur = alpha_ordering.begin(); cur != alpha_ordering.end(); ++cur)
 	{
-		filtration_->append(*cur);						// Delaunay simplex
-		filtration_->append(ARConeSimplex(*cur, true));	// Coned off delaunay simplex
+		filtration_->append(ARConeSimplex3D(*cur));         // Delaunay simplex
+		filtration_->append(ARConeSimplex3D(*cur, true));   // Coned off delaunay simplex
 	}
 }
 
@@ -39,98 +82,53 @@ compute_pairing()
 	filtration_->fill_simplex_index_map();
 	filtration_->pair_simplices(filtration_->begin(), filtration_->end());
 	vineyard_->start_vines(filtration_->begin(), filtration_->end());
-	std::cout << "Simplices paired" << std::endl;
+	rLog(rlARVineyard, "Simplices paired");
 }
 
 void					
 ARVineyard::
-compute_vineyard(bool explicit_events)
+compute_vineyard()
 {
 	AssertMsg(filtration_->is_paired(), "Simplices must be paired for a vineyard to be computed");
 	
-	typedef Traits::Kinetic_kernel::Point_1 								Point_1;
-	typedef Simulator::Time													Time;
+	Simulator simulator;
+	SimplexSort	simplex_sort;
 	
-	Traits tr(0,1);
-	Simulator::Handle sp = tr.simulator_handle();
-	ActivePointsTable::Handle apt = tr.active_points_1_table_handle();
-	Sort sort(tr, SortVisitor(this));
-	
-	// Setup the kinetic sort and membership changes
-	std::cout << "Setting up the kinetic sort and membership events" << std::endl;
-	CF cf; 
-	kinetic_map_.clear();
+	// Schedule thresholds
 	for (Index cur = filtration_->begin(); cur != filtration_->end(); ++cur)
-	{
-		F x = cf(F::NT(CGAL::to_double(cur->alpha())));
-		Point_1 p(x);
-		cur->set_kinetic_key(apt->insert(p));
-		kinetic_map_[cur->kinetic_key()] = cur;
-			
-		if (!cur->coned()) continue;						// non-coned simplices stay put, so we are done
+        cur->schedule_thresholds(&simulator);
 
-		Time lambda_alpha = CGAL::to_double((cur->alpha() - cur->rho()));	// when lambda becomes greater than alpha
-		lambda_alpha += 2*CGAL::sqrt(CGAL::to_double(cur->s()*lambda_alpha));
-		lambda_alpha += CGAL::to_double(cur->s() + cur->v());
+	// Once thresholds are scheduled, we can initialize the simplex_sort
+	simplex_sort.initialize(filtration_->begin(), filtration_->end(), 
+							boost::bind(&ARVineyard::swap, this, _1, _2), &simulator);
+    rLog(rlARVineyardComputing, "SimplexSort initialized");
 
-		Time phi_alpha = CGAL::to_double(cur->alpha() - cur->phi_const());
-
-		Time phi_lambda = CGAL::to_double(cur->rho() + cur->s() - cur->v() - cur->phi_const());
-		phi_lambda *= phi_lambda;
-		phi_lambda /= CGAL::to_double(4*cur->s());
-		phi_lambda += CGAL::to_double(cur->v());
-
-		Time sv = CGAL::to_double(cur->s() + cur->v());
-		
-		if (true || phi_lambda < sv || phi_lambda < phi_alpha)		// FIXME: remove true
-		{
-			sp->new_event(Time(phi_alpha), 
-						  MembershipFunctionChangeEvent(cur->kinetic_key(),
-														cf(F::NT(CGAL::to_double(cur->phi_const())), 1),
-														apt));		// \phi^2 = r^2 + \phi_c^2
-			std::cout << "Scheduled" << std::endl;
-		} else
-			std::cout << "Not scheduled" << std::endl;
-		
-
-		//sp->new_event(Time(...), MembershipFunctionChangeEvent(cur->kinetic_key()));
-		
-		std::cout << *cur << std::endl;
-		std::cout << "lambda_alpha: " 		<< lambda_alpha << std::endl;
-		std::cout << "phi_alpha: " 			<< phi_alpha << std::endl;
-		std::cout << "phi_lambda: " 		<< phi_lambda << std::endl;
-		std::cout << "s^2 + v^2: " 			<< sv << std::endl;
-		std::cout << std::endl;
-	}
+    // Connect signals and slots
+    std::vector<ThresholdChangeSlot> slots; 
+    slots.reserve(filtration_->size());
+    for (SimplexSortIterator cur = simplex_sort.begin(); cur != simplex_sort.end(); ++cur)
+        slots.push_back(ThresholdChangeSlot(cur, &simplex_sort));
+    rLog(rlARVineyardComputing, "Signals and slots connected");
 	
-	// Process all the events (compute the vineyard in the process)
-	// FIXME: the time should not be 1, but something like twice the radius of
-	// the pointset as seen from z
-	change_evaluator(new KineticEvaluator(sp, apt, 0));
-	if (explicit_events)
-	{
-		while (sp->next_event_time() < 1)
-		{
-			std::cout << "Next event time: " << sp->next_event_time() << std::endl;
-			sp->set_current_event_number(sp->current_event_number() + 1);
-			std::cout << "Processed event" << std::endl;
-		}
-	} else
-		sp->set_current_time(1.0);
-	std::cout << "Processed " << sp->current_event_number() << " events" << std::endl;
+    // Simulate
+	change_evaluator(new KineticEvaluator(&simulator));
+    while(!simulator.reached_infinity())
+    {
+        rLog(rlARVineyardComputing, "Current time before: %lf", simulator.current_time());
+        simulator.process();
+    }
 	
-	//change_evaluator(new StaticEvaluator(1));
 	vineyard_->record_diagram(filtration_->begin(), filtration_->end());
 }
 		
 void 					
 ARVineyard::
-swap(Key a, Key b)
+swap(Index i, Simulator* simulator)
 {
-	Index ao = kinetic_map_[a], bo = kinetic_map_[b];
-	AssertMsg(filtration_->get_trails_cmp()(ao, bo), "In swap(a,b), a must precede b");
-	filtration_->transpose(ao);
-	AssertMsg(filtration_->get_trails_cmp()(bo, ao), "In swap(a,b), b must precede a after the transposition");
+    rLog(rlARVineyardSwap, "Transposing %p and %p: %s and %s", 
+                            &(*i), &(*boost::next(i)),
+                            tostring(*i).c_str(), tostring(*boost::next(i)).c_str());
+	filtration_->transpose(i);
 }
 
 void
@@ -143,30 +141,3 @@ change_evaluator(Evaluator* eval)
 	evaluator_ = eval;
 	vineyard_->set_evaluator(evaluator_);
 }
-
-void 
-ARVineyardBase::MembershipFunctionChangeEvent::
-process() const
-{
-	apt_->set(key_, function_);
-	std::cout << "Updated for phi's dominance" << std::endl;
-}
-
-
-template<class Vertex_handle>
-void
-ARVineyardBase::SortVisitor::
-before_swap(Vertex_handle a, Vertex_handle b) const
-{ 
-	std::cout << "Swapping elements" << *a << " and " << *b << std::endl;
-	arv_->swap(*a,*b); 
-}
-
-
-std::ostream&
-ARVineyardBase::MembershipFunctionChangeEvent::
-operator<<(std::ostream& out) const
-{
-	return out << "Membership change" << std::endl;
-}
-

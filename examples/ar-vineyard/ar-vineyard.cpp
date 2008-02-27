@@ -11,7 +11,11 @@ int main(int argc, char** argv)
 #ifdef LOGGING
 	rlog::RLogInit(argc, argv);
 
-	stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
+	stderrLog.subscribeTo( RLOG_CHANNEL("error") );
+    //stdoutLog.subscribeTo( RLOG_CHANNEL("ar/vineyard") );
+    //stdoutLog.subscribeTo( RLOG_CHANNEL("ar/function-kernel/value") );
+    //stdoutLog.subscribeTo( RLOG_CHANNEL("geometry/simulator") );
+
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/cycle") );
 	//stdoutLog.subscribeTo( RLOG_CHANNEL("topology/vineyard") );
@@ -52,7 +56,7 @@ int main(int argc, char** argv)
 	arv.compute_pairing();
 
 	// Compute vineyard
-	arv.compute_vineyard(true);
+	arv.compute_vineyard();
 	std::cout << "Vineyard computed" << std::endl;
 	arv.vineyard()->save_edges(outfilename);
 }

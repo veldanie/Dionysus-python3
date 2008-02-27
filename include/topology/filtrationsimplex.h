@@ -21,6 +21,8 @@
 /**
  * Evaluator is a base class for the structures that are able to return a value
  * given a simplex.
+ *
+ * \ingroup topology
  */
 template<class Smplx>
 class Evaluator
@@ -37,6 +39,8 @@ class Evaluator
 /**
  * FiltrationSimplex stores information needed for the RU-decomposition: 
  * cycle (column of R), trail (row of U), and pair.
+ *
+ * \ingroup topology
  */
 template<class Smplx>
 class FiltrationSimplex: public Smplx

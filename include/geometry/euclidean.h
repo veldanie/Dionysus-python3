@@ -14,6 +14,10 @@
 #include "number-traits.h"
 
 
+/**
+ * Geometric Kernel. Defines operations on geometric primitives.
+ * \ingroup geometry
+ */
 template<class NumberType_ = double>
 class Kernel
 {
@@ -56,7 +60,10 @@ class Kernel
 };
 
 
-/* Point */
+/** 
+ * Point class.
+ * \ingroup geometry 
+ */
 template<class NumberType_>
 class Kernel<NumberType_>::Point: public VectorType
 {
@@ -77,7 +84,10 @@ class Kernel<NumberType_>::Point: public VectorType
 };
 
 
-/* Sphere */
+/** 
+ * Sphere class.
+ * \ingroup geometry
+ */
 template<class NumberType_>
 class Kernel<NumberType_>::Sphere
 {

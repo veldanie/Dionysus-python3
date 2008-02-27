@@ -1,5 +1,5 @@
-#include <euclidean.h>
-#include <polynomial.h>
+#include <geometry/euclidean.h>
+#include <geometry/polynomial.h>
 
 #include <vector>
 #include <iostream>
@@ -74,8 +74,6 @@ int main()
 		//std::cout << "Sign of r3 at " << roots.top() << " is " << PolynomialKernel::sign_at(r3, roots.top()) << std::endl;
 		while (!roots.empty()) { std::cout << roots.top() << std::endl; roots.pop(); }
 	}
-
-	return 0;
 
 	// Edges
 	{

@@ -34,6 +34,9 @@ class EventQueue
 		void 					pop()						{ assert(!empty()); queue_.erase(queue_.begin()); }
 		void					remove(iterator i)			{ queue_.erase(i); }
 		void					update(iterator i);
+        void                    prepend(iterator i, 
+                                        EventQueue& other)  { queue_.splice(queue_.begin(), other.queue_, i); }
+        ///< intended for temporary storage of elements from other queues
 
 		iterator 				end()						{ return queue_.end(); }
 		const_iterator 			end() const					{ return queue_.end(); }
@@ -64,7 +67,7 @@ EventQueue<Event_, EventComparison_>::
 print(std::ostream& out, const std::string& prefix) const
 {
 	for (typename QueueRepresentation::const_iterator cur = queue_.begin(); cur != queue_.end(); ++cur)
-		(*cur)->print(out << prefix) << std::endl;
+		(*cur)->operator<<(out << prefix) << std::endl;
 	return out;
 }
 

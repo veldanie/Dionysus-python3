@@ -1,3 +1,9 @@
+#include <utilities/log.h>
+
+#if LOGGING
+static rlog::RLogChannel* rlARSimplex3D =                       DEF_CHANNEL("ar/simplex3d", rlog::Log_Debug);
+#endif
+
 ARSimplex3D::	    
 ARSimplex3D(const ARSimplex3D& s): Parent(s)
 { 
@@ -209,7 +215,7 @@ ARSimplex3D::
 operator<<(std::ostream& out) const
 {
 	for (VertexSet::const_iterator cur = Parent::vertices().begin(); cur != Parent::vertices().end(); ++cur)
-		out << **cur << ", ";
+		out << &(**cur) << ", ";
 	out << "value = " << value();
 
 	return out;
@@ -226,19 +232,19 @@ void fill_alpha_order(const Delaunay& Dt, const Point& z, ARSimplex3DVector& alp
 	ARSimplex3D::SimplexPhiMap simplices;
 	for(Cell_iterator cur = Dt.finite_cells_begin(); cur != Dt.finite_cells_end(); ++cur)
 		update_simplex_phi_map(ARSimplex3D(*cur, z), simplices);
-	std::cout << "Cells inserted" << std::endl;
+	rLog(rlARSimplex3D, "Cells inserted");
 	for(Vertex_iterator cur = Dt.finite_vertices_begin(); cur != Dt.finite_vertices_end(); ++cur)
 		simplices[ARSimplex3D(*cur, z)] = 0;			// only one tetrahedron can have non-negative phi_const value 
 														// (namely the one containing z); all other simplices will have a 
 														// negative phi_const value, so 0 is safe
-	std::cout << "Vertices inserted" << std::endl;
+	rLog(rlARSimplex3D, "Vertices inserted");
 
 	for(Facet_iterator cur = Dt.finite_facets_begin(); cur != Dt.finite_facets_end(); ++cur)
 		update_simplex_phi_map(ARSimplex3D(*cur, z, simplices), simplices);
-	std::cout << "Facets inserted" << std::endl;
+	rLog(rlARSimplex3D, "Facets inserted");
 	for(Edge_iterator cur = Dt.finite_edges_begin(); cur != Dt.finite_edges_end(); ++cur)
 		update_simplex_phi_map(ARSimplex3D(*cur, z, simplices, Dt.incident_facets(*cur)), simplices);
-	std::cout << "Edges inserted" << std::endl;
+	rLog(rlARSimplex3D, "Edges inserted");
     
 	// Sort simplices by their alpha values
 	alpha_order.resize(simplices.size()); ARSimplex3DVector::iterator out = alpha_order.begin();
