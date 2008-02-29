@@ -50,6 +50,7 @@ class ARConeSimplex3D: public ConeSimplex<ARSimplex3D>
     
     public:
 									ARConeSimplex3D(const ARSimplex3D& s, bool coned = false);
+									ARConeSimplex3D(const Parent& p): Parent(p)                 {}      // crucial for boundary() to work correctly
 									ARConeSimplex3D(const ARConeSimplex3D& other):              // need explicit copy-constructor because of the signal
                                         Parent(other, other.coned()), 
                                         thresholds_(other.thresholds_)                          {}
@@ -62,7 +63,6 @@ class ARConeSimplex3D: public ConeSimplex<ARSimplex3D>
 
         // need explicit operator= because of the signal
         ARConeSimplex3D&            operator=(const ARConeSimplex3D& other)                     { Parent::operator=(other); thresholds_ = other.thresholds_; return *this; }
-        bool                        operator<(const ARConeSimplex3D& other) const               { if (coned() ^ other.coned()) return !coned(); else return Parent::operator<(other); }
 
 								
 	private:
