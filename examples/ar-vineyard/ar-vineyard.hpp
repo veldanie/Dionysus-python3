@@ -38,10 +38,9 @@ schedule_thresholds(Simulator* simulator)
     { 
         thresholds_.push_back(Function(Function::phi, this)); 
         thresholds_.push_back(Function(Function::rho, this)); 
+	    thresholds_sort_.initialize(thresholds_.begin(), thresholds_.end(), 
+		    						boost::bind(&ARConeSimplex3D::swap_thresholds, this, _1, _2), simulator);
     }
-
-	thresholds_sort_.initialize(thresholds_.begin(), thresholds_.end(), 
-								boost::bind(&ARConeSimplex3D::swap_thresholds, this, _1, _2), simulator);
 }
 
 
@@ -91,31 +90,42 @@ compute_vineyard()
 {
 	AssertMsg(filtration_->is_paired(), "Simplices must be paired for a vineyard to be computed");
 	
-	Simulator simulator;
+	Simulator simplex_sort_simulator, trajectory_sort_simulator;
 	SimplexSort	simplex_sort;
 	
 	// Schedule thresholds
 	for (Index cur = filtration_->begin(); cur != filtration_->end(); ++cur)
-        cur->schedule_thresholds(&simulator);
+        cur->schedule_thresholds(&trajectory_sort_simulator);
 
 	// Once thresholds are scheduled, we can initialize the simplex_sort
 	simplex_sort.initialize(filtration_->begin(), filtration_->end(), 
-							boost::bind(&ARVineyard::swap, this, _1, _2), &simulator);
+							boost::bind(&ARVineyard::swap, this, _1, _2), &simplex_sort_simulator);
     rLog(rlARVineyardComputing, "SimplexSort initialized");
 
     // Connect signals and slots
     std::vector<ThresholdChangeSlot> slots; 
     slots.reserve(filtration_->size());
     for (SimplexSortIterator cur = simplex_sort.begin(); cur != simplex_sort.end(); ++cur)
-        slots.push_back(ThresholdChangeSlot(cur, &simplex_sort, vineyard_));
+        slots.push_back(ThresholdChangeSlot(cur, &simplex_sort, vineyard_, &simplex_sort_simulator));
     rLog(rlARVineyardComputing, "Signals and slots connected");
+    rLog(rlARVineyardComputing, "SimplexSort size: %i", simplex_sort_simulator.size());
+    rLog(rlARVineyardComputing, "TrajectorySort size: %i", trajectory_sort_simulator.size());
 	
     // Simulate
-	change_evaluator(new KineticEvaluator(&simulator));
-    while(!simulator.reached_infinity())
+	change_evaluator(new KineticEvaluator(&simplex_sort_simulator));
+    while(!simplex_sort_simulator.reached_infinity() || !trajectory_sort_simulator.reached_infinity())
     {
-        rLog(rlARVineyardComputing, "Current time before: %lf", simulator.current_time());
-        simulator.process();
+        if (*(simplex_sort_simulator.top()) < *(trajectory_sort_simulator.top()))
+        {
+            rLog(rlARVineyardComputing, "Current time before: %lf (simplex sort)", simplex_sort_simulator.current_time());
+            rLog(rlARVineyardComputing, "Top event: %s (simplex sort)", intostring(*(simplex_sort_simulator.top())).c_str());
+            simplex_sort_simulator.process();
+        } else
+        {
+            rLog(rlARVineyardComputing, "Current time before: %lf (trajectory sort)", trajectory_sort_simulator.current_time());
+            rLog(rlARVineyardComputing, "Top event: %s (trajectory sort)", intostring(*(trajectory_sort_simulator.top())).c_str());
+            trajectory_sort_simulator.process();
+        }
     }
 	
 	vineyard_->record_diagram(filtration_->begin(), filtration_->end());

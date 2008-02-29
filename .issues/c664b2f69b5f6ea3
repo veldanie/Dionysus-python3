@@ -1,0 +1,9 @@
+From artemis Thu Feb 28 10:34:23 2008
+From: Dmitriy Morozov <morozov@cs.duke.edu>
+Date: Thu, 28 Feb 2008 05:33:34 -0500
+State: new
+Subject: Two simulators
+Message-Id: <c664b2f69b5f6ea3-0-artemis@metatron>
+
+Consider using two simulators instead of one to make sure that trajectory
+changes are processed before simplex swaps.

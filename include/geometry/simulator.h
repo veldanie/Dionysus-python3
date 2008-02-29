@@ -33,8 +33,7 @@ class Simulator
 
 
 									Simulator(Time start = FunctionKernel::root(0)):
-										current_(start), 
-										reached_infinity_(false)				{}
+										current_(start)         				{}
 
 
 		template<class Event_> 
@@ -49,7 +48,10 @@ class Simulator
 
 		Time						current_time() const						{ return current_; }
 		Time						audit_time() const;
-		bool						reached_infinity() const					{ return reached_infinity_; }
+		bool						reached_infinity() const					{ return queue_.empty() || (*queue_.top())->root_stack().empty(); }
+        
+        Event*                      top() const                                 { return *(queue_.top()); }
+        unsigned                    size() const                                { return queue_.size(); }
 
 		std::ostream&				operator<<(std::ostream& out) const;
 
@@ -59,7 +61,6 @@ class Simulator
 	private:
 		Time						current_;
 		EventQueue					queue_;
-		bool						reached_infinity_;
 };
 
 

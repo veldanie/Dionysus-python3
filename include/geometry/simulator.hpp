@@ -29,7 +29,7 @@ add(const Function& f, const Event_& e)
 {
 	Event* ee = new Event_(e);
 	rLog(rlSimulator, "Solving: %s", tostring(f).c_str());
-	int sign = FunctionKernel::sign_at_negative_infinity(f);
+	int sign = FunctionKernel::sign_at_negative_infinity(f);        // going to be sign after current time
     rLog(rlSimulator, "Sign at -infinity: %i", sign);
     if (sign != 0)
     {
@@ -44,8 +44,9 @@ add(const Function& f, const Event_& e)
 	}
     if (sign == -1)
     {
-        AssertMsg(ee->root_stack().top() == current_time(), 
-                  "If sign is negative, we must be in the degenerate case");
+        //AssertMsg(ee->root_stack().top() == current_time(), 
+        //          "If sign is negative, we must be in the degenerate case");
+        rLog(rlSimulator, "Popping the root because of negative sign (degeneracy)");
         ee->root_stack().pop();
     }
 
@@ -78,13 +79,13 @@ Simulator<FuncKernel_, EventComparison_>::
 process()
 {
     Count(cSimulatorProcess);
+    if (reached_infinity()) return;
 	rLog(rlSimulator, "Queue size: %i", queue_.size());
 	Key top = queue_.top();
 	Event* e = *top;
     rLog(rlSimulator, "Processing event: %s", intostring(*e).c_str());
 	
-	if (e->root_stack().empty()) 		{ reached_infinity_ = true; return; }
-	else 								{ current_ = e->root_stack().top(); e->root_stack().pop();  }
+	current_ = e->root_stack().top(); e->root_stack().pop();
 	
     // Get the top element out of the queue, put it back depending on what process() says
     EventQueue tmp; tmp.prepend(top, queue_);
