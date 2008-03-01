@@ -35,7 +35,8 @@ class Vineyard
 		typedef							Vine<Simplex>								Vine;
 		typedef							Knee<Simplex>								Knee;
 		typedef							std::list<Vine>								VineList;
-		typedef							std::vector<VineList>						VineListVector;
+		typedef							std::list<VineList>						    VineListList;
+        typedef                         std::vector<typename VineListList::iterator> VineListVector;
 		typedef							typename FiltrationSimplex::Cycle			Cycle;
 
 		typedef							typename FiltrationSimplex::Index			Index;
@@ -61,7 +62,8 @@ class Vineyard
 		void							start_vine(Index i);
 
 	private:
-		VineListVector					vines;
+		VineListList                    vines;            // stores vine lists
+		VineListVector                  vines_vector;     // stores pointers (iterators) to vine lists
 		Evaluator*						evaluator;
 };
 
@@ -117,10 +119,14 @@ class Vine: public std::list<Knee<S> >
 	public:
 		typedef					S												Simplex;
 		typedef					Knee<Simplex>									Knee;
-		typedef					std::list<Knee>									VineRepresentation;
+		typedef					std::list<Knee>							        VineRepresentation;
 		typedef					typename VineRepresentation::const_iterator		const_knee_iterator;
 		
 								Vine()											{}
+								Vine(const Vine& other): 
+                                    VineRepresentation(other)	                {}
+								Vine(const VineRepresentation& other): 
+                                    VineRepresentation(other)	                {}
 								Vine(const Knee& k)								{ add(k); }
 		
 		void 					add(RealType b, RealType d, RealType t)			{ push_back(Knee(b,d,t)); }
