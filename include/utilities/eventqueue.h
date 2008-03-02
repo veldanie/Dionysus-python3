@@ -57,7 +57,8 @@ update(iterator i)
 {
 	QueueRepresentation tmp;
 	tmp.splice(tmp.end(), queue_, i);
-	iterator pos = std::find_if(queue_.begin(), queue_.end(), std::not1(std::bind2nd(EventComparison(), *i)));
+	//iterator pos = std::find_if(queue_.begin(), queue_.end(), std::not1(std::bind2nd(EventComparison(), *i)));
+	iterator pos = std::find_if(queue_.begin(), queue_.end(), std::bind1st(EventComparison(), *i));
 	queue_.splice(pos, tmp);
 }
 

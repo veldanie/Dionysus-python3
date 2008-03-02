@@ -65,7 +65,7 @@ class Filtration: public FltrSmplx::Container
 		/// Computes RU decomposition of the simplices in [bg, end) range, assuming that everything before bg has been paired 
 		void 							pair_simplices(Index bg, Index end, bool store_trails = true);
 		void 							pair_simplices(bool store_trails = true)	{ pair_simplices(begin(), end(), store_trails); }
-		bool							transpose(Index i, bool maintain_lazy = true);
+		bool							transpose(Index i, bool maintain_lazy = false);
 		bool							is_paired() const;
 		Index							append(const Simplex& s);					///< Appends s to the filtration
 		Index							insert(Index prior, const Simplex& s);		///< Inserts s after prior

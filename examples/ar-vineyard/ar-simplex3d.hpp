@@ -214,6 +214,7 @@ std::ostream&
 ARSimplex3D::
 operator<<(std::ostream& out) const
 {
+    out << this << ": ";
 	for (VertexSet::const_iterator cur = Parent::vertices().begin(); cur != Parent::vertices().end(); ++cur)
 		out << &(**cur) << ", ";
 	out << "value = " << value();

@@ -6,7 +6,7 @@
 static rlog::RLogChannel* rlARVineyard =                        DEF_CHANNEL("ar/vineyard", rlog::Log_Debug);
 static rlog::RLogChannel* rlARVineyardComputing =               DEF_CHANNEL("ar/vineyard/computing", rlog::Log_Debug);
 static rlog::RLogChannel* rlARVineyardSwap =                    DEF_CHANNEL("ar/vineyard/swap", rlog::Log_Debug);
-static rlog::RLogChannel* rlARVineyardConeSimplexSwap =         DEF_CHANNEL("ar/vineyard/conesimplex/swap", rlog::Log_Debug);
+static rlog::RLogChannel* rlARVineyardThresholdSwap =           DEF_CHANNEL("ar/vineyard/threshold/swap", rlog::Log_Debug);
 #endif
 
 
@@ -20,8 +20,8 @@ void
 ARConeSimplex3D<Simulator_>::
 swap_thresholds(ThresholdListIterator i, Simulator* simulator)
 {
-    rLog(rlARVineyardConeSimplexSwap, "Transposing %s and %s", tostring(*i).c_str(),
-                                                               tostring(*boost::next(i)).c_str());
+    rLog(rlARVineyardThresholdSwap, "Transposing %s and %s", tostring(*i).c_str(),
+                                                             tostring(*boost::next(i)).c_str());
 	typename ThresholdList::iterator n = boost::next(i);
 	thresholds_.splice(i, thresholds_, n);
 	if (boost::next(i) == thresholds_.end())
@@ -135,9 +135,9 @@ void
 ARVineyard::
 swap(Index i, Simulator* simulator)
 {
-    rLog(rlARVineyardSwap, "Transposing %p and %p: %s and %s", 
-                            &(*i), &(*boost::next(i)),
-                            tostring(*i).c_str(), tostring(*boost::next(i)).c_str());
+    rLog(rlARVineyardSwap, "Transposing %p and %p:", &(*i), &(*boost::next(i)));
+    rLog(rlARVineyardSwap, "  %s and", tostring(*i).c_str());
+    rLog(rlARVineyardSwap, "  %s", tostring(*boost::next(i)).c_str());
 	filtration_->transpose(i);
 }
 

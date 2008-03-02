@@ -116,6 +116,15 @@ transpose(Index i, bool maintain_lazy)
 	
 	Index i_orig = i++;
 	
+    rLog(rlFiltrationTranspositions, "Transposing:");
+    rLog(rlFiltrationTranspositions, "  %s: (%s | %s)", 
+                                     tostring(*i_orig).c_str(), tostring(i_orig->cycle()).c_str(),
+                                                                tostring(i_orig->trail()).c_str());
+    rLog(rlFiltrationTranspositions, "    and");
+    rLog(rlFiltrationTranspositions, "  %s: (%s | %s)", 
+                                     tostring(*i).c_str(), tostring(i->cycle()).c_str(),
+                                                           tostring(i->trail()).c_str());
+
 	AssertMsg(i_orig->pair() != i, "Transposing simplices must not be paired");
 	bool result = transpose_simplices(i_orig, maintain_lazy);
 	AssertMsg(i_orig == boost::next(i), "Wrong indices after transposition");
