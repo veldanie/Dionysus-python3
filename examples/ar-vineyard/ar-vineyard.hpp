@@ -112,7 +112,7 @@ compute_vineyard()
     rLog(rlARVineyardComputing, "TrajectorySort size: %i", trajectory_sort_simulator.size());
 	
     // Simulate
-	change_evaluator(new KineticEvaluator(&simplex_sort_simulator));
+	change_evaluator(new KineticEvaluator(&simplex_sort_simulator, &trajectory_sort_simulator));
     while(!simplex_sort_simulator.reached_infinity() || !trajectory_sort_simulator.reached_infinity())
     {
         if (*(simplex_sort_simulator.top()) < *(trajectory_sort_simulator.top()))

@@ -197,14 +197,17 @@ class ARVineyard::StaticEvaluator: public Evaluator
 class ARVineyard::KineticEvaluator: public Evaluator
 {
 	public:
-									KineticEvaluator(Simulator* simulator): 
-                                        simulator_(simulator)                                   {}
+									KineticEvaluator(Simulator* simplex_sort_simulator,
+                                                     Simulator* trajectory_sort_simulator): 
+                                        simplex_sort_simulator_(simplex_sort_simulator),
+                                        trajectory_sort_simulator_(trajectory_sort_simulator)   {}
 
-		virtual RealType			time() const												{ return simulator_->current_time(); }
+		virtual RealType			time() const												{ return std::max(simplex_sort_simulator_->current_time(), trajectory_sort_simulator_->current_time()); }
 		virtual RealType			value(const Simplex& s)	const								{ return FunctionKernel::value_at(s.max_threshold(), time()); }
 
 	private:
-		Simulator*                  simulator_;
+		Simulator*                  simplex_sort_simulator_;
+        Simulator*                  trajectory_sort_simulator_;
 };
 
 
