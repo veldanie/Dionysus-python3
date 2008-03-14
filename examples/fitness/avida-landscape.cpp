@@ -35,9 +35,15 @@ typedef         LSFiltration::Vineyard                              LSVineyard;
 class           StaticEvaluator: public LSVineyard::Evaluator
 {
     public:
+                StaticEvaluator(float max_fitness): 
+                    max_fitness_(max_fitness)                       {}
+
         virtual RealType        
                 value(const Simplex& s) const       
-        { return s.get_attachment()->index()->fitness(); }
+        { return s.get_attachment()->index()->fitness()/max_fitness_; }
+
+    private:
+        float   max_fitness_;
 };
 
 std::ostream& operator<<(std::ostream& out, VertexIndex i)
@@ -101,15 +107,19 @@ int main(int argc, char** argv)
     const AvidaPopulationDetail::OrganismVector& organisms = population.get_organisms();
 
     rInfo("Number of organisms: %d", organisms.size());
+    float max_fitness = organisms[0].fitness();
     for (int i = 0; i < population.get_organisms().size(); ++i)
+    {
+        max_fitness = std::max(max_fitness, organisms[i].fitness());
         rInfo("%d (%s) %f %d %d", organisms[i].id(),
                                   organisms[i].genome().c_str(),
                                   organisms[i].fitness(),
                                   organisms[i].length(),
                                   organisms[i].genome().size());
+    }
 
     // Order vertices 
-    StaticEvaluator     evaluator;
+    StaticEvaluator     evaluator(max_fitness);
     LSVineyard          vineyard(&evaluator);
     VertexVector        vertices;
     for (OrganismIndex cur = organisms.begin(); cur != organisms.end(); ++cur)  vertices.push_back(cur);
@@ -190,7 +200,10 @@ int main(int argc, char** argv)
             if (i->dimension() != 0) continue;
             std::cout << i->dimension() << " "
                       << evaluator.value(*i) << " "
-                      << "unpaired" << std::endl;
+                      << 0 << std::endl;
+            // The infinite pair does not make sense since we are interested in 
+            // max of fitness, rather than min of -fitness. However min value for 
+            // fitness is 0, so it's a natural choice of the answer.
         }
     }
 }
