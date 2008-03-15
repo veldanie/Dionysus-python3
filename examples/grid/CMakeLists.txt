@@ -1,7 +1,12 @@
 set							(targets						
 							 test-grid2D 
-							 pdbdistance-vineyard
 							 combustion-vineyard)
+
+if                          (use_dsrpdb)
+    set                     (targets                    ${targets}
+                            							pdbdistance-vineyard)
+endif                       (use_dsrpdb)
+
 							 
 add_definitions				(${cgal_cxxflags})
 foreach 					(t ${targets})
