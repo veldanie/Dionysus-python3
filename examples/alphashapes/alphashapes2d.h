@@ -49,7 +49,7 @@ class AlphaSimplex2D: public SimplexWithVertices<Vertex_handle>
 	    							AlphaSimplex2D(const ::Vertex& v);
 		
 								    AlphaSimplex2D(const Edge& e);
-								    AlphaSimplex2D(const Edge& e, const SimplexSet& simplices);
+								    AlphaSimplex2D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt);
 		
 									AlphaSimplex2D(const Face& c);
 	    

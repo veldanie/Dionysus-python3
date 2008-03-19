@@ -16,7 +16,7 @@ AlphaSimplex2D(const Edge& e): attached_(false)
 }
 
 AlphaSimplex2D::	    
-AlphaSimplex2D(const Edge& e, const SimplexSet& simplices): attached_(false)
+AlphaSimplex2D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt): attached_(false)
 {
     Face_handle f = e.first;
 	for (int i = 0; i < 3; ++i)
@@ -31,25 +31,26 @@ AlphaSimplex2D(const Edge& e, const SimplexSet& simplices): attached_(false)
 	const Point& p2 = (*v)->point();
 	
 	attached_ = false;
-	if (CGAL::side_of_bounded_circle(p1, p2, 
+	if (!Dt.is_infinite(f->vertex(e.second)) &&
+        CGAL::side_of_bounded_circle(p1, p2, 
 									 f->vertex(e.second)->point()) == CGAL::ON_BOUNDED_SIDE)
 		attached_ = true;
-	else if (CGAL::side_of_bounded_circle(p1, p2,
+	else if (!Dt.is_infinite(o->vertex(oi)) &&
+             CGAL::side_of_bounded_circle(p1, p2,
 										  o->vertex(oi)->point()) == CGAL::ON_BOUNDED_SIDE)
-			attached_ = true;
+		attached_ = true;
 	else
 		alpha_ = squared_radius(p1, p2);
 
 	if (attached_)
 	{
-		SimplexSet::const_iterator f_iter = simplices.find(AlphaSimplex2D(*f));
-		SimplexSet::const_iterator o_iter = simplices.find(AlphaSimplex2D(*o));
-		if (f_iter == simplices.end())			// f is infinite
-			alpha_ = o_iter->alpha();
-		else if (o_iter == simplices.end())		// o is infinite
-			alpha_ = f_iter->alpha();
+		if (Dt.is_infinite(f))
+			alpha_ = simplices.find(AlphaSimplex2D(*o))->alpha();
+		else if (Dt.is_infinite(o))
+			alpha_ = simplices.find(AlphaSimplex2D(*f))->alpha();
 		else
-			alpha_ = std::min(f_iter->alpha(), o_iter->alpha());
+			alpha_ = std::min(simplices.find(AlphaSimplex2D(*f))->alpha(), 
+                              simplices.find(AlphaSimplex2D(*o))->alpha());
 	}
 }
 
@@ -107,7 +108,7 @@ void fill_alpha_order(const Delaunay& Dt, AlphaSimplex2DVector& alpha_order)
 		simplices.insert(AlphaSimplex2D(*cur));
 	rInfo("Faces inserted");
 	for(Edge_iterator cur = Dt.finite_edges_begin(); cur != Dt.finite_edges_end(); ++cur)
-		simplices.insert(AlphaSimplex2D(*cur, simplices));
+		simplices.insert(AlphaSimplex2D(*cur, simplices, Dt));
 	rInfo("Edges inserted");
 	for(Vertex_iterator cur = Dt.finite_vertices_begin(); cur != Dt.finite_vertices_end(); ++cur)
 		simplices.insert(AlphaSimplex2D(*cur));
