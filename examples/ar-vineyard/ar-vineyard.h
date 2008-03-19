@@ -119,7 +119,7 @@ class ARVineyard
 									~ARVineyard();
 
 		void						compute_pairing();
-		void						compute_vineyard();
+		void						compute_vineyard(double max_radius);
 		
 		const Filtration*			filtration() const											{ return filtration_; }
 		const Vineyard*				vineyard() const											{ return vineyard_; }

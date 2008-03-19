@@ -56,10 +56,11 @@ class ARSimplex3D: public SimplexWithVertices<Vertex_handle>
 		
 								    ARSimplex3D(const Edge& e);
 								    ARSimplex3D(const Edge& e, const Point& z, SimplexPhiMap& simplices, 
-												Facet_circulator facet_bg);
+                                                const Delaunay& Dt, Facet_circulator facet_bg);
 		
 								    ARSimplex3D(const Facet& f);
-								    ARSimplex3D(const Facet& f, const Point& z, const SimplexPhiMap& simplices);
+								    ARSimplex3D(const Facet& f, const Point& z, const SimplexPhiMap& simplices,
+                                                const Delaunay& Dt);
 	    
 									ARSimplex3D(const Cell& c, const Point& z);
 	    

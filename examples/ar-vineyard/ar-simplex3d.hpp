@@ -41,19 +41,15 @@ ARSimplex3D(const Edge& e)
 }
 
 ARSimplex3D::	    
-ARSimplex3D(const Edge& e, const Point& z, SimplexPhiMap& simplices, Facet_circulator facet_bg)
+ARSimplex3D(const Edge& e, const Point& z, SimplexPhiMap& simplices, const Delaunay& Dt, Facet_circulator facet_bg)
 {
     Cell_handle c = e.first;
 	Parent::add(c->vertex(e.second));
 	Parent::add(c->vertex(e.third));
 
 	Facet_circulator cur = facet_bg;
+	while (Dt.is_infinite(*cur))    ++cur; 
 	SimplexPhiMap::const_iterator cur_iter = simplices.find(ARSimplex3D(*cur));
-	while (cur_iter == simplices.end())
-	{
-		++cur; 
-		cur_iter = simplices.find(ARSimplex3D(*cur));
-	}
 	RealValue min = cur_iter->first.alpha();
 	RealValue phi_const_min = cur_iter->first.phi_const();
 	
@@ -69,10 +65,8 @@ ARSimplex3D(const Edge& e, const Point& z, SimplexPhiMap& simplices, Facet_circu
 		int i0 = (*cur).first->index(*v1);
 		int i1 = (*cur).first->index(*v2);
 		int i = 6 - i0 - i1 - (*cur).second;
-		Point p3 = (*cur).first->vertex(i)->point();
 
-		cur_iter = simplices.find(ARSimplex3D(*cur));
-		if (cur_iter == simplices.end())			// cur is infinite
+		if (Dt.is_infinite(cur->first->vertex(i)))
 		{
 			++cur; continue;
 			// FIXME: what do we do with infinite cofaces (i.e., what
@@ -80,9 +74,11 @@ ARSimplex3D(const Edge& e, const Point& z, SimplexPhiMap& simplices, Facet_circu
 			// infinite?
 		}
 		
+		Point p3 = (*cur).first->vertex(i)->point();
 		if (CGAL::side_of_bounded_sphere(p1, p2, p3) == CGAL::ON_BOUNDED_SIDE)
 			attached_ = true;
 		
+	    SimplexPhiMap::const_iterator cur_iter = simplices.find(ARSimplex3D(*cur));
 		RealValue 								val 				= cur_iter->first.alpha();
 		if (val < min) 							min 				= val;
 		RealValue 								phi_const_val 		= cur_iter->first.phi_const();
@@ -105,7 +101,7 @@ ARSimplex3D(const Edge& e, const Point& z, SimplexPhiMap& simplices, Facet_circu
 
 	
 	s_ = CGAL::squared_distance(z, K::Segment_3(p1,p2).supporting_line());
-	Point origin;
+	Point origin(0,0,0);
 	Point cc = origin + ((p1 - origin) + (p2 - origin))/2;		// CGAL is funny
 	v_ = CGAL::squared_distance(z, cc) - s_;
 }
@@ -120,7 +116,7 @@ ARSimplex3D(const Facet& f)
 }
 
 ARSimplex3D::	    
-ARSimplex3D(const Facet& f, const Point& z, const SimplexPhiMap& simplices)
+ARSimplex3D(const Facet& f, const Point& z, const SimplexPhiMap& simplices, const Delaunay& Dt)
 {
     Cell_handle c = f.first;
 	for (int i = 0; i < 4; ++i)
@@ -139,29 +135,33 @@ ARSimplex3D(const Facet& f, const Point& z, const SimplexPhiMap& simplices)
 	rho_ = squared_radius(p1, p2, p3);
 	
 	attached_ = false;
-	if (CGAL::side_of_bounded_sphere(p1, p2, p3,
+	if (!Dt.is_infinite(c->vertex(f.second)) &&
+        CGAL::side_of_bounded_sphere(p1, p2, p3,
 									 c->vertex(f.second)->point()) == CGAL::ON_BOUNDED_SIDE)
 		attached_ = true;
-	else if (CGAL::side_of_bounded_sphere(p1, p2, p3,
+	else if (!Dt.is_infinite(o->vertex(oi)) &&
+             CGAL::side_of_bounded_sphere(p1, p2, p3,
 										  o->vertex(oi)->point()) == CGAL::ON_BOUNDED_SIDE)
 		attached_ = true;
 	else
 		alpha_ = rho_;
 	
-	SimplexPhiMap::const_iterator c_iter = simplices.find(ARSimplex3D(*c,z));
-	SimplexPhiMap::const_iterator o_iter = simplices.find(ARSimplex3D(*o,z));
-	if (c_iter == simplices.end())			// c is infinite
+	if (Dt.is_infinite(c))
 	{
+	    SimplexPhiMap::const_iterator o_iter = simplices.find(ARSimplex3D(*o,z));
 		if (attached_) alpha_ = o_iter->first.alpha();
 		phi_const_ = o_iter->first.phi_const();					// FIXME: it's probably the other way around
 	}
-	else if (o_iter == simplices.end())		// o is infinite
+	else if (Dt.is_infinite(o))
 	{
+	    SimplexPhiMap::const_iterator c_iter = simplices.find(ARSimplex3D(*c,z));
 		if (attached_) alpha_ = c_iter->first.alpha();
 		phi_const_ = c_iter->first.phi_const();					// FIXME: it's probably the other way around
 	}
 	else
 	{
+	    SimplexPhiMap::const_iterator o_iter = simplices.find(ARSimplex3D(*o,z));
+	    SimplexPhiMap::const_iterator c_iter = simplices.find(ARSimplex3D(*c,z));
 		if (attached_) alpha_ = std::min(c_iter->first.alpha(), o_iter->first.alpha());
 		phi_const_ = std::min(c_iter->first.phi_const(), o_iter->first.phi_const());
 	}
@@ -241,10 +241,10 @@ void fill_alpha_order(const Delaunay& Dt, const Point& z, ARSimplex3DVector& alp
 	rLog(rlARSimplex3D, "Vertices inserted");
 
 	for(Facet_iterator cur = Dt.finite_facets_begin(); cur != Dt.finite_facets_end(); ++cur)
-		update_simplex_phi_map(ARSimplex3D(*cur, z, simplices), simplices);
+		update_simplex_phi_map(ARSimplex3D(*cur, z, simplices, Dt), simplices);
 	rLog(rlARSimplex3D, "Facets inserted");
 	for(Edge_iterator cur = Dt.finite_edges_begin(); cur != Dt.finite_edges_end(); ++cur)
-		update_simplex_phi_map(ARSimplex3D(*cur, z, simplices, Dt.incident_facets(*cur)), simplices);
+		update_simplex_phi_map(ARSimplex3D(*cur, z, simplices, Dt, Dt.incident_facets(*cur)), simplices);
 	rLog(rlARSimplex3D, "Edges inserted");
     
 	// Sort simplices by their alpha values

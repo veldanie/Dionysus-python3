@@ -86,7 +86,7 @@ compute_pairing()
 
 void					
 ARVineyard::
-compute_vineyard()
+compute_vineyard(double max_radius)
 {
 	AssertMsg(filtration_->is_paired(), "Simplices must be paired for a vineyard to be computed");
 	
@@ -113,7 +113,7 @@ compute_vineyard()
 	
     // Simulate
 	change_evaluator(new KineticEvaluator(&simplex_sort_simulator, &trajectory_sort_simulator));
-    while(!simplex_sort_simulator.reached_infinity() || !trajectory_sort_simulator.reached_infinity())
+    while ((simplex_sort_simulator.current_time() < max_radius || trajectory_sort_simulator.current_time() < max_radius) && !(simplex_sort_simulator.reached_infinity() && trajectory_sort_simulator.reached_infinity()))
     {
         if (*(simplex_sort_simulator.top()) < *(trajectory_sort_simulator.top()))
         {
