@@ -4,12 +4,15 @@ option						(logging 			"Build Dionysus with logging on" 		OFF)
 option						(counters			"Build Dionysus with counters on" 		OFF)
 option						(debug				"Build Dionysus with debugging on" 		OFF)
 option						(optimize			"Build Dionysus with optimization"		ON)
+option						(use_dsrpdb			"Build examples that use DSR-PDB"		OFF)
 
 # Find everything that's always required
 find_package				(Boost REQUIRED)
 find_package				(Doxygen)
-find_library				(dsrpdb_LIBRARY 			NAMES dsrpdb)
-find_path					(dsrpdb_INCLUDE_DIR 		dsrpdb/Protein.h)
+if                          (use_dsrpdb)
+    find_library			(dsrpdb_LIBRARY 			NAMES dsrpdb)
+    find_path				(dsrpdb_INCLUDE_DIR 		dsrpdb/Protein.h)
+endif                       (use_dsrpdb)
 
 #CGAL
 execute_process				(COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_SOURCE_DIR}/FindCGAL.Makefile libpaths
@@ -39,8 +42,6 @@ set							(cgal_libraries 			${cgal_LIBRARY}
 														${gmp_LIBRARY} 
 														${gmpxx_LIBRARY} 
 														${m_LIBRARY})
-set                         (cgal_cxxflags              ${cgal_cxxflags}
-                                                        -DCGAL_NO_ASSERTIONS)
 
 # SYNAPS
 add_definitions				(-DBOOST_UBLAS_TYPE_CHECK=0)

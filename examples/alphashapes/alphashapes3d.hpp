@@ -15,19 +15,15 @@ AlphaSimplex3D(const Edge& e)
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Edge& e, const SimplexSet& simplices, Facet_circulator facet_bg)
+AlphaSimplex3D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt, Facet_circulator facet_bg)
 {
     Cell_handle c = e.first;
 	Parent::add(c->vertex(e.second));
 	Parent::add(c->vertex(e.third));
 
 	Facet_circulator cur = facet_bg;
+	while (Dt.is_infinite(*cur))    ++cur; 
 	SimplexSet::const_iterator cur_iter = simplices.find(AlphaSimplex3D(*cur));
-	while (cur_iter == simplices.end())
-	{
-		++cur; 
-		cur_iter = simplices.find(AlphaSimplex3D(*cur));
-	}
 	RealValue min = cur_iter->alpha();
 	
 	VertexSet::const_iterator v = Parent::vertices().begin();
@@ -41,14 +37,10 @@ AlphaSimplex3D(const Edge& e, const SimplexSet& simplices, Facet_circulator face
 		int i0 = (*cur).first->index(*v++);
 		int i1 = (*cur).first->index(*v);
 		int i = 6 - i0 - i1 - (*cur).second;
+        if (Dt.is_infinite(cur->first->vertex(i))) { ++cur; continue; }
 		Point p3 = (*cur).first->vertex(i)->point();
 
 		cur_iter = simplices.find(AlphaSimplex3D(*cur));
-		if (cur_iter == simplices.end())			// cur is infinite
-		{
-			++cur; continue;
-		}
-		
 		if (CGAL::side_of_bounded_sphere(p1, p2, p3) == CGAL::ON_BOUNDED_SIDE)
 			attached_ = true;
 		RealValue val = cur_iter->alpha();
@@ -73,7 +65,7 @@ AlphaSimplex3D(const Facet& f)
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Facet& f, const SimplexSet& simplices)
+AlphaSimplex3D(const Facet& f, const SimplexSet& simplices, const Delaunay& Dt)
 {
     Cell_handle c = f.first;
 	for (int i = 0; i < 4; ++i)
@@ -89,10 +81,12 @@ AlphaSimplex3D(const Facet& f, const SimplexSet& simplices)
 	const Point& p3 = (*v)->point();
 	
 	attached_ = false;
-	if (CGAL::side_of_bounded_sphere(p1, p2, p3,
+	if (!Dt.is_infinite(c->vertex(f.second)) && 
+        CGAL::side_of_bounded_sphere(p1, p2, p3,
 									 c->vertex(f.second)->point()) == CGAL::ON_BOUNDED_SIDE)
 		attached_ = true;
-	else if (CGAL::side_of_bounded_sphere(p1, p2, p3,
+	else if (!Dt.is_infinite(o->vertex(oi)) &&
+             CGAL::side_of_bounded_sphere(p1, p2, p3,
 										  o->vertex(oi)->point()) == CGAL::ON_BOUNDED_SIDE)
 		attached_ = true;
 	else
@@ -100,14 +94,13 @@ AlphaSimplex3D(const Facet& f, const SimplexSet& simplices)
 	
 	if (attached_)
 	{
-		SimplexSet::const_iterator c_iter = simplices.find(AlphaSimplex3D(*c));
-		SimplexSet::const_iterator o_iter = simplices.find(AlphaSimplex3D(*o));
-		if (c_iter == simplices.end())			// c is infinite
-			alpha_ = o_iter->alpha();
-		else if (o_iter == simplices.end())		// o is infinite
-			alpha_ = c_iter->alpha();
+		if (Dt.is_infinite(c))
+			alpha_ = simplices.find(AlphaSimplex3D(*o))->alpha();
+		else if (Dt.is_infinite(o))
+			alpha_ = simplices.find(AlphaSimplex3D(*c))->alpha();
 		else
-			alpha_ = std::min(c_iter->alpha(), o_iter->alpha());
+			alpha_ = std::min(simplices.find(AlphaSimplex3D(*c))->alpha(), 
+                              simplices.find(AlphaSimplex3D(*o))->alpha());
 	}
 }
 
@@ -165,10 +158,10 @@ void fill_alpha_order(const Delaunay& Dt, AlphaSimplex3DVector& alpha_order)
 		simplices.insert(AlphaSimplex3D(*cur));
 	rInfo("Cells inserted");
 	for(Facet_iterator cur = Dt.finite_facets_begin(); cur != Dt.finite_facets_end(); ++cur)
-		simplices.insert(AlphaSimplex3D(*cur, simplices));
+		simplices.insert(AlphaSimplex3D(*cur, simplices, Dt));
 	rInfo("Facets inserted");
 	for(Edge_iterator cur = Dt.finite_edges_begin(); cur != Dt.finite_edges_end(); ++cur)
-		simplices.insert(AlphaSimplex3D(*cur, simplices, Dt.incident_facets(*cur)));
+		simplices.insert(AlphaSimplex3D(*cur, simplices, Dt, Dt.incident_facets(*cur)));
 	rInfo("Edges inserted");
 	for(Vertex_iterator cur = Dt.finite_vertices_begin(); cur != Dt.finite_vertices_end(); ++cur)
 		simplices.insert(AlphaSimplex3D(*cur));

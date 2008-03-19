@@ -52,10 +52,10 @@ class AlphaSimplex3D: public SimplexWithVertices<Vertex_handle>
 	    							AlphaSimplex3D(const ::Vertex& v);
 		
 								    AlphaSimplex3D(const Edge& e);
-								    AlphaSimplex3D(const Edge& e, const SimplexSet& simplices, Facet_circulator facet_bg);
+								    AlphaSimplex3D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt, Facet_circulator facet_bg);
 		
 								    AlphaSimplex3D(const Facet& f);
-								    AlphaSimplex3D(const Facet& f, const SimplexSet& simplices);
+								    AlphaSimplex3D(const Facet& f, const SimplexSet& simplices, const Delaunay& Dt);
 	    
 									AlphaSimplex3D(const Cell& c);
 	    
