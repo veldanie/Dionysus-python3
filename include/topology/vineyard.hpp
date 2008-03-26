@@ -23,7 +23,7 @@ start_vines(Index bg, Index end)
 		if (dim >= vines.size())
 		{
 			AssertMsg(dim == vines.size(), "New dimension has to be contiguous");
-			vines.push_back(std::list<Vine>());
+			vines.push_back(std::list<VineS>());
 		}
 
 		start_vine(cur);
@@ -36,8 +36,8 @@ void
 Vineyard<FS>::
 switched(Index i, Index j)
 {
-	Vine* i_vine = i->vine();
-	Vine* j_vine = j->vine();
+	VineS* i_vine = i->vine();
+	VineS* j_vine = j->vine();
 	i->set_vine(j_vine);
 	j->set_vine(i_vine);
 
@@ -60,7 +60,7 @@ start_vine(Index i)
 	AssertMsg(i->sign(), "Can only start vines for positive simplices");
 		
 	Dimension dim = i->dimension();
-	vines[dim].push_back(Vine());
+	vines[dim].push_back(VineS());
 	i->set_vine(&vines[dim].back());
 	i->pair()->set_vine(i->vine());
 }
@@ -94,7 +94,7 @@ save_edges(const std::string& filename) const
 		std::string fn = filename + os.str() + ".edg";
 		std::ofstream out(fn.c_str());
 		for (typename VineList::const_iterator vi = vines[i].begin(); vi != vines[i].end(); ++vi)
-			for (typename Vine::const_iterator ki = vi->begin(), kiprev = ki++; ki != vi->end(); kiprev = ki++)
+			for (typename VineS::const_iterator ki = vi->begin(), kiprev = ki++; ki != vi->end(); kiprev = ki++)
 			{
 				if (kiprev->is_infinite() || ki->is_infinite()) continue;
 				out << kiprev->birth << ' ' << kiprev->death << ' ' << kiprev->time << std::endl;
@@ -120,7 +120,7 @@ record_knee(Index i)
 	else
 	{
 		rLog(rlVineyard, "Creating knee");
-		Knee k(evaluator->value(*i), evaluator->value(*(i->pair())), evaluator->time());
+		KneeS k(evaluator->value(*i), evaluator->value(*(i->pair())), evaluator->time());
 		rLog(rlVineyard, "Knee created: %s", tostring(k).c_str());
 
 		if (!k.is_diagonal() || i->vine()->empty())			// non-diagonal k, or empty vine
@@ -147,7 +147,7 @@ record_knee(Index i)
 }
 
 template<class FS>
-typename Vineyard<FS>::Knee::SimplexList  
+typename Vineyard<FS>::KneeS::SimplexList  
 Vineyard<FS>::
 resolve_cycle(Index i) const
 {
@@ -155,7 +155,7 @@ resolve_cycle(Index i) const
 	const Cycle& cycle = i->cycle();
 	
 	// Resolve simplices
-	typename Knee::SimplexList lst;
+	typename KneeS::SimplexList lst;
 	for (typename Cycle::const_iterator cur = cycle.begin(); cur != cycle.end(); ++cur)
 		lst.push_back(**cur);
 

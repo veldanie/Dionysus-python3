@@ -30,14 +30,14 @@ class Vineyard
 	public:
 		typedef							FltrSmplx									FiltrationSimplex;
 		typedef							typename FiltrationSimplex::Simplex			Simplex;
-		typedef							Vine<Simplex>								Vine;
-		typedef							Knee<Simplex>								Knee;
-		typedef							std::list<Vine>								VineList;
+		typedef							Vine<Simplex>								VineS;
+		typedef							Knee<Simplex>								KneeS;
+		typedef							std::list<VineS>							VineList;
 		typedef							std::vector<VineList>						VineListVector;
 		typedef							typename FiltrationSimplex::Cycle			Cycle;
 
 		typedef							typename FiltrationSimplex::Index			Index;
-		typedef							typename FiltrationSimplex::Evaluator		Evaluator;
+		typedef							typename FiltrationSimplex::EvaluatorS		Evaluator;
 										
 	public:
 										Vineyard(Evaluator* eval = 0): 
@@ -52,7 +52,7 @@ class Vineyard
 		void							save_edges(const std::string& filename) const;
 
 	protected:
-		typename Knee::SimplexList  	resolve_cycle(Index i) const;
+		typename KneeS::SimplexList  	resolve_cycle(Index i) const;
 
 	private:
 		void							record_knee(Index i);
@@ -112,15 +112,15 @@ class Vine: public std::list<Knee<S> >
 {	
 	public:
 		typedef					S												Simplex;
-		typedef					Knee<Simplex>									Knee;
-		typedef					std::list<Knee>									VineRepresentation;
+		typedef					Knee<Simplex>									KneeS;
+		typedef					std::list<KneeS>								VineRepresentation;
 		typedef					typename VineRepresentation::const_iterator		const_knee_iterator;
 		
 								Vine()											{}
-								Vine(const Knee& k)								{ add(k); }
+								Vine(const KneeS& k)							{ add(k); }
 		
-		void 					add(RealType b, RealType d, RealType t)			{ push_back(Knee(b,d,t)); }
-		void 					add(const Knee& k)								{ push_back(k); }
+		void 					add(RealType b, RealType d, RealType t)			{ push_back(KneeS(b,d,t)); }
+		void 					add(const KneeS& k)								{ push_back(k); }
 
 		using VineRepresentation::begin;
 		using VineRepresentation::end;

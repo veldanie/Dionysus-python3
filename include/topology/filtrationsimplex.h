@@ -47,12 +47,12 @@ class FiltrationSimplex: public Smplx
 		typedef		FiltrationContainer<Self>								Container;
 		typedef		Simplex													Parent;
 		
-		typedef		Vine<Simplex>											Vine;
+		typedef		Vine<Simplex>											VineS;
 		typedef		typename Container::Cycle								Cycle;
 		typedef		typename Container::Trail								Trail;
 		typedef		typename Container::Index								Index;
 
-		typedef		Evaluator<Simplex>										Evaluator;
+		typedef		Evaluator<Simplex>										EvaluatorS;
 		
 		FiltrationSimplex(const Simplex& s): 
 			Simplex(s), vine_(0)											{}
@@ -63,7 +63,7 @@ class FiltrationSimplex: public Smplx
 		void					set_pair(Index pair)						{ pair_ = pair; }
 		bool					sign() const								{ return cycles_column.empty(); }
 		bool					is_paired() const							{ return pair() != pair()->pair(); }
-		void					set_vine(Vine* v)							{ vine_ = v; }
+		void					set_vine(VineS* v)							{ vine_ = v; }
 		using 					Parent::dimension;
 		/// @}
 
@@ -75,14 +75,14 @@ class FiltrationSimplex: public Smplx
 		const Cycle&			cycle()	const								{ return cycles_column; }
 		const Trail&			trail()	const								{ return trails_row; }
 		Index					pair() const								{ return pair_; }
-		Vine*					vine() const								{ return vine_; }
+		VineS*					vine() const								{ return vine_; }
 		/// @}
 
 	private:
 		Cycle																cycles_column;
 		Trail																trails_row; 
 		Index																pair_;
-		Vine*																vine_;
+		VineS*																vine_;
 };
 
 #endif // __FILTRATIONSIMPLEX_H__
