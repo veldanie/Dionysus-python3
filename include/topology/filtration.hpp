@@ -25,6 +25,7 @@ static Counter*  cFiltrationPairTrailLength = 		GetCounter("filtration/pair/trai
 static Counter*  cFiltrationTransposition = 		GetCounter("filtration/transposition");
 static Counter*  cFiltrationTranspositionDiffDim = 	GetCounter("filtration/transposition/diffdim");
 static Counter*  cFiltrationTranspositionCase12 = 	GetCounter("filtration/transposition/case/1/2");
+static Counter*  cFiltrationTranspositionCase12s = 	GetCounter("filtration/transposition/case/1/2/special");
 static Counter*  cFiltrationTranspositionCase112 = 	GetCounter("filtration/transposition/case/1/1/2");
 static Counter*  cFiltrationTranspositionCase111 = 	GetCounter("filtration/transposition/case/1/1/1");
 static Counter*  cFiltrationTranspositionCase22 = 	GetCounter("filtration/transposition/case/2/2");
@@ -250,12 +251,12 @@ transpose_simplices(Index i, bool maintain_lazy)
 				return false;
 			} else
 			{
-				// Case 1.1.2 --- special version (plain swap, but pairing switches)
+				// Case 1.2 --- special version (plain swap, but pairing switches)
 				swap(i_prev, i);
 				pairing_switch(i_prev, i);
-				rLog(rlFiltrationTranspositions, "Case 1.1.2 --- unpaired");
+				rLog(rlFiltrationTranspositions, "Case 1.2 --- unpaired (pairing switch)");
 				rLog(rlFiltrationTranspositions, tostring(*i_prev).c_str());
-				Count(cFiltrationTranspositionCase112);
+				Count(cFiltrationTranspositionCase12s);
 				return true;
 			}
 		}

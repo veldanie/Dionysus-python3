@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 
 	stdoutLog.subscribeTo(RLOG_CHANNEL("topology/filtration"));
 	//stdoutLog.subscribeTo(RLOG_CHANNEL("topology/cycle"));
-	stdoutLog.subscribeTo(RLOG_CHANNEL("topology/vineyard"));
+	//stdoutLog.subscribeTo(RLOG_CHANNEL("topology/vineyard"));
 #endif
 
 	Evaluator<Simplex> e;
@@ -49,6 +49,12 @@ int main(int argc, char** argv)
 	std::cout << tf << std::endl;
 
 #if 1
+	Simplex A;  A.add(0);
+	std::cout << A << std::endl;
+	std::cout << *tf.get_index(A) << std::endl;
+    std::cout << "Transposing A: " << tf.transpose(tf.get_index(A)) << std::endl;
+	std::cout << tf;
+
 	Simplex BC; BC.add(1); BC.add(2);
 	Simplex AB; AB.add(0); AB.add(1);
 	std::cout << BC << std::endl;
