@@ -166,7 +166,8 @@ operator<<(std::ostream& out) const
 {
 	for (const_iterator cur = begin(); cur != end(); ++cur)
 	{
-		out << **cur << ", ";
+        if (cur != begin()) out << ", ";
+		out << **cur;
 	}
 	// out << "(last: " << *last << ")";  // For debugging only
 	return out;

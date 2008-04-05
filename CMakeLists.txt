@@ -5,6 +5,7 @@ option						(counters			"Build Dionysus with counters on" 		OFF)
 option						(debug				"Build Dionysus with debugging on" 		OFF)
 option						(optimize			"Build Dionysus with optimization"		ON)
 option						(use_dsrpdb			"Build examples that use DSR-PDB"		OFF)
+option						(use_synaps			"Build examples that use SYNAPS"		OFF)
 
 # Find everything that's always required
 find_package				(Boost REQUIRED)
@@ -42,6 +43,15 @@ set							(cgal_libraries 			${cgal_LIBRARY}
 														${gmp_LIBRARY} 
 														${gmpxx_LIBRARY} 
 														${m_LIBRARY})
+
+# SYNAPS
+if                          (use_synaps)
+    add_definitions			(-DBOOST_UBLAS_TYPE_CHECK=0)
+    find_library			(synaps_LIBRARY				NAMES synaps)
+    set						(synaps_libraries			${synaps_LIBRARY}
+														${gmp_LIBRARY}
+														${gmpxx_LIBRARY})
+endif                       (use_synaps)
 
 # Debugging
 if							(debug)

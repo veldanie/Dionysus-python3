@@ -1,4 +1,4 @@
-#include "euclidean.h"
+#include "geometry/euclidean.h"
 #include <vector>
 #include <iostream>
 #include <cmath>

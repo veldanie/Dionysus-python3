@@ -2,69 +2,84 @@
 #define __SIMULATOR_H__
 
 #include "utilities/eventqueue.h"
-#include "polynomial.h"
 
 template<class Comparison>  						class IndirectComparison;
-template<class PolyKernel_, class Simulator_>		class Event;
 
-template<class PolyKernel_, template<class Event> class EventComparison_ = std::less>
+/**
+ * Simulator class. Keeps a queue of events. Infinity is reached if the Event 
+ * at the front of the queue has an empty root stack. Keeps track of current time, 
+ * Event addition, and processes events one by one. Degeneracies are handled by 
+ * assuming that the FunctionKernel::Function responsible for the event must be 
+ * positive before the Event occurs.
+ *
+ * \ingroup kinetic
+ */
+template<class FuncKernel_, template<class Event> class EventComparison_ = std::less>
 class Simulator
 {
 	public:
-		typedef						PolyKernel_									PolynomialKernel;
-		typedef						typename PolynomialKernel::Polynomial		Polynomial;
-		typedef						typename PolynomialKernel::RationalFunction	RationalFunction;
-		typedef						typename PolynomialKernel::RootStack		RootStack;
-		typedef						typename PolynomialKernel::RootType			RootType;
+		typedef						FuncKernel_								    FunctionKernel;
+		typedef						typename FunctionKernel::Function	        Function;
+		typedef						typename FunctionKernel::RootStack		    RootStack;
+		typedef						typename FunctionKernel::RootType			RootType;
 		typedef						RootType									Time;
 
 		class Event;
 		typedef						EventComparison_<Event>						EventComparison;
 		typedef						EventQueue<Event*, IndirectComparison<EventComparison> >			
-																				EventQueue;
-		typedef						typename EventQueue::iterator				Key;
-		typedef						typename EventQueue::const_iterator			const_Key;
+																				EventQueueS;
+		typedef						typename EventQueueS::iterator				Key;
+		typedef						typename EventQueueS::const_iterator		const_Key;
 
 
-									Simulator(Time start = PolynomialKernel::root(0)):
-										current_(start), 
-										reached_infinity_(false)				{}
+									Simulator(Time start = FunctionKernel::root(0)):
+										current_(start)         				{}
 
 
 		template<class Event_> 
 		Key							add(const Event_& e);
 		template<class Event_> 
-		Key							add(const RationalFunction& f, const Event_& e);
+		Key							add(const Function& f, const Event_& e);
 		void						process();
-		void						update(Key k, const RationalFunction& f);
+		void						update(Key k, const Function& f);
 		
 		void						remove(Key k)								{ queue_.remove(k); }
 		Key							null_key() 									{ return queue_.end(); }
 
 		Time						current_time() const						{ return current_; }
 		Time						audit_time() const;
-		bool						reached_infinity() const					{ return reached_infinity_; }
+		bool						reached_infinity() const					{ return queue_.empty() || (*queue_.top())->root_stack().empty(); }
+        
+        Event*                      top() const                                 { return *(queue_.top()); }
+        unsigned                    size() const                                { return queue_.size(); }
 
-		std::ostream&				print(std::ostream& out) const;
+		std::ostream&				operator<<(std::ostream& out) const;
 
 	private:
 		void						update(Key i);
 
 	private:
 		Time						current_;
-		EventQueue					queue_;
-		bool						reached_infinity_;
+		EventQueueS					queue_;
 };
 
-template<class PolyKernel_, template<class Event> class EventComparison_>
-class Simulator<PolyKernel_, EventComparison_>::Event
+
+/**
+ * Base class for events. Stores a root stack, subclasses need to define process(). 
+ * Event with an empty root stack compares greater than any other Event, 
+ * pushing those events to the end of the queue.
+ */
+template<class FuncKernel_, template<class Event> class EventComparison_>
+class Simulator<FuncKernel_, EventComparison_>::Event
 {
 	public:
-		typedef						PolyKernel_									PolynomialKernel;
-		typedef						typename PolynomialKernel::RootStack		RootStack;
+		typedef						FuncKernel_									FunctionKernel;
+		typedef						typename FunctionKernel::RootStack		    RootStack;
 
+        /// process() is called when the event is at the top of the queue 
+        /// in the simulator.
 		/// Returns true if the event needs to remain in the Simulator 
-		/// (top of the root_stack() will be used for new time)
+		/// (top of the root_stack() will be used for new time).
 		virtual	bool				process(Simulator* s) const					=0;
 		
 		RootStack&					root_stack()								{ return root_stack_; }
@@ -80,15 +95,22 @@ class Simulator<PolyKernel_, EventComparison_>::Event
 				return root_stack().top() < e.root_stack().top();
 		}
 
-		int							sign_before() const							{ return root_stack().top().sign_low(); }
-		int							sign_after() const							{ return root_stack().top().sign_high(); }
-
-		virtual std::ostream&		print(std::ostream& out) const				{ return out << "Event with " << root_stack_.size() << " roots"; }
+		virtual std::ostream&		operator<<(std::ostream& out) const			
+        { 
+            out << "Event with " << root_stack_.size() << " roots"; 
+            if (!root_stack_.empty()) out << "; top root: " << root_stack_.top();
+            out << ", ";
+            return out;
+        }
 
 	private:
 		RootStack					root_stack_;
 };
 
+/**
+ * Compares elements pointed at by its arguments using the provided Comparison_ 
+ * (which must not take any arguments during construction).
+ */
 template<class Comparison_>
 class IndirectComparison: public std::binary_function<const typename Comparison_::first_argument_type*, 
 													  const typename Comparison_::second_argument_type*, 

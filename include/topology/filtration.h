@@ -22,6 +22,8 @@
  * and provides pair_simplices() method that computes the RU-decomposition
  * for the simplex order stored in the filtration. Iterators remain valid 
  * through all the operations.
+ *
+ * \ingroup topology
  */
 template<class Smplx, class FltrSmplx = FiltrationSimplex<Smplx>, class Vnrd = Vineyard<FltrSmplx> >
 class Filtration: public FltrSmplx::Container
@@ -37,6 +39,8 @@ class Filtration: public FltrSmplx::Container
 		typedef		typename FiltrationSimplex::Container							FiltrationContainer;
 		typedef		typename FiltrationContainer::Index								Index;
 		typedef		typename FiltrationContainer::const_Index						const_Index;
+		typedef		Index															iterator;
+		typedef		const_Index														const_iterator;
 		/// @}
 		
 		/// \name Cycles and Trails 
@@ -61,7 +65,7 @@ class Filtration: public FltrSmplx::Container
 		/// Computes RU decomposition of the simplices in [bg, end) range, assuming that everything before bg has been paired 
 		void 							pair_simplices(Index bg, Index end, bool store_trails = true);
 		void 							pair_simplices(bool store_trails = true)	{ pair_simplices(begin(), end(), store_trails); }
-		bool							transpose(Index i, bool maintain_lazy = true);
+		bool							transpose(Index i, bool maintain_lazy = false);
 		bool							is_paired() const;
 		Index							append(const Simplex& s);					///< Appends s to the filtration
 		Index							insert(Index prior, const Simplex& s);		///< Inserts s after prior

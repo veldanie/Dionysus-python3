@@ -23,7 +23,8 @@ start_vines(Index bg, Index end)
 		if (dim >= vines.size())
 		{
 			AssertMsg(dim == vines.size(), "New dimension has to be contiguous");
-			vines.push_back(std::list<VineS>());
+			vines.push_back(VineList());
+            vines_vector.push_back(boost::prior(vines.end()));
 		}
 
 		start_vine(cur);
@@ -60,8 +61,8 @@ start_vine(Index i)
 	AssertMsg(i->sign(), "Can only start vines for positive simplices");
 		
 	Dimension dim = i->dimension();
-	vines[dim].push_back(VineS());
-	i->set_vine(&vines[dim].back());
+	vines_vector[dim]->push_back(VineS());
+	i->set_vine(&vines_vector[dim]->back());
 	i->pair()->set_vine(i->vine());
 }
 	
@@ -88,12 +89,12 @@ void
 Vineyard<FS>::
 save_edges(const std::string& filename) const
 {
-	for (unsigned int i = 0; i < vines.size(); ++i)
+	for (unsigned int i = 0; i < vines_vector.size(); ++i)
 	{
 		std::ostringstream os; os << i;
 		std::string fn = filename + os.str() + ".edg";
 		std::ofstream out(fn.c_str());
-		for (typename VineList::const_iterator vi = vines[i].begin(); vi != vines[i].end(); ++vi)
+		for (typename VineList::const_iterator vi = vines_vector[i]->begin(); vi != vines_vector[i]->end(); ++vi)
 			for (typename VineS::const_iterator ki = vi->begin(), kiprev = ki++; ki != vi->end(); kiprev = ki++)
 			{
 				if (kiprev->is_infinite() || ki->is_infinite()) continue;
@@ -122,6 +123,7 @@ record_knee(Index i)
 		rLog(rlVineyard, "Creating knee");
 		KneeS k(evaluator->value(*i), evaluator->value(*(i->pair())), evaluator->time());
 		rLog(rlVineyard, "Knee created: %s", tostring(k).c_str());
+        rLog(rlVineyard, "Vine: %s", tostring(*(i->vine())).c_str());
 
 		if (!k.is_diagonal() || i->vine()->empty())			// non-diagonal k, or empty vine
 		{

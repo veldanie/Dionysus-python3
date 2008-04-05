@@ -23,6 +23,8 @@ template<class Smplx>	class Vine;
 /**
  * Vineyard class. Keeps track of vines and knees. switched() is the key function called
  * by filtration when pairing switches after a Filtration::transpose().
+ *
+ * \ingroup topology
  */
 template<class FltrSmplx>
 class Vineyard
@@ -32,8 +34,9 @@ class Vineyard
 		typedef							typename FiltrationSimplex::Simplex			Simplex;
 		typedef							Vine<Simplex>								VineS;
 		typedef							Knee<Simplex>								KneeS;
-		typedef							std::list<VineS>							VineList;
-		typedef							std::vector<VineList>						VineListVector;
+		typedef							std::list<VineS>						    VineList;
+		typedef							std::list<VineList>						    VineListList;
+        typedef                         std::vector<typename VineListList::iterator> VineListVector;
 		typedef							typename FiltrationSimplex::Cycle			Cycle;
 
 		typedef							typename FiltrationSimplex::Index			Index;
@@ -45,6 +48,7 @@ class Vineyard
 
 		void							start_vines(Index bg, Index end);
 		void							switched(Index i, Index j);
+		void							record_knee(Index i);
 		void							record_diagram(Index bg, Index end);
 
 		void							set_evaluator(Evaluator* eval)				{ evaluator = eval; }
@@ -55,16 +59,18 @@ class Vineyard
 		typename KneeS::SimplexList  	resolve_cycle(Index i) const;
 
 	private:
-		void							record_knee(Index i);
 		void							start_vine(Index i);
 
 	private:
-		VineListVector					vines;
+		VineListList                    vines;            // stores vine lists
+		VineListVector                  vines_vector;     // stores pointers (iterators) to vine lists
 		Evaluator*						evaluator;
 };
 
 /**
  * Knee class stores the knee in R^3 as well as the cycle that is associated with the Simplex starting from the Knee.
+ *
+ * \ingroup topology
  */
 template<class S>
 class Knee
@@ -117,10 +123,16 @@ class Vine: public std::list<Knee<S> >
 		typedef					typename VineRepresentation::const_iterator		const_knee_iterator;
 		
 								Vine()											{}
-								Vine(const KneeS& k)							{ add(k); }
+								Vine(const Vine& other): 
+                                    VineRepresentation(other)	                {}
+								Vine(const VineRepresentation& other): 
+                                    VineRepresentation(other)	                {}
+								Vine(const KneeS& k)						    { add(k); }
 		
 		void 					add(RealType b, RealType d, RealType t)			{ push_back(KneeS(b,d,t)); }
 		void 					add(const KneeS& k)								{ push_back(k); }
+
+        std::ostream&           operator<<(std::ostream& out) const             { for (const_knee_iterator cur = begin(); cur != end(); ++cur) out << *cur; return out; }
 
 		using VineRepresentation::begin;
 		using VineRepresentation::end;
@@ -138,6 +150,9 @@ class Vine: public std::list<Knee<S> >
 		template<class Archive>
 		void 					serialize(Archive& ar, version_type );
 };
+
+template<class S>
+std::ostream& operator<<(std::ostream& out, const Vine<S>& v) 					{ return v.operator<<(out); }
 
 
 #include "vineyard.hpp"

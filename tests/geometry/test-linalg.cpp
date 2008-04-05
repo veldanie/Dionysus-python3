@@ -1,9 +1,9 @@
-#include "linalg.h"
+#include "geometry/linalg.h"
 #include <iostream>
 
 #include <synaps/upol.h>
 #include <synaps/upol/gcd.h>
-#include "rational-function.h"
+#include "geometry/rational-function.h"
 
 
 typedef			UPolDse<double>					Polynomial;

@@ -16,6 +16,8 @@
  * The actual order of the elements is defined by OrderCmp. Instances of those 
  * classes are not stored in Cycle for efficiency, and are passed as arguments to those methods 
  * that require them.
+ *
+ * \ingroup topology
  */
 template <class Itm, class OrderCmp, class ConsistencyCmp = OrderCmp>
 class Cycle: public List<Itm>

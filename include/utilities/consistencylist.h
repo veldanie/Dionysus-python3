@@ -144,7 +144,7 @@ struct ConsistencyListNode
 	T 				data;
 	OrderType		consistency;
 
-	std::ostream& 		operator<<(std::ostream& out) const					{ return out << data << ": " << consistency; }
+	std::ostream& 		operator<<(std::ostream& out) const					{ return out << consistency << ": " << data; }
 };
 
 template<class T>

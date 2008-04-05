@@ -13,6 +13,8 @@
  * FiltrationContainer class. Serves as a parent of Filtration that 
  * describes the container functionality. Used by FiltrationSimplex 
  * to get Cycle representation.
+ *
+ * \ingroup topology
  */
 template<class FltrSmplx>
 class FiltrationContainer: public ConsistencyList<FltrSmplx>

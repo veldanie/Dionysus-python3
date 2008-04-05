@@ -12,6 +12,8 @@
 
 template<class T>
 std::string tostring(const T& t) { std::ostringstream out; out << t; return out.str(); }
+template<class T>
+std::string intostring(const T& t) { std::ostringstream out; t.operator<<(out); return out.str(); }
 
 #define AssertMsg(cond, message, ...)		do { if (!(cond)) { rError(message, ##__VA_ARGS__); rAssertSilent(cond); } } while (0)
 	

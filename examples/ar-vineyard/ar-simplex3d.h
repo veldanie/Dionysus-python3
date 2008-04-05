@@ -28,7 +28,6 @@ typedef Delaunay::Edge								Edge;
 typedef Delaunay::Facet								Facet;
 typedef Delaunay::Cell								Cell;
 typedef Delaunay::Cell_handle						Cell_handle;
-typedef K::FT										RealValue;
 
 typedef Delaunay::Finite_vertices_iterator    		Vertex_iterator;
 typedef Delaunay::Finite_edges_iterator        		Edge_iterator;
@@ -40,6 +39,7 @@ typedef Delaunay::Facet_circulator					Facet_circulator;
 class ARSimplex3D: public SimplexWithVertices<Vertex_handle>
 {
 	public:
+        typedef     K::FT										        RealValue;
 		typedef 	std::map<ARSimplex3D, RealValue>					SimplexPhiMap;
 		typedef		SimplexWithVertices<Vertex_handle>					Parent;
 		typedef		Parent::VertexContainer								VertexSet;
@@ -56,10 +56,11 @@ class ARSimplex3D: public SimplexWithVertices<Vertex_handle>
 		
 								    ARSimplex3D(const Edge& e);
 								    ARSimplex3D(const Edge& e, const Point& z, SimplexPhiMap& simplices, 
-												Facet_circulator facet_bg);
+                                                const Delaunay& Dt, Facet_circulator facet_bg);
 		
 								    ARSimplex3D(const Facet& f);
-								    ARSimplex3D(const Facet& f, const Point& z, const SimplexPhiMap& simplices);
+								    ARSimplex3D(const Facet& f, const Point& z, const SimplexPhiMap& simplices,
+                                                const Delaunay& Dt);
 	    
 									ARSimplex3D(const Cell& c, const Point& z);
 	    
@@ -86,8 +87,10 @@ class ARSimplex3D: public SimplexWithVertices<Vertex_handle>
 		RealValue					rho_;		// rho_ 	is the squared radius of the smallest circumsphere
 		RealValue					s_;			// s_ 		is the squared distance from z to the affine hull of the simplex
 		RealValue					v_;			// v_ 		is the squared distance from z to the affine hull of the dual Voronoi cell
-		RealValue					phi_const_;	// see LHI paper, Appendix 1
+		RealValue					phi_const_;	// see LHI paper, Appendices A and B
 		bool 						attached_;
+
+        // in paper's notation: s_ = v^2; v_ = d^2
 
 };
 
