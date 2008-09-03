@@ -1,4 +1,5 @@
 project						(Dionysus)
+cmake_minimum_required      (VERSION 2.4)
 
 option						(logging 			"Build Dionysus with logging on" 		OFF)
 option						(counters			"Build Dionysus with counters on" 		OFF)
