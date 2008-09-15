@@ -1,0 +1,30 @@
+Dependencies
+  CGAL-3.3 -    for alpha-shapes and kinetic data structures
+  DSR-PDB -     for reading in PDB files (if use_dsrpdb is turned on in cmake)
+  CMake -       for controlling the build process
+  boost -       great set of C++ libraries
+  Doxygen -     for building documentation
+  rlog -        for logging only (is not needed by default)
+  SYNAPS -      for solving polynomials (for kinetic kernel), which in turn requires GMP
+
+Configuration
+  The path to CGAL's Makefile is expected to be set in $CGAL_MAKEFILE, the rest
+  is just the usual CMake configuration
+
+Building
+  To build examples, create a directory build (to keep everything in one place),
+  go to that directory and run cmake and make:
+  mkdir build
+  cd build
+  cmake ..   (or "ccmake .." if you want a curses interface)
+  make
+  
+  In the cmake line you can provide -Ddebug:bool=on to turn on debugging,
+  -Dcounters:bool=on to turn on counters, -Doptimize:bool=on to turn on
+  optimization, -Duse_dsrpdb:bool=on to turn on reading PDB files.  Depending on
+  the combination of debugging and optimization, a particular CMAKE_CXX_FLAGS*
+  is chosen.  All of this can be set using a text user interface by running
+  ccmake instead of cmake.
+
+Author
+  Dmitriy Morozov <morozov@cs.duke.edu>
