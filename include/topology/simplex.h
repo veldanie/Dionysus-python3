@@ -60,6 +60,7 @@ class SimplexWithVertices
 		bool					contains(const Vertex& v) const;
 		const VertexContainer&	vertices() const									{ return vertices_; }
 		void					add(const Vertex& v);
+        void                    join(const Self& other);
 		/// @}
 
 		/// \name Assignment and comparison
