@@ -38,6 +38,15 @@ void
 SimplexWithVertices<V>::
 add(const Vertex& v)
 { vertices_.push_back(v); std::sort(vertices_.begin(), vertices_.end()); }
+	
+template<class V>
+void
+SimplexWithVertices<V>::
+join(const Self& other)
+{ 
+    vertices_.insert(vertices_.end(), other.vertices_.begin(), other.vertices_.end());
+    std::sort(vertices_.begin(), vertices_.end()); 
+}
 
 template<class V>
 std::ostream&			
