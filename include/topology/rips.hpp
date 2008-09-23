@@ -36,7 +36,7 @@ generate(Dimension k, DistanceType max)
     for (IndexType a = distances_.begin(); a != distances_.end(); ++a)
     {
         Simplex ssx; ssx.add(a);
-        simplices.push_back(ssx);
+        simplices_.push_back(ssx);
         for (IndexType b = boost::next(a); b != distances_.end(); ++b)
         {
             if (distances_(a,b) <= max)
@@ -53,15 +53,17 @@ generate(Dimension k, DistanceType max)
 
         // Create the edge
         Simplex edge; edge.add(cur->first); edge.add(cur->second);
-        simplices.push_back(edge);
-        vertex_star[cur->first].push_back(simplices.size() - 1); 
-        vertex_star[cur->second].push_back(simplices.size() - 1);
+        simplices_.push_back(edge);
+        if (k <= 1) continue;
+
+        vertex_star[cur->first].push_back(simplices_.size() - 1); 
+        vertex_star[cur->second].push_back(simplices_.size() - 1);
 
         // Go through a star
         size_t sz = vertex_star[cur->first].size() - 1;
         for (size_t i = 0; i < sz; ++i)
         {
-            const Simplex& ssx = simplices[vertex_star[cur->first][i]];
+            const Simplex& ssx = simplices_[vertex_star[cur->first][i]];
             rLog(rlRips, "  %s", tostring(ssx).c_str());
             bool accept = true;
             for (typename Simplex::VertexContainer::const_iterator v = ssx.vertices().begin(); v != ssx.vertices().end(); ++v)
@@ -79,13 +81,13 @@ generate(Dimension k, DistanceType max)
             if (accept)
             {
                 Simplex tsx(ssx); tsx.add(cur->second);
-                simplices.push_back(tsx);
+                simplices_.push_back(tsx);
                 rLog(rlRips, "  Accepting: %s", tostring(tsx).c_str());
          
                 // Update stars
-                if (tsx.dimension() < k)
+                if (tsx.dimension() < k - 1)
                     for (typename Simplex::VertexContainer::const_iterator v = tsx.vertices().begin(); v != tsx.vertices().end(); ++v)
-                        vertex_star[*v].push_back(simplices.size() - 1);
+                        vertex_star[*v].push_back(simplices_.size() - 1);
             }
         }
     }
@@ -96,6 +98,52 @@ void
 Rips<Distances_, Simplex_>::
 print() const
 {
-    for (typename SimplexVector::const_iterator cur = simplices.begin(); cur != simplices.end(); ++cur)
+    for (typename SimplexVector::const_iterator cur = simplices_.begin(); cur != simplices_.end(); ++cur)
         std::cout << *cur << std::endl;
+}
+
+template<class Distances_, class Simplex_>
+typename Rips<Distances_, Simplex_>::DistanceType
+Rips<Distances_, Simplex_>::
+max_distance() const
+{
+    DistanceType mx = 0;
+    for (IndexType a = distances_.begin(); a != distances_.end(); ++a)
+        for (IndexType b = boost::next(a); b != distances_.end(); ++b)
+            mx = std::max(mx, distances_(a,b));
+    return mx;
+}
+
+template<class Distances_, class Simplex_>
+typename Rips<Distances_, Simplex_>::DistanceType
+Rips<Distances_, Simplex_>::Evaluator::
+value(const Simplex& s) const
+{
+    DistanceType mx = 0;
+    for (typename Simplex::VertexContainer::const_iterator      a = s.vertices().begin();   a != s.vertices().end();    ++a)
+        for (typename Simplex::VertexContainer::const_iterator  b = boost::next(a);         b != s.vertices().end();    ++b)
+            mx = std::max(mx, distances_(*a,*b));
+    return mx;
+}
+
+template<class Distances_>
+ExplicitDistances<Distances_>::
+ExplicitDistances(const Distances& distances): 
+    size_(distances.size()), distances_((distances.size() * (distances.size() + 1))/2)
+{
+    IndexType i = 0;
+    for (typename Distances::IndexType a = distances.begin(); a != distances.end(); ++a)
+        for (typename Distances::IndexType b = a; b != distances.end(); ++b)
+        {
+            distances_[i++] = distances(a,b);
+        }
+}
+
+template<class Distances_>
+typename ExplicitDistances<Distances_>::DistanceType
+ExplicitDistances<Distances_>::
+operator()(IndexType a, IndexType  b) const
+{
+    if (a > b) std::swap(a,b);
+    return distances_[a*size_ - ((a*(a-1))/2) + (b-a)];
 }

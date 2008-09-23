@@ -22,10 +22,16 @@ int main(int argc, char* argv[])
 #endif
 
     Distances distances;
+    
+#if 0
+    ExplicitDistances<Distances> explicit_distances(distances);
+    Rips<ExplicitDistances<Distances> > rips(explicit_distances);
+#else
     Rips<Distances> rips(distances);
+#endif
 
     //rips.generate(3, distances.size());
-    rips.generate(3, 10);
+    rips.generate(3, 50);
     //rips.print();
     
     std::cout << "Size: " << rips.size() << std::endl;
