@@ -53,7 +53,20 @@ class AvidaPopulationDetail
 
 						AvidaPopulationDetail(std::string filename);
 
-		const OrganismVector& get_organisms() const						{ return organisms_; }
+		const OrganismVector& 
+                        get_organisms() const						    { return organisms_; }
+
+        /// \name Rips
+        /// @{
+        typedef         int                                             IndexType;
+        typedef         double                                          DistanceType;
+
+        DistanceType    operator()(IndexType a, IndexType b) const      { return organisms_[a].genome_distance(organisms_[b]); }
+
+        size_t          size() const                                    { return organisms_.size(); }
+        IndexType       begin() const                                   { return 0; }
+        IndexType       end() const                                     { return size(); }
+        /// @}
 
 	private:
 		OrganismVector	organisms_;

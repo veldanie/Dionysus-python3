@@ -1,5 +1,6 @@
 set							(targets						
 							 avida-distance
+							 avida-rips-distance
                              avida-landscape)
 	
 foreach 					(t ${targets})
