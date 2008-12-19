@@ -1,137 +1,99 @@
-/*
- * Author: Dmitriy Morozov
- * Department of Computer Science, Duke University, 2005 -- 2006
- */
-
 #ifndef __FILTRATION_H__
 #define __FILTRATION_H__
 
-#include "utilities/log.h"
-
-#include "filtrationcontainer.h"
-#include "filtrationsimplex.h"
-#include "vineyard.h"
-
-#include <map>
 #include <vector>
+#include <iostream>
+#include "complex-traits.h"
+#include "utilities/indirect.h"
+#include "utilities/property-maps.h"
 
-#include <boost/serialization/access.hpp>
 
-/**
- * Filtration class. Serves as an (ordered) container for the simplices, 
- * and provides pair_simplices() method that computes the RU-decomposition
- * for the simplex order stored in the filtration. Iterators remain valid 
- * through all the operations.
- *
- * \ingroup topology
- */
-template<class Smplx, class FltrSmplx = FiltrationSimplex<Smplx>, class Vnrd = Vineyard<FltrSmplx> >
-class Filtration: public FltrSmplx::Container
+// Class: Filtration
+//
+// TODO: this is really specialized for an std::vector<> Complex; eventually generalize
+// TODO: should we derive from Order?
+template<class Complex_, 
+         class Index_ =             size_t, 
+         class ComplexTraits_ =     ComplexTraits<Complex_> >
+class Filtration
 {
-	public:
-		typedef 	Smplx															Simplex;
-		typedef		FltrSmplx														FiltrationSimplex;
-		typedef		Vnrd															Vineyard;
-		
-		/// \name Container Types
-		/// @{
-		/** The actual container type (which is the parent of the Filtration) */
-		typedef		typename FiltrationSimplex::Container							FiltrationContainer;
-		typedef		typename FiltrationContainer::Index								Index;
-		typedef		typename FiltrationContainer::const_Index						const_Index;
-		typedef		Index															iterator;
-		typedef		const_Index														const_iterator;
-		/// @}
-		
-		/// \name Cycles and Trails 
-		/// @{
-		typedef		typename FiltrationContainer::GreaterThanComparison				CyclesComparator;
-		typedef		typename FiltrationContainer::LessThanComparison				TrailsComparator;
-		typedef		typename FiltrationContainer::ConsistencyComparison 			ConsistencyComparator;
-		typedef		typename FiltrationContainer::Cycle								Cycle;
-		typedef		typename FiltrationContainer::Trail								Trail;
-		typedef		typename Cycle::iterator										CycleIterator;
-		typedef		typename Trail::iterator										TrailIterator;
-		/// @}
-		
-		typedef		Filtration<Simplex, FiltrationSimplex, Vineyard>				Self;
-		typedef		FiltrationContainer												Parent;
+    public:
+        // Typedefs: Template parameters
+        typedef                 Index_                                          IntermediateIndex;
+        typedef                 Complex_                                        Complex;
+        typedef                 ComplexTraits_                                  ComplexTraits;
 
-	public:
-										Filtration(Vineyard* vineyard);
-	
-		/// \name Core Functionality
-		/// @{
-		/// Computes RU decomposition of the simplices in [bg, end) range, assuming that everything before bg has been paired 
-		void 							pair_simplices(Index bg, Index end, bool store_trails = true);
-		void 							pair_simplices(bool store_trails = true)	{ pair_simplices(begin(), end(), store_trails); }
-		bool							transpose(Index i, bool maintain_lazy = false);
-		bool							is_paired() const;
-		Index							append(const Simplex& s);					///< Appends s to the filtration
-		Index							insert(Index prior, const Simplex& s);		///< Inserts s after prior
-		const_Index						get_index(const Simplex& s) const;			/**< Returns the iterator pointing to s 
-																						 (end() if s not in filtration) */
-		Index							get_index(const Simplex& s);				///< \overload
-		void							fill_simplex_index_map();					///< Fills the mapping for get_index()
-		/// @}
-		
-		/// \name Accessors
-		/// @{
-		Vineyard*						vineyard()									{ return vineyard_; }
-		const Vineyard*					vineyard() const							{ return vineyard_; }
-		/// @}
-	
-	protected:
-		using 							Parent::swap;
-		bool 							transpose_simplices(Index i, bool maintain_lazy);				
+        // Typedefs: Complex
+        typedef                 typename ComplexTraits::Index                   ComplexIndex;
+        typedef                 typename ComplexTraits::Simplex                 Simplex;
+        typedef                 typename ComplexTraits::SimplexIndexMap         SimplexIndexMap;
+        typedef                 typename Simplex::Boundary                      SimplexBoundary;
+        typedef                 std::vector<IntermediateIndex>                  IndexBoundary;
 
-	public:
-		/// \name Container Operations
-		/// @{
-		using Parent::size;
-		using Parent::begin;
-		using Parent::end;
-		/// @}
-		
-		std::ostream& 					operator<<(std::ostream& out) const;
+        // Typedefs: Order
+        typedef                 std::vector<ComplexIndex>                       Order;
+        typedef                 typename Order::const_iterator                  Index;
+        typedef                 std::vector<IntermediateIndex>                  ReverseOrder;
+        typedef                 typename ReverseOrder::const_iterator           ReverseOrderIndex;
 
-	public:		// doesn't really need to be public, except for assertions
-		/// \name Comparator accessors
-		/// @{
-		const ConsistencyComparator& 	get_consistency_cmp() const					{ return consistency_cmp; }
-		const CyclesComparator& 		get_cycles_cmp() const						{ return cycles_cmp; }
-		const TrailsComparator& 		get_trails_cmp() const						{ return trails_cmp; }
-		/// @}
+        // Constructor: Filtration(bg, end, cmp)
+                                template<class Comparison>
+                                Filtration(ComplexIndex bg, ComplexIndex end, const Comparison& cmp = Comparison());
 
-	private:
-		typedef							std::map<Simplex, Index>					SimplexMap;
+        const Simplex&          simplex(Index i) const                          { return **i; }
 
-		/// Initializes the cycle  with the indices of the simplices in the boundary, and the trail with the index of this simplex
-		void							init_cycle_trail(Index j);
-		void							pairing_switch(Index i, Index j);
-		
-		bool 							paired;
-		bool							trails_stored;
-		SimplexMap						inverse_simplices;
+        // Function: boundary(i, bdry, map)
+        // Computes boundary of a given index `i` in terms of other indices
+        template<class Cycle, class Map>
+        void                    boundary(const Index& i, Cycle& bdry, const Map& map) const;
 
-		Vineyard*						vineyard_;
+        Index                   begin() const                                   { return order_.begin(); }
+        Index                   end() const                                     { return order_.end(); }
+        size_t                  size() const                                    { return order_.size(); }
 
-		CyclesComparator				cycles_cmp;
-		TrailsComparator				trails_cmp;
-		ConsistencyComparator			consistency_cmp;
+        std::ostream&           operator<<(std::ostream& out) const;
 
-	private:
-		/* Serialization */
-		friend class boost::serialization::access;
-										
-		typedef		std::map<const_Index, SizeType, ConsistencyComparator>			IndexIntMap;
-		typedef		std::vector<Index>												IndexVector;
-		
-		template<class Archive> void 	save(Archive& ar, version_type ) const;
-		template<class Archive>	void 	load(Archive& ar, version_type );
-		BOOST_SERIALIZATION_SPLIT_MEMBER()
+    private:
+        Order                   order_;
+        ReverseOrder            reverse_order_;
+        OffsetMap<ComplexIndex, 
+                  ReverseOrderIndex>        
+                                complex_order_map_;
+        SimplexIndexMap         simplex_index_map_;
 };
+
+template<class C, class I, class CT>
+std::ostream&
+operator<<(std::ostream& out, const Filtration<C,I,CT>& f)                      { return f.operator<<(out); }
+
+
+template<class Functor_, class Filtration_>
+class ThroughFiltration
+{
+    public:
+        typedef                 Filtration_                                     Filtration;
+        typedef                 Functor_                                        Functor;
+
+        typedef                 typename Functor::result_type                   result_type;
+        typedef                 typename Filtration::Index                      first_argument_type;
+
+                                ThroughFiltration(const Filtration& filtration,
+                                                  const Functor&    functor):
+                                    filtration_(filtration),
+                                    functor_(functor)                           {}
+
+        result_type             operator()(first_argument_type a) const         { return functor_(filtration_.simplex(a)); }
+
+    private:
+        const Filtration&       filtration_;
+        const Functor&          functor_;
+};
+
+template<class Filtration, class Functor>
+ThroughFiltration<Functor, Filtration>
+evaluate_through_filtration(const Filtration& filtration, const Functor& functor)
+{ return ThroughFiltration<Functor, Filtration>(filtration, functor); }
 
 #include "filtration.hpp"
 
-#endif	// __FILTRATION_H__
+#endif // __FILTRATION_H__

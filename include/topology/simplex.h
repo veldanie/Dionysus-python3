@@ -1,6 +1,6 @@
 /*
  * Author: Dmitriy Morozov
- * Department of Computer Science, Duke University, 2005 -- 2007
+ * Department of Computer Science, Duke University, 2005 -- 2008
  */
 
 #ifndef __SIMPLEX_H__
@@ -13,68 +13,124 @@
 
 #include "utilities/types.h"
 
+#include <boost/compressed_pair.hpp>
 #include <boost/serialization/access.hpp>
 
 
 /**
- * SimplexWithVertices is a basic simplex class. It stores vertices of a given type, 
- * and knows how to compute its own boundary. It should probably be used as a base 
- * class for any explicit simplex representation.
+ * Class: Simplex
+ * Basic simplex class. It stores vertices and data of the given types in 
+ * a `boost::compressed_pair` (so if data is an Empty class which is the default, 
+ * it incurs no space overhead). The class knows how to compute its own <boundary()>. 
+ *
+ * Parameter:
+ *   V -            vertex type
+ *   T -            data type
  *
  * \ingroup topology
  */
-template<class V>
-class SimplexWithVertices
+template<class V, class T = Empty>
+class Simplex
 {
 	public:
+        /* Typedefs: Public Types
+         *
+         *    Vertex -              vertex type (template parameter V)
+         *    Data -                data type (template parameter T)
+         *    Self -
+         *    Boundary -            type in which the boundary is stored
+         */
 		typedef		V																Vertex;
-		typedef		SimplexWithVertices<Vertex>										Self;
-	
-		typedef		std::vector<Vertex>												VertexContainer;
-		typedef		std::list<Self>													Cycle;
+        typedef     T                                                               Data;
+		typedef		Simplex<Vertex, Data>										    Self;
+		typedef		std::list<Self>													Boundary;
 		
+        /* Typedefs: Internal representation
+         *
+         *    VertexContainer -     internal representation of the vertices
+         *    VerticesDataPair -    `compressed_pair` of VertexContainer and Data
+         */
+        typedef		std::vector<Vertex>												VertexContainer;
+        typedef     boost::compressed_pair<VertexContainer, Data>                   VerticesDataPair;
+		
+        // TODO
+
 		/// \name Constructors 
 		/// @{
-		SimplexWithVertices()														{}
-		SimplexWithVertices(const Self& s):	
-			vertices_(s.vertices_)													{}
+        //
+        /// Constructor: Simplex()
+        /// Default constructor
+		Simplex()														            {}
+        /// Constructor: Simplex(Self other)
+        /// Copy constructor
+		Simplex(const Self& other):	
+			vdpair_(other.vertices(), other.data())				                    {}
+        /// Constructor: Simplex(Iterator bg, Iterator end)
+        /// Initialize simplex by copying vertices in range [bg, end)
 		template<class Iterator>
-		SimplexWithVertices(Iterator bg, Iterator end):
-			vertices_(bg, end)														{ std::sort(vertices_.begin(), vertices_.end()); }
-		SimplexWithVertices(const VertexContainer& v):	
-			vertices_(v)															{ std::sort(vertices_.begin(), vertices_.end()); }
-		SimplexWithVertices(Dimension d, Vertex v):	
-			vertices_()																{ vertices_.reserve(d+1); add(v); }
-		SimplexWithVertices(Dimension d): 
-			vertices_(d+1)															{}
+		Simplex(Iterator bg, Iterator end, const Data& d = Data())			        { join(bg, end); data() = d; }
+        /// Constructor: Simplex(VertexContainer v)
+        /// Initialize simplex by copying the given VertexContainer
+		Simplex(const VertexContainer& v, const Data& d = Data()):	
+			vdpair_(v, d)														    { std::sort(vertices().begin(), vertices().end()); }
+        /// Constructor: Simplex(Dimension d, Vertex v)
+        /// Initialize simplex of dimension d, and set its first vertex to v
+		Simplex(Dimension d, Vertex v)				                                { vertices().reserve(d+1); add(v); }
+        /// Constructor: Simplex(Dimension d)
+        /// Initialize simplex of dimension d
+		Simplex(Dimension d)                                                        { vertices().resize(d+1); } 
 		/// @}
 		
 		/// \name Core 
 		/// @{
-		Cycle					boundary() const;
-		Dimension				dimension() const									{ return vertices_.size()-1; }
+        ///
+        /// Function: boundary()
+        /// Returns the boundary of the simplex (of type Boundary)
+		Boundary			    boundary() const;
+        /// Function: dimension()
+        /// Returns the dimension of the simplex
+		Dimension				dimension() const									{ return vertices().size() - 1; }
 		/// @}
+		
+		const Data&	            data() const									    { return vdpair_.second(); }
+        Data&                   data()                                              { return vdpair_.second(); }
+		const VertexContainer&	vertices() const									{ return vdpair_.first(); }
 		
 		/// \name Vertex manipulation
 		/// @{
-		bool					contains(const Vertex& v) const;
-		const VertexContainer&	vertices() const									{ return vertices_; }
+        bool					contains(const Vertex& v) const;
 		void					add(const Vertex& v);
-        void                    join(const Self& other);
+        template<class Iterator>
+        void                    join(Iterator bg, Iterator end);
+        void                    join(const Self& other)                             { join(other.vertices.begin(), other.vertices().end()); }
 		/// @}
 
-		/// \name Assignment and comparison
-		/// Gives an ordering on simplices (for example, so that simplices can be used as keys for std::map)
-		/// @{
-		const Self&				operator=(const Self& s)							{ vertices_ = s.vertices_; return *this; }
-		bool					operator==(const Self& s) const						{ return vertices_ == s.vertices_; }
-		bool 					operator<(const Self& s) const						{ return vertices_ < s.vertices_; }
-		/// @}
+		const Self&				operator=(const Self& s)							{ vdpair_ = s.vdpair_; return *this; }
 
 		std::ostream&			operator<<(std::ostream& out) const;
+
+        /* Classes: Comparisons
+         *
+         * VertexComparison -           compare simplices based on the lexicographic ordering of their <vertices()>
+         * DataComparison -             compare simplices based on their <data()>
+         * DataDimensionComparison -    compare simplices based on their <data()> within each <dimension()>
+         */
+        
+        /* Classes: Functors
+         * DataEvaluator -              return data given a simplex
+         * DimensionExtractor -         return dimesnion given a simplex
+         */
+        struct VertexComparison;
+        struct DataComparison;
+        struct DataDimensionComparison;
+
+        struct DataEvaluator;
+        struct DimensionExtractor;
 	
 	private:
-		VertexContainer			vertices_;
+		VertexContainer&	    vertices()									        { return vdpair_.first(); }
+
+        VerticesDataPair        vdpair_;
 
 	private:
 		/* Serialization */
@@ -84,108 +140,66 @@ class SimplexWithVertices
 		void 					serialize(Archive& ar, version_type );
 };
 
-/**
- * SimplexWithValue explicitly adds a RealType value to the SimplexWithVertices.
- *
- * \ingroup topology
- */
-template<class Vert>
-class SimplexWithValue: public SimplexWithVertices<Vert>
+
+template<class V, class T>
+struct Simplex<V,T>::VertexComparison
 {
-	public:
-		typedef		Vert															Vertex;
-		typedef		RealType														Value;
-		typedef		SimplexWithValue<Vertex>										Self;
-		typedef		SimplexWithVertices<Vertex>										Parent;
+        typedef                 Self                    first_argument_type;
+        typedef                 Self                    second_argument_type;
+        typedef                 bool                    result_type;
 
-		typedef		typename Parent::VertexContainer								VertexContainer;
-	
-		/// \name Constructors
-		/// @{
-		SimplexWithValue(Value value = 0): val(value)								{}
-		SimplexWithValue(const Self& s):
-			Parent(s), val(s.val)													{}
-		SimplexWithValue(const Parent& s, Value value = 0): 
-			Parent(s), val(value)													{}
-		template<class Iterator>
-		SimplexWithValue(Iterator bg, Iterator end, Value value = 0):
-			Parent(bg, end), val(value)												{}
-		SimplexWithValue(const VertexContainer& v, Value value = 0):
-			Parent(v), val(value)													{}
-		/// @}
-
-		/// \name Core
-		/// @{
-		void 					set_value(Value value)								{ val = value; }
-		Value					get_value() const									{ return val; }
-		/// @}
-		
-		const Self&				operator=(const Self& s);
-		std::ostream&			operator<<(std::ostream& out) const;
-
-	private:
-		Value					val;
-
-		/* Serialization */
-		friend class boost::serialization::access;
-		
-		template<class Archive>
-		void 					serialize(Archive& ar, version_type );
+        bool                    operator()(const Self& a, const Self& b) const       { return a.vertices() < b.vertices(); }
 };
 
-/**
- * SimplexWithAttachment stores the vertex to which the simplex is attached (meant for lower-star filtrations)
- *
- * \ingroup topology
- */
-template<typename V>
-class SimplexWithAttachment: public SimplexWithVertices<V>
+template<class V, class T>
+struct Simplex<V,T>::DataComparison
 {
-	public:
-		typedef 	V																VertexIndex;
-		typedef		SimplexWithVertices<VertexIndex>								Parent;
-	
-		/// \name Constructors 
-		/// @{
-		SimplexWithAttachment():
-			attachment(VertexIndex())												{}
-		template<class Iterator>
-		SimplexWithAttachment(Iterator bg, Iterator end):
-			Parent(bg, end)															{}
-		SimplexWithAttachment(const Parent& s):
-			Parent(s)																{}
-		SimplexWithAttachment(Dimension d, VertexIndex vi):
-			Parent(d, vi), attachment(vi)											{}
-		/// @}
+        typedef                 Self                    first_argument_type;
+        typedef                 Self                    second_argument_type;
+        typedef                 bool                    result_type;
 
-		void 					set_attachment(VertexIndex v)						{ attachment = v; }
-		VertexIndex				get_attachment() const								{ return attachment; }
-		
-	private:
-		VertexIndex				attachment;
-	
-	private:
-		// Serialization
-		friend class boost::serialization::access;
-
-		template<class Archive>
-		void 					serialize(Archive& ar, version_type );
+        bool                    operator()(const Self& a, const Self& b) const       { return a.data() < b.data(); }
 };
 
-template<class Simplex_>
-class DimensionValueComparison
+template<class V, class T>
+struct Simplex<V,T>::DataDimensionComparison
 {
-	public:
-		typedef					Simplex_									Simplex;
+        typedef                 Self                    first_argument_type;
+        typedef                 Self                    second_argument_type;
+        typedef                 bool                    result_type;
 
-		bool					operator()(const Simplex& s1, const Simplex& s2) const
+        bool                    operator()(const Self& a, const Self& b) const       
 		{
-			if (s1.dimension() == s2.dimension())
-				return s1.get_value() < s2.get_value();
+			if (a.dimension() == b.dimension())
+				return a.data() < b.data();
 			else
-				return s1.dimension() < s2.dimension();
+				return a.dimension() < b.dimension();
 		}
 };
+        
+template<class V, class T>
+struct Simplex<V,T>::DataEvaluator
+{
+        typedef                 Self                    first_argument_type;
+        typedef                 Data                    result_type;
+
+        result_type             operator()(const first_argument_type& s) const      { return s.data(); }
+};
+
+template<class V, class T>
+struct Simplex<V,T>::DimensionExtractor
+{
+        typedef                 Self                    first_argument_type;
+        typedef                 Dimension               result_type;
+
+        result_type             operator()(const first_argument_type& s) const      { return s.dimension(); }
+};
+
+
+// TODO: class DirectSimplex - class which stores indices of the simplices in its boundary
+// TODO: class CompactSimplex<V, T, N> - uses arrays instead of vectors to store simplices 
+//       (dimension N must be known at compile time)
+
 
 #include "simplex.hpp"
 

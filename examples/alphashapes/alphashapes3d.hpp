@@ -7,7 +7,7 @@ AlphaSimplex3D(const ::Vertex& v): alpha_(0), attached_(false)
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Edge& e)
+AlphaSimplex3D(const Delaunay::Edge& e)
 {
     Cell_handle c = e.first;
 	Parent::add(c->vertex(e.second));
@@ -15,7 +15,7 @@ AlphaSimplex3D(const Edge& e)
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt, Facet_circulator facet_bg)
+AlphaSimplex3D(const Delaunay::Edge& e, const SimplexSet& simplices, const Delaunay& Dt, Facet_circulator facet_bg)
 {
     Cell_handle c = e.first;
 	Parent::add(c->vertex(e.second));
@@ -26,14 +26,15 @@ AlphaSimplex3D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt, F
 	SimplexSet::const_iterator cur_iter = simplices.find(AlphaSimplex3D(*cur));
 	RealValue min = cur_iter->alpha();
 	
-	VertexSet::const_iterator v = Parent::vertices().begin();
+    const VertexSet& vertices = static_cast<const Parent*>(this)->vertices();
+	VertexSet::const_iterator v = vertices.begin();
 	const Point& p1 = (*v++)->point();
 	const Point& p2 = (*v)->point();
 	attached_ = false;
 
 	if (facet_bg != 0) do
 	{
-		VertexSet::const_iterator v = Parent::vertices().begin();
+		VertexSet::const_iterator v = vertices.begin();
 		int i0 = (*cur).first->index(*v++);
 		int i1 = (*cur).first->index(*v);
 		int i = 6 - i0 - i1 - (*cur).second;
@@ -56,7 +57,7 @@ AlphaSimplex3D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt, F
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Facet& f)
+AlphaSimplex3D(const Delaunay::Facet& f)
 {
     Cell_handle c = f.first;
 	for (int i = 0; i < 4; ++i)
@@ -65,7 +66,7 @@ AlphaSimplex3D(const Facet& f)
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Facet& f, const SimplexSet& simplices, const Delaunay& Dt)
+AlphaSimplex3D(const Delaunay::Facet& f, const SimplexSet& simplices, const Delaunay& Dt)
 {
     Cell_handle c = f.first;
 	for (int i = 0; i < 4; ++i)
@@ -75,7 +76,7 @@ AlphaSimplex3D(const Facet& f, const SimplexSet& simplices, const Delaunay& Dt)
 	Cell_handle o = c->neighbor(f.second);
 	int oi = o->index(c);
 
-	VertexSet::const_iterator v = Parent::vertices().begin();
+	VertexSet::const_iterator v = static_cast<const Parent*>(this)->vertices().begin();
 	const Point& p1 = (*v++)->point();
 	const Point& p2 = (*v++)->point();
 	const Point& p3 = (*v)->point();
@@ -105,11 +106,11 @@ AlphaSimplex3D(const Facet& f, const SimplexSet& simplices, const Delaunay& Dt)
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Cell& c): attached_(false)
+AlphaSimplex3D(const Delaunay::Cell& c): attached_(false)
 {
 	for (int i = 0; i < 4; ++i)
 		Parent::add(c.vertex(i));
-	VertexSet::const_iterator v = Parent::vertices().begin();
+	VertexSet::const_iterator v = static_cast<const Parent*>(this)->vertices().begin();
 	Point p1 = (*v++)->point();
 	Point p2 = (*v++)->point();
 	Point p3 = (*v++)->point();
@@ -117,12 +118,12 @@ AlphaSimplex3D(const Cell& c): attached_(false)
 	alpha_ = CGAL::squared_radius(p1, p2, p3, p4);
 }
 
-AlphaSimplex3D::Cycle
+AlphaSimplex3D::Boundary
 AlphaSimplex3D::boundary() const
 {
-	Cycle bdry;
-	Parent::Cycle pbdry = Parent::boundary();
-	for (Parent::Cycle::const_iterator cur = pbdry.begin(); cur != pbdry.end(); ++cur)
+	Boundary bdry;
+	Parent::Boundary pbdry = Parent::boundary();
+	for (Parent::Boundary::const_iterator cur = pbdry.begin(); cur != pbdry.end(); ++cur)
 		bdry.push_back(*cur);
 	return bdry;
 }
@@ -150,7 +151,7 @@ operator<<(std::ostream& out) const
 }
 
 
-void fill_alpha_order(const Delaunay& Dt, AlphaSimplex3DVector& alpha_order)
+void fill_complex(const Delaunay& Dt, AlphaSimplex3DVector& alpha_order)
 {
 	// Compute all simplices with their alpha values and attachment information
 	AlphaSimplex3D::SimplexSet simplices;
@@ -170,6 +171,7 @@ void fill_alpha_order(const Delaunay& Dt, AlphaSimplex3DVector& alpha_order)
 	// Sort simplices by their alpha values
 	alpha_order.resize(simplices.size());
 	std::copy(simplices.begin(), simplices.end(), alpha_order.begin());
-	std::sort(alpha_order.begin(), alpha_order.end(), AlphaSimplex3D::AlphaOrder());
+	//std::sort(alpha_order.begin(), alpha_order.end(), AlphaSimplex3D::AlphaOrder());
+	std::sort(alpha_order.begin(), alpha_order.end(), AlphaSimplex3D::VertexComparison());
 }
 

@@ -9,7 +9,7 @@ option						(use_dsrpdb			"Build examples that use DSR-PDB"		OFF)
 option						(use_synaps			"Build examples that use SYNAPS"		OFF)
 
 # Find everything that's always required
-find_package				(Boost REQUIRED)
+find_package				(Boost REQUIRED COMPONENTS program_options serialization signals)
 find_package				(Doxygen)
 if                          (use_dsrpdb)
     find_library			(dsrpdb_LIBRARY 			NAMES dsrpdb)
@@ -44,6 +44,7 @@ set							(cgal_libraries 			${cgal_LIBRARY}
 														${gmp_LIBRARY} 
 														${gmpxx_LIBRARY} 
 														${m_LIBRARY})
+add_definitions             (-DCGAL_NO_ASSERTIONS -DCGAL_NO_PRECONDITIONS)
 
 # SYNAPS
 if                          (use_synaps)

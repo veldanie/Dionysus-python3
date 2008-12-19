@@ -2,117 +2,80 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include <boost/iterator/filter_iterator.hpp>
+#include <functional>
 
 /* Implementations */
 
-/* SimplexWithVertices */
-template<class V>
-typename SimplexWithVertices<V>::Cycle	
-SimplexWithVertices<V>::
+/* Simplex */
+template<class V, class T>
+typename Simplex<V,T>::Boundary	
+Simplex<V,T>::
 boundary() const
 {
-	Cycle bdry;
-	if (dimension() == 0)	return bdry;
+    typedef         std::not_equal_to<Vertex>                           NotEqualVertex;
 
-	for (typename VertexContainer::const_iterator cur = vertices_.begin(); cur != vertices_.end(); ++cur)
-	{
-		bdry.push_back(Self(dimension() - 1));
-		Self& s = bdry.back();
-		std::remove_copy(vertices_.begin(), vertices_.end(), s.vertices_.begin(), *cur);
-	}
-
-	return bdry;
+	Boundary bdry;
+    if (dimension() == 0) return bdry;
+	
+    for (typename VertexContainer::const_iterator cur = vertices().begin(); cur != vertices().end(); ++cur)
+        bdry.push_back(Self(boost::make_filter_iterator(std::bind2nd(NotEqualVertex(), *cur), vertices().begin(), vertices().end()),
+                            boost::make_filter_iterator(std::bind2nd(NotEqualVertex(), *cur), vertices().end(),   vertices().end())));
+	
+    return bdry;
 }
 
-template<class V>
+template<class V, class T>
 bool
-SimplexWithVertices<V>::
+Simplex<V,T>::
 contains(const Vertex& v) const
 { 
-	typename VertexContainer::const_iterator location = std::lower_bound(vertices_.begin(), vertices_.end(), v); 
-	return ((location == vertices_.end()) || (*location == v)); 
+    // TODO: would std::find() be faster? (since most simplices we deal with are low dimensional)
+	typename VertexContainer::const_iterator location = std::lower_bound(vertices().begin(), vertices().end(), v); 
+	return ((location != vertices().end()) && (*location == v)); 
 }
 		
-template<class V>
+template<class V, class T>
 void
-SimplexWithVertices<V>::
+Simplex<V,T>::
 add(const Vertex& v)
-{ vertices_.push_back(v); std::sort(vertices_.begin(), vertices_.end()); }
+{
+    // TODO: would find() or lower_bound() followed by insert be faster?
+    vertices().push_back(v); std::sort(vertices().begin(), vertices().end()); 
+}
 	
-template<class V>
+template<class V, class T>
+template<class Iterator>
 void
-SimplexWithVertices<V>::
-join(const Self& other)
+Simplex<V,T>::
+join(Iterator bg, Iterator end)
 { 
-    vertices_.insert(vertices_.end(), other.vertices_.begin(), other.vertices_.end());
-    std::sort(vertices_.begin(), vertices_.end()); 
+    vertices().insert(vertices().end(), bg, end);
+    std::sort(vertices().begin(), vertices().end()); 
 }
 
-template<class V>
+template<class V, class T>
 std::ostream&			
-SimplexWithVertices<V>::
+Simplex<V,T>::
 operator<<(std::ostream& out) const
 {
-	for (typename VertexContainer::const_iterator cur = vertices_.begin(); cur != vertices_.end(); ++cur)
-		out << *cur << ' ';
-	
+	for (typename VertexContainer::const_iterator cur = vertices().begin(); cur != vertices().end(); ++cur)
+		out << *cur;
+	out << " [" << data() << "] ";
+
 	return out;
 }
 		
-template<class V>
+template<class V, class T>
 template<class Archive>
 void 
-SimplexWithVertices<V>::
+Simplex<V,T>::
 serialize(Archive& ar, version_type )									
-{ ar & BOOST_SERIALIZATION_NVP(vertices_); }
-
-template<class V>
-std::ostream& operator<<(std::ostream& out, const SimplexWithVertices<V>& s)		
-{ return s.operator<<(out); }
-
-
-/* SimplexWithValue */
-template<class V>
-std::ostream&
-SimplexWithValue<V>::
-operator<<(std::ostream& out) const
-{
-	Parent::operator<<(out);
-	out << "(val = " << val << ")";
-	return out;
-}
-
-template<class V>
-const typename SimplexWithValue<V>::Self&	
-SimplexWithValue<V>::
-operator=(const Self& s)									
 { 
-	Parent::operator=(s); 
-	val = s.val; 
-	return *this; 
-}
-		
-template<class V>
-template<class Archive>
-void 
-SimplexWithValue<V>::
-serialize(Archive& ar, version_type )								
-{ 
-	ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Parent);
-	ar & BOOST_SERIALIZATION_NVP(val);
+    ar & make_nvp("vertices", vertices()); 
+    ar & make_nvp("data", data()); 
 }
 
-template<typename V>
-template<class Archive>
-void 
-SimplexWithAttachment<V>::
-serialize(Archive& ar, version_type )
-{			
-	ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Parent);
-	ar & BOOST_SERIALIZATION_NVP(attachment);
-}
-
-
-template<class V>
-std::ostream& operator<<(std::ostream& out, const SimplexWithValue<V>& s)		
+template<class V, class T>
+std::ostream& operator<<(std::ostream& out, const Simplex<V,T>& s)		
 { return s.operator<<(out); }

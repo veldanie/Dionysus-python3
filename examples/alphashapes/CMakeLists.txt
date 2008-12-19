@@ -1,8 +1,13 @@
 set							(targets						
 							 alphashapes3d
 							 alphashapes2d
-							 alpharadius)
+							 alpharadius
+                             compare-diagrams)
 							 
+set                         (libraries                          ${libraries} 
+                                                                ${Boost_SERIALIZATION_LIBRARY}
+                                                                ${Boost_PROGRAM_OPTIONS_LIBRARY})
+
 add_definitions				(${cgal_cxxflags})
 foreach 					(t ${targets})
 	add_executable			(${t} ${t}.cpp)

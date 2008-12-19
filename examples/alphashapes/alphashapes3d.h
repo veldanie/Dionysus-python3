@@ -22,9 +22,6 @@ typedef CGAL::Delaunay_triangulation_3<K>    		Delaunay;
 typedef Delaunay::Point                				Point;
 typedef Delaunay::Vertex            				Vertex;
 typedef Delaunay::Vertex_handle            			Vertex_handle;
-typedef Delaunay::Edge								Edge;
-typedef Delaunay::Facet								Facet;
-typedef Delaunay::Cell								Cell;
 typedef Delaunay::Cell_handle						Cell_handle;
 typedef K::FT										RealValue;
 
@@ -35,13 +32,13 @@ typedef Delaunay::Finite_cells_iterator        		Cell_iterator;
 typedef Delaunay::Facet_circulator					Facet_circulator;
 
 
-class AlphaSimplex3D: public SimplexWithVertices<Vertex_handle>
+class AlphaSimplex3D: public Simplex<Vertex_handle>
 {
 	public:
-		typedef 	std::set<AlphaSimplex3D>							SimplexSet;
-		typedef		SimplexWithVertices<Vertex_handle>					Parent;
+		typedef		Simplex<Vertex_handle>					            Parent;
+		typedef 	std::set<AlphaSimplex3D, Parent::VertexComparison>  SimplexSet;
 		typedef		Parent::VertexContainer								VertexSet;
-		typedef		std::list<AlphaSimplex3D>							Cycle;
+		typedef		std::list<AlphaSimplex3D>							Boundary;
 
     public:
 									AlphaSimplex3D()					{}
@@ -51,23 +48,31 @@ class AlphaSimplex3D: public SimplexWithVertices<Vertex_handle>
 											Parent(s) 					{ attached_ = s.attached_; alpha_ = s.alpha_; }
 	    							AlphaSimplex3D(const ::Vertex& v);
 		
-								    AlphaSimplex3D(const Edge& e);
-								    AlphaSimplex3D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt, Facet_circulator facet_bg);
+								    AlphaSimplex3D(const Delaunay::Edge& e);
+								    AlphaSimplex3D(const Delaunay::Edge& e, const SimplexSet& simplices, const Delaunay& Dt, Facet_circulator facet_bg);
 		
-								    AlphaSimplex3D(const Facet& f);
-								    AlphaSimplex3D(const Facet& f, const SimplexSet& simplices, const Delaunay& Dt);
+								    AlphaSimplex3D(const Delaunay::Facet& f);
+								    AlphaSimplex3D(const Delaunay::Facet& f, const SimplexSet& simplices, const Delaunay& Dt);
 	    
-									AlphaSimplex3D(const Cell& c);
+									AlphaSimplex3D(const Delaunay::Cell& c);
 	    
 		RealType					value() const						{ return CGAL::to_double(alpha_); }
 		RealValue					alpha() const						{ return alpha_; }
 		bool						attached() const					{ return attached_; }
-		Cycle						boundary() const;
+		Boundary                    boundary() const;
 
 		// Ordering
 		struct AlphaOrder
 		{ bool operator()(const AlphaSimplex3D& first, const AlphaSimplex3D& second) const; };
-		
+	
+        struct AlphaValueEvaluator
+        { 
+            typedef                 AlphaSimplex3D                                  first_argument_type;
+            typedef                 RealType                                        result_type;
+
+            RealType                operator()(const AlphaSimplex3D& s) const       { return s.value(); }
+        };
+
 		std::ostream& 				operator<<(std::ostream& out) const;
 		
 	private:
@@ -76,8 +81,8 @@ class AlphaSimplex3D: public SimplexWithVertices<Vertex_handle>
 };
 
 typedef 			std::vector<AlphaSimplex3D>								AlphaSimplex3DVector;
-void 				fill_alpha_order(const Delaunay& Dt, 
-									 AlphaSimplex3DVector& alpha_order);
+void 				fill_complex(const Delaunay& Dt, 
+								 AlphaSimplex3DVector& alpha_order);
 
 std::ostream& 		operator<<(std::ostream& out, const AlphaSimplex3D& s)	{ return s.operator<<(out); }
 

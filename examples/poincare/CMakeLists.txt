@@ -3,5 +3,5 @@ set							(targets
 							 
 foreach 					(t ${targets})
 	add_executable			(${t} ${t}.cpp)
-	target_link_libraries	(${t} ${libraries} ${boost_program_options_LIBRARY})
+	target_link_libraries	(${t} ${libraries} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 endforeach 					(t ${targets})
