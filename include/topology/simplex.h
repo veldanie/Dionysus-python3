@@ -14,6 +14,7 @@
 #include "utilities/types.h"
 
 #include <boost/compressed_pair.hpp>
+#include <boost/iterator/iterator_adaptor.hpp>
 #include <boost/serialization/access.hpp>
 
 
@@ -43,8 +44,8 @@ class Simplex
 		typedef		V																Vertex;
         typedef     T                                                               Data;
 		typedef		Simplex<Vertex, Data>										    Self;
-		typedef		std::list<Self>													Boundary;
-		
+		class BoundaryIterator;
+
         /* Typedefs: Internal representation
          *
          *    VertexContainer -     internal representation of the vertices
@@ -84,9 +85,10 @@ class Simplex
 		/// \name Core 
 		/// @{
         ///
-        /// Function: boundary()
-        /// Returns the boundary of the simplex (of type Boundary)
-		Boundary			    boundary() const;
+        /// Functions: boundary_begin(), boundary_end()
+        /// Returns the iterators over the boundary of the simplex
+        BoundaryIterator        boundary_begin() const;
+        BoundaryIterator        boundary_end() const;
         /// Function: dimension()
         /// Returns the dimension of the simplex
 		Dimension				dimension() const									{ return vertices().size() - 1; }
@@ -102,10 +104,10 @@ class Simplex
 		void					add(const Vertex& v);
         template<class Iterator>
         void                    join(Iterator bg, Iterator end);
-        void                    join(const Self& other)                             { join(other.vertices.begin(), other.vertices().end()); }
+        void                    join(const Self& other)                             { join(other.vertices().begin(), other.vertices().end()); }
 		/// @}
 
-		const Self&				operator=(const Self& s)							{ vdpair_ = s.vdpair_; return *this; }
+		Self&				    operator=(const Self& s)							{ vdpair_ = s.vdpair_; return *this; }
 
 		std::ostream&			operator<<(std::ostream& out) const;
 
