@@ -116,7 +116,7 @@ serialize(Archive& ar, version_type )
  * Some structures to compute bottleneck distance between two persistence diagrams (in bottleneck_distance() function below) 
  * by setting up bipartite graphs, and finding maximum cardinality matchings in them using Boost Graph Library.
  */
-#include <utilities/indirect.h>
+#include <boost/iterator/counting_iterator.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
@@ -216,10 +216,11 @@ RealType                bottleneck_distance(const Diagram1& dgm1, const Diagram2
     //    std::cout << "Edge: " << edges[i].first << " " << edges[i].second << " " << edges[i].distance << std::endl;
 
     // Perform cardinality based binary search
-    RecursiveIterator<EV_const_iterator> bdistance = std::upper_bound(RecursiveIterator<EV_const_iterator>(edges.begin()), 
-                                                     RecursiveIterator<EV_const_iterator>(edges.end()), 
-                                                     edges.begin(),
-                                                     CardinaliyComparison(max_size, edges.begin()));
+    typedef boost::counting_iterator<EV_const_iterator>         EV_counting_const_iterator;
+    EV_counting_const_iterator bdistance = std::upper_bound(EV_counting_const_iterator(edges.begin()), 
+                                                            EV_counting_const_iterator(edges.end()), 
+                                                            edges.begin(),
+                                                            CardinaliyComparison(max_size, edges.begin()));
     
     return (*bdistance)->distance;
 }

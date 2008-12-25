@@ -30,7 +30,7 @@
  *
  * \ingroup topology
  */
-template<class V, class T = Empty>
+template<class V, class T = Empty<> >
 class Simplex
 {
 	public:

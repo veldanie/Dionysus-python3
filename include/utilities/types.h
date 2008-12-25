@@ -6,7 +6,7 @@
 
 /* Types */
 typedef 	bool					Sign;
-typedef		unsigned short int		Dimension;
+typedef		short int		        Dimension;
 const 		Sign	 				POS = true;
 const 		Sign					NEG = false;
 typedef		double					RealType;
@@ -16,8 +16,13 @@ static RealType Infinity = std::numeric_limits<RealType>::infinity();
 
 typedef 	const unsigned int&		version_type;
 
+// Empty is made a template so that we don't have to compile and deal with a library
+// solely for its operator<<(out, e) function
+template<typename T = void>
 struct      Empty                   {};
-std::ostream& operator<<(std::ostream& out, Empty e) { return out; }
+
+template<typename T>
+std::ostream& operator<<(std::ostream& out, Empty<T> e) { return out; }
 
 enum        SwitchType
 {
@@ -32,17 +37,15 @@ enum        SwitchType
             Case4       = 0x20,
 };
 
-
 // Nothing to do for serializing Empty, but still need to provide this function
 namespace boost {
 namespace serialization {
 
-template<class Archive>
-void serialize(Archive & ar, Empty&, const unsigned int )
+template<class Archive, class T>
+void serialize(Archive & ar, Empty<T>&, const unsigned int )
 {}
 
 } // namespace serialization
 } // namespace boost
-
 
 #endif // __TYPES_H__

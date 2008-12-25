@@ -1,11 +1,12 @@
 #include "utilities/containers.h"
+#include <boost/iterator/counting_iterator.hpp>
 
 template<class C, class I, class CT>
 template<class Comparison>
 Filtration<C,I,CT>::
 Filtration(ComplexIndex bg, ComplexIndex end, const Comparison& cmp):
-    order_(RecursiveIterator<ComplexIndex>(bg), 
-           RecursiveIterator<ComplexIndex>(end)),
+    order_(boost::counting_iterator<ComplexIndex>(bg), 
+           boost::counting_iterator<ComplexIndex>(end)),
     reverse_order_(order_.size()),
     complex_order_map_(bg, reverse_order_.begin()),
     simplex_index_map_(bg, end)
