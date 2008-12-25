@@ -15,12 +15,14 @@
  *
  * Stores birth-death pair plus any additional information provided by `Data` template parameter.
  */
-template<class Data_>
+template<class Data_ = Empty>
 class PDPoint
 {
     public:
         typedef                 Data_                                       Data;
 
+                                PDPoint(const PDPoint& other):
+                                    point_(other.point_)                    {}
                                 PDPoint(RealType x = 0, RealType y = 0, const Data& data = Data());
 
         RealType                x() const                                   { return point_.first().first; }
@@ -28,7 +30,7 @@ class PDPoint
         const Data&             data() const                                { return point_.second(); }
         Data&                   data()                                      { return point_.second(); }
 
-        std::ostream&           operator<<(std::ostream& out) const         { return (out << x() << " " << y() << " " << data()); }
+        std::ostream&           operator<<(std::ostream& out) const         { return (out << x() << " " << y()); } // << " " << data()); }
         
         struct Visitor
         {
@@ -78,6 +80,9 @@ class PersistenceDiagram
         typedef                 typename PointVector::const_iterator        const_iterator;
 
                                 PersistenceDiagram()                        {}
+
+        template<class OtherData>
+                                PersistenceDiagram(const PersistenceDiagram<OtherData>& other);
 
         template<class Iterator, class Evaluator>
                                 PersistenceDiagram(Iterator bg, Iterator end, 

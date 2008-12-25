@@ -17,7 +17,7 @@ static RealType Infinity = std::numeric_limits<RealType>::infinity();
 typedef 	const unsigned int&		version_type;
 
 struct      Empty                   {};
-std::ostream& operator<<(std::ostream& out, Empty e) { return out; }
+//std::ostream& operator<<(std::ostream& out, Empty e) { return out; }
 
 enum        SwitchType
 {

@@ -10,6 +10,10 @@
 
 // Class: Filtration
 //
+// Filtration keeps track of the ordering of the simplices in a complex. 
+// The most significant function it provides is <boundary()> which converts
+// the boundary of a simplex at a given index into a list of indices.
+//
 // TODO: this is really specialized for an std::vector<> Complex; eventually generalize
 // TODO: should we derive from Order?
 template<class Complex_, 

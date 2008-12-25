@@ -12,6 +12,18 @@ PDPoint(RealType x, RealType y, const Data& data)
     point_.second() = data;
 }
 
+
+template<class D>
+template<class OtherData>
+PersistenceDiagram<D>::
+PersistenceDiagram(const PersistenceDiagram<OtherData>& other)
+{
+    points_.reserve(other.size());
+    for (typename PersistenceDiagram<OtherData>::PointVector::const_iterator cur = points_.begin(); 
+                                                                             cur != points_.end(); ++cur)
+        push_back(Point(cur->x(), cur->y()));
+}
+
 template<class D>
 template<class Iterator, class Evaluator>
 PersistenceDiagram<D>::

@@ -104,3 +104,4 @@ endif						(DOXYGEN_FOUND)
 # Process subdirectories
 add_subdirectory			(examples)
 add_subdirectory			(tests)
+add_subdirectory			(tools)

@@ -23,7 +23,7 @@ StaticPersistence(const Filtration& filtration,
     ocmp_(ocmp)
 { 
     OrderIndex                          ocur = begin();
-    OffsetMap<size_t, OrderIndex>       om(0, ocur);            // TODO: this is customized for std::vector Order
+    OffsetMap<typename Filtration::IntermediateIndex, OrderIndex>       om(0, ocur);            // TODO: this is customized for std::vector Order
     for (typename Filtration::Index cur = filtration.begin(); cur != filtration.end(); ++cur, ++ocur)
     {
         // Convert the Filtration::IndexBoundary into a Cycle, and 
