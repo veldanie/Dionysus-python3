@@ -1,11 +1,12 @@
 #include "utilities/containers.h"
+#include <boost/iterator/counting_iterator.hpp>
 
 template<class C, class I, class CT>
 template<class Comparison>
 Filtration<C,I,CT>::
 Filtration(ComplexIndex bg, ComplexIndex end, const Comparison& cmp):
-    order_(RecursiveIterator<ComplexIndex>(bg), 
-           RecursiveIterator<ComplexIndex>(end)),
+    order_(boost::counting_iterator<ComplexIndex>(bg), 
+           boost::counting_iterator<ComplexIndex>(end)),
     reverse_order_(order_.size()),
     complex_order_map_(bg, reverse_order_.begin()),
     simplex_index_map_(bg, end)
@@ -22,11 +23,10 @@ Filtration<C,I,CT>::
 boundary(const Index& i, Cycle& bdry, const Map& map) const
 {
     AssertMsg(bdry.empty(), "We are initializing the boundary from scratch");
-    SimplexBoundary simplex_bdry = (*i)->boundary();
-    ContainerTraits<Cycle>::reserve(bdry, simplex_bdry.size());
+    ContainerTraits<Cycle>::reserve(bdry, (*i)->boundary_end() - (*i)->boundary_begin());
     typename Map::template rebind_from<IntermediateIndex>::other    order_bdry_map(0, map.to());
 
-    for (typename SimplexBoundary::const_iterator cur = simplex_bdry.begin(); cur != simplex_bdry.end(); ++cur)
+    for (typename Simplex::BoundaryIterator cur = (*i)->boundary_begin(); cur != (*i)->boundary_end(); ++cur)
     {
         //std::cout << *cur << std::endl;
         //std::cout << simplex_index_map_[*cur] - complex_order_map_.from() << std::endl;

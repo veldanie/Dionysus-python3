@@ -3,6 +3,7 @@
 
 #include "cycles.h"
 #include "utilities/types.h"
+#include "utilities/indirect.h"
 
 #include <vector>
 #include <list>
@@ -20,7 +21,7 @@ struct OrderTraits {};
  * That prevents it from performing efficient insertions.
  */
 template<class Chains_ =    VectorChains<>,
-         class Data_ =      Empty>
+         class Data_ =      Empty<> >
 struct VectorOrderDescriptor: 
     public Chains_::template rebind<typename OrderTraits<VectorOrderDescriptor<Chains_, Data_> >::Index>::other,
     public Data_

@@ -37,30 +37,4 @@ struct ThreeOutcomeCompare: public Comparison
     }
 };
 
-template<class Iterator_>
-class RecursiveIterator: public boost::iterator_adaptor<RecursiveIterator<Iterator_>,       // Derived
-                                                        Iterator_,                          // Base
-                                                        Iterator_>                          // Value
-{
-    private:
-        struct      enabler                                                 {};
-
-    public:
-        typedef     Iterator_                                               Iterator;
-        typedef     boost::iterator_adaptor<RecursiveIterator<Iterator>, 
-                                                              Iterator, 
-                                                              Iterator>     Parent;
-
-                    RecursiveIterator()                                     {}
-        explicit    RecursiveIterator(Iterator iter):
-                        Parent(iter)                                        {}
-    
-    private:
-        friend class    boost::iterator_core_access;
-        typename Parent::reference       
-                        dereference() const                                 { return const_cast<typename Parent::reference>(this->base()); }
-        // FIXME: I dislike to const_cast, but it's not obvious how to get rid of it
-};
-
-
 #endif // __INDIRECT_H__

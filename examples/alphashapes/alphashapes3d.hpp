@@ -118,16 +118,6 @@ AlphaSimplex3D(const Delaunay::Cell& c): attached_(false)
 	alpha_ = CGAL::squared_radius(p1, p2, p3, p4);
 }
 
-AlphaSimplex3D::Boundary
-AlphaSimplex3D::boundary() const
-{
-	Boundary bdry;
-	Parent::Boundary pbdry = Parent::boundary();
-	for (Parent::Boundary::const_iterator cur = pbdry.begin(); cur != pbdry.end(); ++cur)
-		bdry.push_back(*cur);
-	return bdry;
-}
-
 
 bool 
 AlphaSimplex3D::AlphaOrder::

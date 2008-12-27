@@ -52,7 +52,7 @@ struct TrailData_: public Data
 // TODO: perhaps Consistency should be wrapped into a ConsistencyDescriptor that somehow knows how to initialize it. 
 // That way one could provide a simple consistency descriptor that just stored some integers describing the original 
 // position, or one could provide consistency that is references into the complex
-template<class Data_ =                  Empty, 
+template<class Data_ =                  Empty<>, 
          class OrderDescriptor_ =       VectorOrderDescriptor<>,
          class ConsistencyIndex_ =      size_t,
          class ConsistencyComparison_ = std::less<ConsistencyIndex_> >

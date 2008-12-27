@@ -15,7 +15,7 @@
  *   OrderDescriptor_ -     class describing how the order is stored; it defaults to <VectorOrderDescriptor> 
  *                          which serves as a prototypical class
  */
-template<class Data_ = Empty,
+template<class Data_ = Empty<>,
          class OrderDescriptor_ =   VectorOrderDescriptor<> >
 class StaticPersistence
 {

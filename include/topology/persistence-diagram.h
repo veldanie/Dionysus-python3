@@ -15,7 +15,7 @@
  *
  * Stores birth-death pair plus any additional information provided by `Data` template parameter.
  */
-template<class Data_ = Empty>
+template<class Data_ = Empty<> >
 class PDPoint
 {
     public:
@@ -70,7 +70,7 @@ Point   make_point(Iterator i, const Evaluator& evaluator)                  { re
  * Stores birth-death pairs, i.e. points in the extended plane. Each point can also store 
  * additional information described by `Data_` template parameter.
  */
-template<class Data_ = Empty>
+template<class Data_ = Empty<> >
 class PersistenceDiagram
 {
     public:

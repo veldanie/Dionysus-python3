@@ -59,7 +59,6 @@ class AlphaSimplex3D: public Simplex<Vertex_handle>
 		RealType					value() const						{ return CGAL::to_double(alpha_); }
 		RealValue					alpha() const						{ return alpha_; }
 		bool						attached() const					{ return attached_; }
-		Boundary                    boundary() const;
 
 		// Ordering
 		struct AlphaOrder

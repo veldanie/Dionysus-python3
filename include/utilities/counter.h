@@ -21,7 +21,6 @@
     #define     CountBy(x,y)                do { x->count += y; } while (0)
     #define     SetFrequency(x, freq)       do { x->frequency = freq; } while (0)
     #define     SetTrigger(x, y)            do { x->trigger = y; } while(0)
-#endif // COUNTERS
 
 
 #include <map>
@@ -75,6 +74,8 @@ Counter*    get_counter(const char* path)
 }
 
 #include "counter.hpp"
+
+#endif // COUNTERS
 
 
 #endif // __COUNTER_H__

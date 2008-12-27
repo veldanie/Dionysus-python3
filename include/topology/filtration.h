@@ -31,7 +31,6 @@ class Filtration
         typedef                 typename ComplexTraits::Index                   ComplexIndex;
         typedef                 typename ComplexTraits::Simplex                 Simplex;
         typedef                 typename ComplexTraits::SimplexIndexMap         SimplexIndexMap;
-        typedef                 typename Simplex::Boundary                      SimplexBoundary;
         typedef                 std::vector<IntermediateIndex>                  IndexBoundary;
 
         // Typedefs: Order

@@ -7,24 +7,57 @@
 
 /* Implementations */
 
+template<class V, class T>
+struct Simplex<V,T>::BoundaryIterator: public boost::iterator_adaptor<BoundaryIterator,                                 // Derived
+                                                                      typename VertexContainer::const_iterator,         // Base
+                                                                      Simplex<V,T>,                                     // Value
+                                                                      boost::use_default,
+                                                                      Simplex<V,T> >
+{
+    public:
+        typedef     typename VertexContainer::const_iterator                Iterator;
+        typedef     boost::iterator_adaptor<BoundaryIterator,
+                                            Iterator,
+                                            Simplex<V,T>,
+                                            boost::use_default,
+                                            Simplex<V,T> >                  Parent;
+                    
+                    BoundaryIterator()                                      {}
+        explicit    BoundaryIterator(Iterator iter, const VertexContainer& vertices):
+                        Parent(iter), vertices_(vertices)                   {}
+    
+    private:
+        friend class    boost::iterator_core_access;
+        Simplex<V,T>    dereference() const                                 
+        { 
+            typedef     std::not_equal_to<Vertex>                           NotEqualVertex;
+
+            return      Self(boost::make_filter_iterator(std::bind2nd(NotEqualVertex(), *(this->base())), vertices_.begin(), vertices_.end()),
+                             boost::make_filter_iterator(std::bind2nd(NotEqualVertex(), *(this->base())), vertices_.end(),   vertices_.end()));
+        }
+        
+        const VertexContainer&      vertices_;
+};
+
 /* Simplex */
 template<class V, class T>
-typename Simplex<V,T>::Boundary 
+typename Simplex<V,T>::BoundaryIterator
 Simplex<V,T>::
-boundary() const
+boundary_begin() const
 {
-    typedef         std::not_equal_to<Vertex>                           NotEqualVertex;
-
-    Boundary bdry;
-    if (dimension() == 0) return bdry;
-    
-    for (typename VertexContainer::const_iterator cur = vertices().begin(); cur != vertices().end(); ++cur)
-        bdry.push_back(Self(boost::make_filter_iterator(std::bind2nd(NotEqualVertex(), *cur), vertices().begin(), vertices().end()),
-                            boost::make_filter_iterator(std::bind2nd(NotEqualVertex(), *cur), vertices().end(),   vertices().end())));
-    
-    return bdry;
+    if (dimension() == 0)   return boundary_end();
+    return BoundaryIterator(vertices().begin(), vertices());
 }
 
+template<class V, class T>
+typename Simplex<V,T>::BoundaryIterator
+Simplex<V,T>::
+boundary_end() const
+{
+    return BoundaryIterator(vertices().end(), vertices());
+}
+
+#if 0
 template<class V, class T>
 bool
 Simplex<V,T>::
@@ -34,6 +67,7 @@ contains(const Vertex& v) const
     typename VertexContainer::const_iterator location = std::lower_bound(vertices().begin(), vertices().end(), v); 
     return ((location != vertices().end()) && (*location == v)); 
 }
+#endif
  
 template<class V, class T>
 bool
