@@ -1,13 +1,19 @@
-#include "topology/filtration.h"
 #include "topology/simplex.h"
+#include "topology/filtration.h"
+#include "topology/static-persistence.h"
+#include "topology/persistence-diagram.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <boost/program_options.hpp>
 
-typedef 		SimplexWithValue<int> 			Simplex;
-typedef			Filtration<Simplex>				SimplexFiltration;
+typedef         Simplex<unsigned, unsigned>     Smplx;
+typedef         std::vector<Smplx>              Complex;
+typedef         Filtration<Complex>             Fltr;
+typedef         StaticPersistence<>             Persistence;
+typedef         PersistenceDiagram<>            PDgm;
 
 namespace po = boost::program_options;
 
@@ -42,9 +48,7 @@ int main(int argc, char** argv)
     }
 
 
-	Evaluator<Simplex> e;
-	SimplexFiltration::Vineyard v(&e);
-	SimplexFiltration f(&v);
+    Complex c;
 
     std::ifstream in(infilename.c_str());
     unsigned int i = 0;
@@ -53,7 +57,7 @@ int main(int argc, char** argv)
     while(in)
     {
         std::istringstream linestream(s);
-        Simplex simplex(float(i++));
+        Smplx simplex(i++);
         unsigned int vertex;
         linestream >> vertex;
         while(linestream)
@@ -62,19 +66,25 @@ int main(int argc, char** argv)
             linestream >> vertex;
         }
         std::cout << simplex << std::endl;
-        f.append(simplex);
+        c.push_back(simplex);
         std::getline(in, s);
     }
-	
-    f.fill_simplex_index_map();
-	f.pair_simplices();
-	v.start_vines(f.begin(), f.end());
-	
-	std::cout << "Filtration size: " << f.size() << std::endl;
-    for (SimplexFiltration::Index cur = f.begin(); cur != f.end(); ++cur)
-        if (cur->sign()) 
-            std::cout << cur->dimension() << " " 
-                      << cur->get_value() << " " 
-                      << cur->pair()->get_value() << std::endl;
+    
+    std::sort(c.begin(), c.end(), Smplx::VertexComparison());
+    Fltr f(c.begin(), c.end(), Smplx::DataComparison());
+    Persistence pers(f);
+    pers.pair_simplices();
+
+    std::map<Dimension, PDgm> dgms;
+    init_diagrams(dgms, pers.begin(), pers.end(), 
+                  evaluate_through_map(OffsetMap<Persistence::OrderIndex, Fltr::Index>(pers.begin(), f.begin()), 
+                                       evaluate_through_filtration(f, Smplx::DataEvaluator())), 
+                  evaluate_through_map(OffsetMap<Persistence::OrderIndex, Fltr::Index>(pers.begin(), f.begin()), 
+                                       evaluate_through_filtration(f, Smplx::DimensionExtractor())));
+
+    std::cout << 0 << std::endl << dgms[0] << std::endl;
+    std::cout << 1 << std::endl << dgms[1] << std::endl;
+    std::cout << 2 << std::endl << dgms[2] << std::endl;
+    std::cout << 3 << std::endl << dgms[3] << std::endl;
 }
 

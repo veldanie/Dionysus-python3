@@ -32,7 +32,7 @@
 template<class V, class T = Empty>
 class Simplex
 {
-	public:
+    public:
         /* Typedefs: Public Types
          *
          *    Vertex -              vertex type (template parameter V)
@@ -40,74 +40,70 @@ class Simplex
          *    Self -
          *    Boundary -            type in which the boundary is stored
          */
-		typedef		V																Vertex;
+        typedef     V                                                               Vertex;
         typedef     T                                                               Data;
-		typedef		Simplex<Vertex, Data>										    Self;
-		typedef		std::list<Self>													Boundary;
-		
+        typedef     Simplex<Vertex, Data>                                           Self;
+        typedef     std::list<Self>                                                 Boundary;
+        
         /* Typedefs: Internal representation
          *
          *    VertexContainer -     internal representation of the vertices
          *    VerticesDataPair -    `compressed_pair` of VertexContainer and Data
          */
-        typedef		std::vector<Vertex>												VertexContainer;
+        typedef     std::vector<Vertex>                                             VertexContainer;
         typedef     boost::compressed_pair<VertexContainer, Data>                   VerticesDataPair;
-		
-        // TODO
-
-		/// \name Constructors 
-		/// @{
+        
+        /// \name Constructors 
+        /// @{
         //
         /// Constructor: Simplex()
         /// Default constructor
-		Simplex()														            {}
+        Simplex()                                                                   {}
         /// Constructor: Simplex(Self other)
         /// Copy constructor
-		Simplex(const Self& other):	
-			vdpair_(other.vertices(), other.data())				                    {}
+        Simplex(const Self& other): 
+            vdpair_(other.vertices(), other.data())                                 {}
+        /// Constructor: Simplex(Data d)
+        /// Initialize simplex with data
+        Simplex(const Data& d)                                                      { data() = d; }
         /// Constructor: Simplex(Iterator bg, Iterator end)
         /// Initialize simplex by copying vertices in range [bg, end)
-		template<class Iterator>
-		Simplex(Iterator bg, Iterator end, const Data& d = Data())			        { join(bg, end); data() = d; }
+        template<class Iterator>
+        Simplex(Iterator bg, Iterator end, const Data& d = Data())                  { join(bg, end); data() = d; }
         /// Constructor: Simplex(VertexContainer v)
         /// Initialize simplex by copying the given VertexContainer
-		Simplex(const VertexContainer& v, const Data& d = Data()):	
-			vdpair_(v, d)														    { std::sort(vertices().begin(), vertices().end()); }
-        /// Constructor: Simplex(Dimension d, Vertex v)
-        /// Initialize simplex of dimension d, and set its first vertex to v
-		Simplex(Dimension d, Vertex v)				                                { vertices().reserve(d+1); add(v); }
-        /// Constructor: Simplex(Dimension d)
-        /// Initialize simplex of dimension d
-		Simplex(Dimension d)                                                        { vertices().resize(d+1); } 
-		/// @}
-		
-		/// \name Core 
-		/// @{
+        Simplex(const VertexContainer& v, const Data& d = Data()):  
+            vdpair_(v, d)                                                           { std::sort(vertices().begin(), vertices().end()); }
+        /// @}
+        
+        /// \name Core 
+        /// @{
         ///
         /// Function: boundary()
         /// Returns the boundary of the simplex (of type Boundary)
-		Boundary			    boundary() const;
+        Boundary                boundary() const;
         /// Function: dimension()
         /// Returns the dimension of the simplex
-		Dimension				dimension() const									{ return vertices().size() - 1; }
-		/// @}
-		
-		const Data&	            data() const									    { return vdpair_.second(); }
+        Dimension               dimension() const                                   { return vertices().size() - 1; }
+        /// @}
+        
+        const Data&             data() const                                        { return vdpair_.second(); }
         Data&                   data()                                              { return vdpair_.second(); }
-		const VertexContainer&	vertices() const									{ return vdpair_.first(); }
-		
-		/// \name Vertex manipulation
-		/// @{
-        bool					contains(const Vertex& v) const;
-		void					add(const Vertex& v);
+        const VertexContainer&  vertices() const                                    { return vdpair_.first(); }
+        
+        /// \name Vertex manipulation
+        /// @{
+        bool                    contains(const Vertex& v) const;
+        bool                    contains(const Self& s) const;
+        void                    add(const Vertex& v);
         template<class Iterator>
         void                    join(Iterator bg, Iterator end);
-        void                    join(const Self& other)                             { join(other.vertices.begin(), other.vertices().end()); }
-		/// @}
+        void                    join(const Self& other)                             { join(other.vertices().begin(), other.vertices().end()); }
+        /// @}
 
-		const Self&				operator=(const Self& s)							{ vdpair_ = s.vdpair_; return *this; }
+        const Self&             operator=(const Self& s)                            { vdpair_ = s.vdpair_; return *this; }
 
-		std::ostream&			operator<<(std::ostream& out) const;
+        std::ostream&           operator<<(std::ostream& out) const;
 
         /* Classes: Comparisons
          *
@@ -126,18 +122,18 @@ class Simplex
 
         struct DataEvaluator;
         struct DimensionExtractor;
-	
-	private:
-		VertexContainer&	    vertices()									        { return vdpair_.first(); }
+    
+    private:
+        VertexContainer&        vertices()                                          { return vdpair_.first(); }
 
         VerticesDataPair        vdpair_;
 
-	private:
-		/* Serialization */
-		friend class boost::serialization::access;
-		
-		template<class Archive>
-		void 					serialize(Archive& ar, version_type );
+    private:
+        /* Serialization */
+        friend class boost::serialization::access;
+        
+        template<class Archive>
+        void                    serialize(Archive& ar, version_type );
 };
 
 
@@ -161,20 +157,21 @@ struct Simplex<V,T>::DataComparison
         bool                    operator()(const Self& a, const Self& b) const       { return a.data() < b.data(); }
 };
 
-template<class V, class T>
-struct Simplex<V,T>::DataDimensionComparison
+template<class S>
+struct DataDimensionComparison
 {
-        typedef                 Self                    first_argument_type;
-        typedef                 Self                    second_argument_type;
+        typedef                 S                       Simplex;
+        typedef                 Simplex                 first_argument_type;
+        typedef                 Simplex                 second_argument_type;
         typedef                 bool                    result_type;
 
-        bool                    operator()(const Self& a, const Self& b) const       
-		{
-			if (a.dimension() == b.dimension())
-				return a.data() < b.data();
-			else
-				return a.dimension() < b.dimension();
-		}
+        bool                    operator()(const Simplex& a, const Simplex& b) const       
+        {
+            if (a.dimension() == b.dimension())
+                return a.data() < b.data();
+            else
+                return a.dimension() < b.dimension();
+        }
 };
         
 template<class V, class T>

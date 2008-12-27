@@ -24,15 +24,20 @@ int main(int argc, char* argv[])
     Distances distances;
     
 #if 0
+    typedef         RipsGenerator<ExplicitDistances<Distances> >    RipsGenerator;
     ExplicitDistances<Distances> explicit_distances(distances);
-    Rips<ExplicitDistances<Distances> > rips(explicit_distances);
+    RipsGenerator rips(explicit_distances);
 #else
-    Rips<Distances> rips(distances);
+    typedef         RipsGeneratorMemory<Distances>                        RipsGenerator;
+    RipsGenerator   rips(distances);
 #endif
 
-    //rips.generate(3, distances.size());
-    rips.generate(3, 50);
+    RipsGenerator::SimplexVector complex;
+    //rips.generate(complex, 3, distances.size());
+    rips.generate(complex, 3, 50);
     //rips.print();
     
-    std::cout << "Size: " << rips.size() << std::endl;
+    std::cout << "Size: " << complex.size() << std::endl;
+//    for (RipsGenerator::SimplexVector::const_iterator cur = complex.begin(); cur != complex.end(); ++cur)
+//        std::cout << *cur << std::endl;
 }

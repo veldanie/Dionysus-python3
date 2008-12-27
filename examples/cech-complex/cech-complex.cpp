@@ -111,7 +111,7 @@ int main(int argc, char** argv)
     std::sort(sv.begin(), sv.end(), Smplx::VertexComparison());
 
     // Set up the filtration
-    CechFiltration cf(sv.begin(), sv.end(), Smplx::DataDimensionComparison());
+    CechFiltration cf(sv.begin(), sv.end(), DataDimensionComparison<Smplx>());
     rInfo("Filtration initialized");
 
     // Compute persistence

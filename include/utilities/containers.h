@@ -30,11 +30,16 @@ class SizeStorage
 {
     public:
         typedef         Container_                                                          Container;
+        typedef         SizeStorage<Container>                                              Self;
 
-                        SizeStorage(): size_(0)                                             {}
+                        SizeStorage(size_t size = 0): size_(size)                           {}
 
-        void            increment(size_t inc = 1)                                           { size_ += inc; }
-        void            decrement(size_t dec = 1)                                           { size_ -= dec; }
+        Self&           operator+=(size_t inc)                                              { size_ += inc; return *this; }
+        Self&           operator-=(size_t dec)                                              { size_ -= dec; return *this; }
+        Self&           operator++()                                                        { ++size_; return *this; }
+        Self            operator++(int)                                                     { Self tmp = *this; size_++; return tmp; }
+        Self&           operator--()                                                        { --size_; return *this; }
+        Self            operator--(int)                                                     { Self tmp = *this; size_--; return tmp; }
         size_t          size(const Container& c) const                                      { return size_; }
         void            swap(SizeStorage& other)                                            { std::swap(size_, other.size_); }
 
@@ -42,6 +47,26 @@ class SizeStorage
         size_t          size_;
 };
 
+/**
+ * Class: CountingBackInserter<C>
+ *
+ * Derives from std::back_insert_iterator<C> and SizeStorage<C>, 
+ * and keeps track of the number of inserted elements.
+ */
+template<class C>
+struct CountingBackInserter: public std::back_insert_iterator<C>, 
+                             public SizeStorage<C>
+{
+    typedef                     CountingBackInserter                            Self;
+    typedef                     std::back_insert_iterator<C>  ParentIterator;
+    typedef                     SizeStorage<C>                ParentSize;
+
+                                CountingBackInserter(C& c):
+                                    ParentIterator(c)                           {}
+
+    Self&                       operator++()                                    { ParentSize::operator++(); ParentIterator::operator++(); return *this; }
+    Self                        operator++(int i)                               { Self tmp = *this; ParentSize::operator++(i); ParentIterator::operator++(i); return tmp; }
+};
 
 /* Specializations */
 
@@ -66,9 +91,9 @@ struct ContainerTraits<List<T>, Comparison_>
     static void reserve(Container& c, size_t sz)                                            { }
     static void sort(Container& c, const Comparison& cmp = Comparison())                    
     { 
-    	std::vector<Item> tmp(c.begin(), c.end());
-	    std::sort(tmp.begin(), tmp.end(), cmp);
-    	std::copy(tmp.begin(), tmp.end(), c.begin());
+        std::vector<Item> tmp(c.begin(), c.end());
+        std::sort(tmp.begin(), tmp.end(), cmp);
+        std::copy(tmp.begin(), tmp.end(), c.begin());
     }
 };
 
@@ -79,9 +104,16 @@ class SizeStorage<std::vector<T> >
 {
     public:
         typedef         std::vector<T>                                                      Container;
+        typedef         SizeStorage<Container>                                              Self;
+                        
+                        SizeStorage(size_t size = 0)                                        {}
 
-        void            increment(size_t inc = 1)                                           {}
-        void            decrement(size_t dec = 1)                                           {}
+        Self&           operator+=(size_t inc)                                              { return *this; }
+        Self&           operator-=(size_t dec)                                              { return *this; }
+        Self&           operator++()                                                        { return *this; }
+        Self            operator++(int)                                                     { return *this; }
+        Self&           operator--()                                                        { return *this; }
+        Self            operator--(int)                                                     { return *this; }
         size_t          size(const Container& c) const                                      { return c.size(); }
         void            swap(SizeStorage& other)                                            {}
 };

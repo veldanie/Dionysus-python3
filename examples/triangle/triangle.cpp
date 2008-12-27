@@ -78,7 +78,7 @@ int main(int argc, char** argv)
   }  
 #endif
 
-    Fltr f(c.begin(), c.end(), Smplx::DataDimensionComparison());
+    Fltr f(c.begin(), c.end(), Smplx::DataComparison());
     std::cout << "Filtration initialized" << std::endl;
     std::cout << f << std::endl;
 
@@ -90,9 +90,9 @@ int main(int argc, char** argv)
 
     std::map<Dimension, PDgm> dgms;
     init_diagrams(dgms, p.begin(), p.end(), 
-                  evaluate_through_map(OffsetMap<Persistence::OrderIndex, Fltr::Index>(p.begin(), f.begin()), 
+                  evaluate_through_map(make_offset_map(p.begin(), f.begin()), 
                                        evaluate_through_filtration(f, Smplx::DataEvaluator())), 
-                  evaluate_through_map(OffsetMap<Persistence::OrderIndex, Fltr::Index>(p.begin(), f.begin()), 
+                  evaluate_through_map(make_offset_map(p.begin(), f.begin()), 
                                        evaluate_through_filtration(f, Smplx::DimensionExtractor())));
 
     std::cout << 0 << std::endl << dgms[0] << std::endl;
