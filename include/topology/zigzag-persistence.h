@@ -27,9 +27,9 @@ class ZigzagPersistence
         typedef                         std::list<SimplexNode>                          SimplexList;
         typedef                         typename SimplexList::iterator                  SimplexIndex;
 
-        // TODO: deques might make a lot of sense, at least for BColumns and ZRows
-        typedef                         typename VectorChains<ZIndex>::Chain            ZRow;
-        typedef                         typename VectorChains<ZIndex>::Chain            BColumn;
+        // TODO: should all chains be DequeChains? probably not
+        typedef                         typename DequeChains<ZIndex>::Chain             ZRow;
+        typedef                         typename DequeChains<ZIndex>::Chain             BColumn;
         typedef                         typename VectorChains<BIndex>::Chain            BRow;
         typedef                         typename VectorChains<BIndex>::Chain            CRow;
         typedef                         typename VectorChains<SimplexIndex>::Chain      ZColumn;

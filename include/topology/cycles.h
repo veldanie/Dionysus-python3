@@ -3,6 +3,7 @@
 
 #include "chain.h"
 #include <vector>
+#include <deque>
 #include "utilities/circular_list.h"
 
 template<class OrderIndex_ = int>
@@ -21,6 +22,24 @@ struct VectorChains
 
     template<class U> struct rebind
     { typedef           VectorChains<U>         other; };
+};
+
+template<class OrderIndex_ = int>
+struct DequeChains
+{
+    typedef             OrderIndex_                                             OrderIndex;
+    typedef             ChainWrapper<std::deque<OrderIndex> >                   Chain;
+    typedef             Chain                                                   Cycle;
+
+    Cycle               cycle;
+
+                        DequeChains()                                           {}
+                        DequeChains(Cycle z): cycle(z)                          {}
+
+    bool                sign() const                                            { return cycle.empty(); }
+
+    template<class U> struct rebind
+    { typedef           DequeChains<U>         other; };
 };
 
 template<class OrderIndex_ = int>
