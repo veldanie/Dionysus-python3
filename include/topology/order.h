@@ -79,68 +79,34 @@ struct OrderTraits<VectorOrderDescriptor<Chains, Data> >
 };
 
 #if 0
-template<class StoragePolicy_ = ListRV<> >
-struct ListOrderDescriptor: public StoragePolicy_::template RebindOrder<typename std::list<ListOrderDescriptor<StoragePolicy_> >::iterator>::other
+template<class Chains_      = VectorChains<>,
+         class Data_        = Empty>
+struct ListOrderDescriptor: 
+    public Chains_::template rebding<typename OrderTraits<ListOrderDescriptor<Chains_, Data_> >::Index>::other,
+    public Data_
 {
-    typedef         ListOrderDescriptor<StoragePolicy_>                         Self;
-    typedef         typename std::list<Self>::iterator                          OrderIndex;
-    OrderIndex      pair;
+    typedef         ListOrderDescriptor<Chains_, Data_>                         Self;
+
+    typedef         typename OrderTraits<Self>::Index                           OrderIndex;
+    typedef         typename Chains_::template rebind<OrderIndex>::other        Chains;
+    typedef         Data_                                                       Data;
+
+    template<class OtherData_> struct                                           RebindData
+    { typedef       ListOrderDescriptor<Chains_, OtherData_>                    other; };
     
-    typedef         typename StoragePolicy_::template RebindOrder<OrderIndex>::other StoragePolicy;
-    typedef         typename StoragePolicy::ComplexIndex                        ComplexIndex;
-
-                    ListOrderDescriptor(ComplexIndex i): 
-                        StoragePolicy(i)                                        {}
-
-    // Acts as a rebind
-    template<class OtherStoragePolicy_> struct                                  Order
-    { typedef       std::list<ListOrderDescriptor<OtherStoragePolicy_> >        type; };
+    OrderIndex      pair;
 };
 
 
-template<class T>
-struct ConsistencyCmp
+// Specialization for ListOrderDescriptor
+template<class Chains, class Data>
+struct OrderTraits<ListOrderDescriptor<Chains, Data> >
 {
-    int             compare(T a, T b) const                                 { if (a < b) return -1; if (a == b) return 0; return 1; }
-    bool            operator()(T a, T b) const                              { return compare(a,b) == -1; }
-};
+    typedef         ListOrderDescriptor<Chains, Data>                       Descriptor;
 
-// Traits
-template<class Order_>
-struct OrderTraits
-{
-    typedef         Order_                                                  Order;
-    typedef         void                                                    StoragePolicy;
-    typedef         void                                                    Index;
-    typedef         void                                                    Element;
-};
-
-// Specialization
-template<class T>
-struct OrderTraits<std::vector<T> >
-{
-    typedef         std::vector<T>                                          Order;
-    typedef         typename T::StoragePolicy                               StoragePolicy;
-    typedef         typename T::OrderIndex                                  Index;
-    typedef         T                                                       Element;
-
-    typedef         std::less<Index>                                        OrderComparison;
-    typedef         ConsistencyCmp<Index>                                   ConsistencyComparison;      
-
-    static Index    begin(Order& order)                                     { return order.begin(); }
-    static Index    end(Order& order)                                       { return order.end(); }
-
-    template<class Comparison>
-    static void     sort(Order& order, const Comparison& cmp)               { std::sort(order.begin(), order.end(), cmp); }
-};
-
-template<class T>
-struct OrderTraits<std::list<T> >
-{
-    typedef         std::list<T>                                            Order;
-    typedef         typename T::StoragePolicy                               StoragePolicy;
-    typedef         typename T::OrderIndex                                  Index;
-    typedef         T                                                       Element;
+    typedef         std::list<Descriptor>                                   Order;
+    typedef         Descriptor                                              Element;
+    typedef         Order::iterator                                         Index;
 
     // FIXME
     typedef         std::less<Index>                                        OrderComparison;

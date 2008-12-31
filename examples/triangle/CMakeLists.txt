@@ -1,5 +1,6 @@
 set                         (targets
-                             triangle)
+                             triangle
+                             triangle-zigzag)
 
 set                         (libraries                          ${libraries} ${Boost_SERIALIZATION_LIBRARY})
                              

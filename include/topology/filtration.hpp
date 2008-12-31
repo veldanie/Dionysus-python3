@@ -11,7 +11,7 @@ Filtration(ComplexIndex bg, ComplexIndex end, const Comparison& cmp):
     complex_order_map_(bg, reverse_order_.begin()),
     simplex_index_map_(bg, end)
 {
-    std::sort(order_.begin(), order_.end(), IndirectComparison<ComplexIndex, Comparison>(cmp));
+    std::sort(order_.begin(), order_.end(), make_indirect_comparison(cmp));
     for (Index obg = order_.begin(), cur = obg; cur != order_.end(); ++cur)
         reverse_order_[*cur - bg] = cur - obg;
 }

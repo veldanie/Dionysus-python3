@@ -29,8 +29,25 @@ ChainWrapper()
 
 template<class C>
 ChainWrapper<C>::
-ChainWrapper(const ChainWrapper& c): ChainRepresentation(c)
+ChainWrapper(const ChainWrapper& c): 
+    ChainRepresentation(c), Size(c)
 {}
+
+template<class C>
+template<class Iterator>
+ChainWrapper<C>::
+ChainWrapper(Iterator bg, Iterator end): 
+    ChainRepresentation(bg, end), Size(ChainRepresentation::size())
+{}
+
+template<class C>
+void
+ChainWrapper<C>::
+remove(const_reference x)
+{
+    erase(std::find(begin(), end(), x));
+    Size::operator--();
+}
 
 template<class C>
 template<class ConsistencyCmp>
@@ -38,16 +55,16 @@ void
 ChainWrapper<C>::
 append(const_reference x, const ConsistencyCmp& cmp)                        
 { 
-    SizeStorage<Container>::operator++();
+    Size::operator++();
 
     // First try the special cases that x goes at the end
-    if (empty() || cmp(ChainRepresentation::back(), x))
-    {
+    if (empty() || cmp(back(), x))
         push_back(x); 
-        return;
-    }
-
-    insert(std::upper_bound(begin(), end(), x, cmp), x);
+    // Then try the special case that x goes at the front
+    else if (cmp(x, front()))
+        ContainerTraits<C,ConsistencyCmp>::push_front(*this, x);
+    else
+        insert(std::upper_bound(begin(), end(), x, cmp), x);
 }
         
 template<class C>
@@ -66,7 +83,7 @@ ChainWrapper<C>::
 swap(ChainWrapper& c)
 {
     ChainRepresentation::swap(c);
-    SizeStorage<Container>::swap(c);
+    Size::swap(c);
 }
 
 template<class C>
@@ -127,7 +144,7 @@ add(const Self& c, const ConsistencyCmp& cmp)
     std::set_symmetric_difference(begin(), end(), c.begin(), c.end(), bi, cmp);
     
     static_cast<ChainRepresentation*>(this)->swap(tmp);
-    static_cast<SizeStorage<Container>*>(this)->swap(bi);   
+    static_cast<Size*>(this)->swap(bi);   
 
     return *this;
 }

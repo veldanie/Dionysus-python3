@@ -35,6 +35,7 @@ class ChainWrapper: public Container_,
         /// \name Template Parameters
         /// @{
         typedef         Container_                                                                  Container;
+        typedef         SizeStorage<Container>                                                      Size;
         typedef         typename boost::iterator_value<typename Container::iterator>::type          Item;
         /// @}
         
@@ -55,6 +56,7 @@ class ChainWrapper: public Container_,
     public:     
                                                 ChainWrapper();
                                                 ChainWrapper(const ChainWrapper& c);
+        template<class Iterator>                ChainWrapper(Iterator bg, Iterator end);
         
         /// \name Whole Chain operations
         /// @{
@@ -67,7 +69,7 @@ class ChainWrapper: public Container_,
         template<class ConsistencyComparison>
         void                                    sort(const ConsistencyComparison& cmp);         ///< Sort elements to enforce consistency
 
-        size_t                                  size() const                                        { return SizeStorage<Container>::size(*this); }
+        size_t                                  size() const                                        { return Size::size(*this); }
 
         using                                   ChainRepresentation::empty;
         using                                   ChainRepresentation::clear;
@@ -75,8 +77,8 @@ class ChainWrapper: public Container_,
         
         /// \name Modifiers
         /// @{
-        using                                   ChainRepresentation::erase;
-        
+        void                                    remove(const_reference x);
+
         template<class ConsistencyComparison>
         void                                    append(const_reference x, const ConsistencyComparison& cmp);
         /// @}
@@ -85,6 +87,8 @@ class ChainWrapper: public Container_,
         /// @{
         using                                   ChainRepresentation::begin;
         using                                   ChainRepresentation::end;
+        using                                   ChainRepresentation::front;
+        using                                   ChainRepresentation::back;
         
         template<class OrderComparison>
         const_reference                         top(const OrderComparison& cmp) const;          ///< First element in cmp order
@@ -105,6 +109,7 @@ class ChainWrapper: public Container_,
     private:
         using                                   ChainRepresentation::push_back;
         using                                   ChainRepresentation::insert;
+        using                                   ChainRepresentation::erase;
         
     private:
         // Serialization

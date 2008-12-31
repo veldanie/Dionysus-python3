@@ -1,4 +1,5 @@
 set							(targets						
+							 test-set-iterators
 							 test-consistencylist
 							 test-orderlist
 							 test-counters)

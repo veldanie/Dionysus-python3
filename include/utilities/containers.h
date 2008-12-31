@@ -11,10 +11,12 @@ struct ContainerTraits
 {
     typedef     Container_                                                                  Container;
     typedef     typename Container::value_type                                              Item;
+    typedef     typename Container::const_reference                                         const_reference;
     typedef     Comparison_                                                                 Comparison;
 
     static void reserve(Container& c, size_t sz)                                            {}
     static void sort(Container& c, const Comparison& cmp = Comparison())                    { c.sort(cmp); }
+    static void push_front(Container& c, const_reference x)                                 { c.push_front(x); }
 };
 
 /**
@@ -75,10 +77,12 @@ struct ContainerTraits<std::vector<T>, Comparison_>
 {
     typedef     T                                                                           Item;
     typedef     std::vector<T>                                                              Container;
+    typedef     typename Container::const_reference                                         const_reference;
     typedef     Comparison_                                                                 Comparison;
 
     static void reserve(Container& c, size_t sz)                                            { c.reserve(sz); }
     static void sort(Container& c, const Comparison& cmp = Comparison())                    { std::sort(c.begin(), c.end(), cmp); }
+    static void push_front(Container& c, const_reference x)                                 { c.insert(c.begin(), x); }
 };
 
 template<class T, class Comparison_>
@@ -86,6 +90,7 @@ struct ContainerTraits<List<T>, Comparison_>
 {
     typedef     T                                                                           Item;
     typedef     List<T>                                                                     Container;
+    typedef     typename Container::const_reference                                         const_reference;
     typedef     Comparison_                                                                 Comparison;
 
     static void reserve(Container& c, size_t sz)                                            { }
@@ -95,6 +100,7 @@ struct ContainerTraits<List<T>, Comparison_>
         std::sort(tmp.begin(), tmp.end(), cmp);
         std::copy(tmp.begin(), tmp.end(), c.begin());
     }
+    static void push_front(Container& c, const_reference x)                                 { c.push_front(x); }
 };
 
 // TODO: specialize for List (singly-linked list)
