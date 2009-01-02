@@ -125,7 +125,6 @@ tostring(const OutputMap& outmap) const
         if (cur != begin()) str += ", ";
         str += outmap(*cur);
     }
-    // str += "(last: " + *last + ")";  // For debugging only
     return str;
 }
 

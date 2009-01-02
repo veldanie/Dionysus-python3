@@ -1,5 +1,6 @@
 set                         (targets                        
-                             rips)
+                             rips
+                             rips-zigzag)
                              
 foreach                     (t ${targets})
     add_executable          (${t} ${t}.cpp)

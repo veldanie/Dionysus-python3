@@ -38,19 +38,18 @@ class ZigzagPersistence
         typedef                         boost::optional<BirthID>                        Death;
         typedef                         std::pair<SimplexIndex, Death>                  IndexDeathPair;
 
-        // TODO: probably should store something to identify the birth to the outside world; this should probably
-        //       be a template parameter (perhaps a template parameter to ZigzagPersistence)
         struct ZNode
         {
-                                        ZNode(int o, const BirthID& b): 
-                                            order(o), birth(b)                          {}
+                                        ZNode(int o, const BirthID& b, BIndex l): 
+                                            order(o), birth(b), low(l)                  {}
 
             int                         order;
             ZColumn                     z_column;
             BRow                        b_row;
             BIndex                      low;            // which BColumn has this ZIndex as low
 
-            BirthID                     birth;          // TODO: need to do empty-member optimization
+            BirthID                     birth;          // TODO: do we need to do empty-member optimization? 
+                                                        //       i.e., does it ever make sense for birth to be empty?
         };
 
         struct BNode
@@ -64,7 +63,8 @@ class ZigzagPersistence
 
         struct SimplexNode
         {
-                                        SimplexNode(unsigned o): order(o)               {}
+                                        SimplexNode(unsigned o, ZIndex l): 
+                                            order(o), low(l)                            {}
 
             unsigned                    order;
             ZRow                        z_row;
@@ -81,8 +81,9 @@ class ZigzagPersistence
         // Function: remove(s)
         Death                           remove(SimplexIndex s, const BirthID& birth = BirthID());
 
-        // Debug
+        // Debug; non-const because Indices are iterators, and not const_iterators 
         void                            show_all();
+        bool                            check_consistency();
 
     private:
         ZList                           z_list;
