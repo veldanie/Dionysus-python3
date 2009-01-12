@@ -2,15 +2,25 @@
 #define __CYCLES_H__
 
 #include "chain.h"
-#include <vector>
-#include <deque>
 #include "utilities/circular_list.h"
+
+#if DEBUG_CONTAINERS
+    #include <debug/vector>
+    #include <debug/deque>
+    using std::__debug::vector;
+    using std::__debug::deque;
+#else
+    #include <vector>
+    #include <deque>
+    using std::vector;
+    using std::deque;
+#endif
 
 template<class OrderIndex_ = int>
 struct VectorChains
 {
     typedef             OrderIndex_                                             OrderIndex;
-    typedef             ChainWrapper<std::vector<OrderIndex> >                  Chain;
+    typedef             ChainWrapper<vector<OrderIndex> >                       Chain;
     typedef             Chain                                                   Cycle;
 
     Cycle               cycle;
@@ -28,7 +38,7 @@ template<class OrderIndex_ = int>
 struct DequeChains
 {
     typedef             OrderIndex_                                             OrderIndex;
-    typedef             ChainWrapper<std::deque<OrderIndex> >                   Chain;
+    typedef             ChainWrapper<deque<OrderIndex> >                        Chain;
     typedef             Chain                                                   Cycle;
 
     Cycle               cycle;

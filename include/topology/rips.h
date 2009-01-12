@@ -119,7 +119,8 @@ class RipsBase<Distances_, Simplex_>::Comparison
 };
 
 /**
- * ExplicitDistances stores the pairwise distances of Distances_ instance passed at construction. 
+ * Class: ExplicitDistances 
+ * Stores the pairwise distances of Distances_ instance passed at construction. 
  * It's a protypical Distances template argument for the Rips complex.
  */
 template<class Distances_>
@@ -141,6 +142,39 @@ class ExplicitDistances
     private:
         std::vector<DistanceType>                   distances_;
         size_t                                      size_;
+};
+
+
+/**
+ * Class: PairwiseDistances
+ * Given a Container_ of points and a Distance_, it computes distances between elements 
+ * in the container (given as instances of Index_ defaulted to unsigned) using the Distance_ functor.
+ *
+ * Container_ is assumed to be an std::vector. That simplifies a number of things.
+ */
+template<class Container_, class Distance_, typename Index_ = unsigned>
+class PairwiseDistances
+{
+    public:
+        typedef             Container_                                      Container;
+        typedef             Distance_                                       Distance;
+        typedef             Index_                                          IndexType;
+        typedef             typename Distance::value_type                   DistanceType;
+
+
+                            PairwiseDistances(const Container& container, 
+                                              const Distance& distance = Distance()):
+                                container_(container), distance_(distance)  {}
+
+        DistanceType        operator()(IndexType a, IndexType b) const      { return distance_(container_[a], container_[b]); }
+
+        size_t              size() const                                    { return container_.size(); }
+        IndexType           begin() const                                   { return 0; }
+        IndexType           end() const                                     { return size(); }
+
+    private:
+        const Container&    container_;
+        Distance            distance_;
 };
 
 #include "rips.hpp"

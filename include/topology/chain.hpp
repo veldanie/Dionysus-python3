@@ -87,6 +87,15 @@ swap(ChainWrapper& c)
 }
 
 template<class C>
+void 
+ChainWrapper<C>::
+clear()
+{
+    ChainRepresentation::clear();
+    Size::clear();
+}
+
+template<class C>
 template<class ConsistencyComparison>
 void 
 ChainWrapper<C>::

@@ -65,6 +65,7 @@ class ChainWrapper: public Container_,
         Self&                                   add(const Self& c, const ConsistencyComparison& cmp);
         
         void                                    swap(ChainWrapper& c);                          ///< Swaps the contents of c and *this (like STL's swap destroys c)
+        void                                    clear();
         
         template<class ConsistencyComparison>
         void                                    sort(const ConsistencyComparison& cmp);         ///< Sort elements to enforce consistency
@@ -72,7 +73,6 @@ class ChainWrapper: public Container_,
         size_t                                  size() const                                        { return Size::size(*this); }
 
         using                                   ChainRepresentation::empty;
-        using                                   ChainRepresentation::clear;
         /// @}
         
         /// \name Modifiers

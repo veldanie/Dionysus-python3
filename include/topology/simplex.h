@@ -110,6 +110,7 @@ class Simplex
         /* Classes: Comparisons
          *
          * VertexComparison -           compare simplices based on the lexicographic ordering of their <vertices()>
+         * VertexComparison -           compare simplices based on the lexicographic ordering of their <vertices()> within each dimension
          * DataComparison -             compare simplices based on their <data()>
          * DataDimensionComparison -    compare simplices based on their <data()> within each <dimension()>
          */
@@ -119,6 +120,7 @@ class Simplex
          * DimensionExtractor -         return dimesnion given a simplex
          */
         struct VertexComparison;
+        struct VertexDimensionComparison;
         struct DataComparison;
         struct DataDimensionComparison;
 
@@ -147,6 +149,22 @@ struct Simplex<V,T>::VertexComparison
         typedef                 bool                    result_type;
 
         bool                    operator()(const Self& a, const Self& b) const       { return a.vertices() < b.vertices(); }
+};
+
+template<class V, class T>
+struct Simplex<V,T>::VertexDimensionComparison
+{
+        typedef                 Self                    first_argument_type;
+        typedef                 Self                    second_argument_type;
+        typedef                 bool                    result_type;
+
+        bool                    operator()(const Self& a, const Self& b) const       
+        { 
+            if (a.dimension() == b.dimension())
+                return a.vertices() < b.vertices();
+            else
+                return a.dimension() < b.dimension();
+        }
 };
 
 template<class V, class T>

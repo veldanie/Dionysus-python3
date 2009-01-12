@@ -12,6 +12,7 @@
     #define     Count(x)
     #define     CountNum(x,y)
     #define     CountBy(x,y)
+    #define     CountNumBy(x,y,z)
     #define     SetFrequency(x, freq)
     #define     SetTrigger(x, y)
 #else // COUNTERS
@@ -19,6 +20,7 @@
     #define     Count(x)                    do { x->count++; if ((x->count % x->frequency == 0)) x->trigger->print(); } while (0)
     #define     CountNum(x,y)               do { x->subcount[y]++; } while (0)
     #define     CountBy(x,y)                do { x->count += y; } while (0)
+    #define     CountNumBy(x,y,z)           do { x->subcount[y] += z; } while (0)
     #define     SetFrequency(x, freq)       do { x->frequency = freq; } while (0)
     #define     SetTrigger(x, y)            do { x->trigger = y; } while(0)
 

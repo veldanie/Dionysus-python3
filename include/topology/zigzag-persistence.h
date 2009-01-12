@@ -1,10 +1,19 @@
 #ifndef __ZIGZAG_PERSISTENCE_H__
 #define __ZIGZAG_PERSISTENCE_H__
 
-#include <list>
 #include "cycles.h"
 #include "utilities/types.h"
 #include <sstream>
+
+#if DEBUG_CONTAINERS
+    #include <debug/list>
+    using std::__debug::list;
+    #warning "Using debug/list in ZigzagPersistence"
+#else
+    #include <list>
+    using std::list;
+#endif
+
 
 /**
  * Class: ZigzagPersistence
@@ -20,11 +29,11 @@ class ZigzagPersistence
         struct BNode;
         struct SimplexNode;
 
-        typedef                         std::list<ZNode>                                ZList;
+        typedef                         list<ZNode>                                     ZList;
         typedef                         typename ZList::iterator                        ZIndex;
-        typedef                         std::list<BNode>                                BList;
+        typedef                         list<BNode>                                     BList;
         typedef                         typename BList::iterator                        BIndex;
-        typedef                         std::list<SimplexNode>                          SimplexList;
+        typedef                         list<SimplexNode>                               SimplexList;
         typedef                         typename SimplexList::iterator                  SimplexIndex;
 
         // TODO: should all chains be DequeChains? probably not
@@ -70,6 +79,9 @@ class ZigzagPersistence
             ZRow                        z_row;
             CRow                        c_row;
             ZIndex                      low;            // which ZColumn has this SimplexNode as low
+#if !NDEBUG
+            ZColumn                     boundary;       // NB: debug only
+#endif
         };
 
         // Constructor: ZigzagPersistence()
@@ -83,7 +95,8 @@ class ZigzagPersistence
 
         // Debug; non-const because Indices are iterators, and not const_iterators 
         void                            show_all();
-        bool                            check_consistency();
+        bool                            check_consistency(SimplexIndex s_skip, ZIndex z_skip, BIndex b_skip);
+        bool                            check_consistency()                             { return check_consistency(s_list.end(), z_list.end(), b_list.end()); }
 
     private:
         ZList                           z_list;

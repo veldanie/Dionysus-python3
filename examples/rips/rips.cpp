@@ -1,5 +1,6 @@
 #include <topology/rips.h>
 
+// Trivial example of size() points on a line with integer coordinates
 struct Distances
 {
     typedef         int             IndexType;
@@ -24,18 +25,19 @@ int main(int argc, char* argv[])
     Distances distances;
     
 #if 0
+    // Storing ExplicitDistances speeds up the computation (at the price of memory)
     typedef         RipsGenerator<ExplicitDistances<Distances> >    RipsGenerator;
     ExplicitDistances<Distances> explicit_distances(distances);
     RipsGenerator rips(explicit_distances);
 #else
-    typedef         RipsGeneratorMemory<Distances>                        RipsGenerator;
+    //typedef         RipsGeneratorMemory<Distances>                        RipsGenerator;
+    typedef         RipsGenerator<Distances>                        RipsGenerator;
     RipsGenerator   rips(distances);
 #endif
 
     RipsGenerator::SimplexVector complex;
     //rips.generate(complex, 3, distances.size());
     rips.generate(complex, 3, 50);
-    //rips.print();
     
     std::cout << "Size: " << complex.size() << std::endl;
 //    for (RipsGenerator::SimplexVector::const_iterator cur = complex.begin(); cur != complex.end(); ++cur)
