@@ -1,14 +1,17 @@
 #include <topology/rips.h>
-#include <topology/zigzag-persistence.h>
+#include <topology/image-zigzag-persistence.h>
 #include <utilities/types.h>
 #include <utilities/containers.h>
 
 #include <utilities/log.h>
+#include <utilities/memory.h>
 
 #include <map>
 #include <cmath>
 #include <fstream>
+#include <stack>
 
+#include <boost/tuple/tuple.hpp>
 #include <boost/program_options.hpp>
 
 
@@ -43,8 +46,9 @@ typedef     RipsBase<PairDistances, Smplx>                          RipsHelper;
 typedef     RipsHelper::Evaluator                                   SimplexEvaluator;
 
 typedef     std::pair<DistanceType, Dimension>                      BirthInfo;
-typedef     ZigzagPersistence<BirthInfo>                            Zigzag;
+typedef     ImageZigzagPersistence<BirthInfo>                       Zigzag;
 typedef     Zigzag::SimplexIndex                                    Index;
+typedef     Zigzag::Death                                           Death;
 typedef     std::map<Smplx, Index, 
                             Smplx::VertexDimensionComparison>       Complex;
 typedef     Zigzag::ZColumn                                         Boundary;
@@ -52,14 +56,35 @@ typedef     Zigzag::ZColumn                                         Boundary;
 
 void        make_boundary(const Smplx& s, Complex& c, const Zigzag& zz, Boundary& b)
 {
-    Dimension bdry_dim = s.dimension() - 1;
+    rDebug("  Boundary of <%s>", tostring(s).c_str());
     for (Smplx::BoundaryIterator cur = s.boundary_begin(); cur != s.boundary_end(); ++cur)
+    {
         b.append(c[*cur], zz.cmp);
-
-    rDebug("  Boundary:");
-    for (Boundary::const_iterator cur = b.begin(); cur != b.end(); ++cur)
-        rDebug("    %d", (*cur)->order);
+        rDebug("   %d (inL=%d)", c[*cur]->order, b.back()->subcomplex);
+    }
 }
+
+bool        face_leaving_subcomplex(Complex::reverse_iterator si, const SimplexEvaluator& size, DistanceType after, DistanceType before)
+{
+    const Smplx& s = si->first;
+    for (Smplx::VertexContainer::const_iterator v1 = s.vertices().begin(); v1 != s.vertices().end(); ++v1)
+        for (Smplx::VertexContainer::const_iterator v2 = boost::next(v1); v2 != s.vertices().end(); ++v2)
+        {
+            Smplx e; e.add(*v1); e.add(*v2);
+            if (size(e) > after && size(e) <= before)
+                return true;
+        }
+
+    return false;
+}
+
+void        show_image_betti(Zigzag& zz, Dimension skeleton)
+{
+    for (Zigzag::ZIndex cur = zz.image_begin(); cur != zz.image_end(); ++cur)
+        if (cur->low == zz.boundary_end() && cur->birth.second < skeleton)
+            std::cout << "Class in the image of dimension: " << cur->birth.second << std::endl;
+}
+
 
 std::ostream&   operator<<(std::ostream& out, const BirthInfo& bi)
 { return (out << bi.first); }
@@ -75,12 +100,12 @@ int main(int argc, char* argv[])
 	stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
 #endif
     
-    SetFrequency(cOperations, 500);
+    SetFrequency(cOperations, 25000);
     SetTrigger(cOperations, cComplexSize);
 
     unsigned        ambient_dimension;
     unsigned        skeleton_dimension;
-    float           multiplier;
+    float           from_multiplier, to_multiplier;
     std::string     infilename;
 
     po::options_description hidden("Hidden options");
@@ -92,7 +117,8 @@ int main(int argc, char* argv[])
         ("help,h",                                                                              "produce help message")
         ("ambient-dimsnion,a",  po::value<unsigned>(&ambient_dimension)->default_value(3),      "The ambient dimension of the point set")
         ("skeleton-dimsnion,s", po::value<unsigned>(&skeleton_dimension)->default_value(2),     "Dimension of the Rips complex we want to compute")
-        ("multiplier,m",        po::value<float>(&multiplier)->default_value(4),                "Multiplier for the epsilon (distance to next maxmin point) when computing the Rips complex");
+        ("from,f",              po::value<float>(&from_multiplier)->default_value(4),           "From multiplier for the epsilon (distance to next maxmin point) when computing the Rips complex")
+        ("to,t",                po::value<float>(&to_multiplier)->default_value(16),            "To multiplier for the epsilon (distance to next maxmin point) when computing the Rips complex");
 #if LOGGING
     std::vector<std::string>    log_channels;
     visible.add_options()
@@ -152,6 +178,7 @@ int main(int argc, char* argv[])
         EpsilonVector   dist(distances.size(), Infinity);
     
         vertices.push_back(distances.begin());
+        //epsilons.push_back(Infinity);
         while (vertices.size() < distances.size())
         {
             for (Vertex v = distances.begin(); v != distances.end(); ++v)
@@ -160,6 +187,7 @@ int main(int argc, char* argv[])
             vertices.push_back(max - dist.begin());
             epsilons.push_back(*max);
         }
+        epsilons.push_back(0);
     }
     
     rInfo("Point and epsilon ordering:");
@@ -173,6 +201,10 @@ int main(int argc, char* argv[])
     RipsHelper          aux(distances);
     SimplexEvaluator    size(distances);
     
+    // TODO: it probably makes sense to do things in reverse. 
+    // I.e., we should start from the smallest epsilon, and grow, rather than 
+    // starting from the largest epsilon and shrinking since the interesting 
+    // part of the computation is that with small epsilon.
     rInfo("Commencing computation");
     for (unsigned i = 0; i != vertices.size(); ++i)
     {
@@ -181,7 +213,10 @@ int main(int argc, char* argv[])
         // Add a point
         Smplx sv; sv.add(vertices[i]);
         rDebug("Added  %s", tostring(sv).c_str());
-        complex.insert(std::make_pair(sv, zz.add(Boundary(), std::make_pair(epsilons[i], 0)).first));
+        complex.insert(std::make_pair(sv, 
+                                      zz.add(Boundary(), 
+                                             true,         // vertex is always in the subcomplex
+                                             std::make_pair(epsilons[i], 0)).first));
         CountNum(cComplexSize, 0);
         Count(cComplexSize);
         Count(cOperations);
@@ -199,7 +234,7 @@ int main(int argc, char* argv[])
                      tostring(si->first).c_str(),
                      tostring(sv).c_str(),
                      aux.distance(si->first, sv));
-            if (aux.distance(si->first, sv) <= multiplier*epsilons[i-1])
+            if (aux.distance(si->first, sv) <= to_multiplier*epsilons[i-1])
             {
                 Boundary b;
                 Smplx s(si->first); s.join(sv);
@@ -208,51 +243,93 @@ int main(int argc, char* argv[])
                 rDebug("Adding %s", tostring(s).c_str());
                 make_boundary(s, complex, zz, b);
                 rDebug("Made boundary, %d", b.size());
-                Zigzag::IndexDeathPair idp = zz.add(b, std::make_pair(epsilons[i], sv.dimension()));
+                Index idx; Death d;
+                boost::tie(idx, d) = zz.add(b, 
+                                            (size(s) <= from_multiplier*epsilons[i-1]), 
+                                            std::make_pair(epsilons[i-1], s.dimension()));
                 if (!zz.check_consistency())
                 {
                     //zz.show_all();
                     rError("Zigzag representation must be consistent after adding a simplex");
                 }
-                complex.insert(std::make_pair(s, idp.first));
+                complex.insert(std::make_pair(s, idx));
                 CountNum(cComplexSize, s.dimension());
                 Count(cComplexSize);
                 Count(cOperations);
                 
                 // Death
-                if (idp.second)     std::cout << (idp.second)->second << " " << (idp.second)->first << " " << epsilons[i] << std::endl;
+                if (d && ((d->first - epsilons[i-1]) != 0) && (d->second < skeleton_dimension))     
+                    std::cout << d->second << " " << d->first << " " << epsilons[i-1] << std::endl;
             }
         }
         rDebug("Complex after addition:");
         for (Complex::const_iterator si = complex.begin(); si != complex.end(); ++si)
-            rDebug("    %s", tostring(si->first).c_str());
+           rDebug("    %s", tostring(si->first).c_str());
 
+        rInfo("Inserted point; complex size: %d", complex.size());
+        show_image_betti(zz, skeleton_dimension);
+        report_memory();
+
+        if (i == 0) continue;       // want to skip the removal from the image check (involving epsilons[i-1]), 
+                                    // and in any case, there is only one vertex at this point
         rDebug("Removing simplices");
         // Shrink epsilon
         {
+            std::stack<Complex::reverse_iterator>       leaving_subcomplex;
             Complex::reverse_iterator si = complex.rbegin();
             
             while(si != complex.rend())
             {
                 rDebug("  Size of %s is %f", tostring(si->first).c_str(), size(si->first));
-                if (size(si->first) > multiplier*epsilons[i])
+                if (size(si->first) > to_multiplier*epsilons[i])
                 {
                     //zz.show_all();
-                    rDebug("  Removing: %s", tostring(si->first).c_str());
-                    Zigzag::Death d = zz.remove(si->second, 
-                                                std::make_pair(epsilons[i], si->first.dimension() - 1));
+                    rDebug("  Removing from complex:   %s", tostring(si->first).c_str());
+                    Death d = zz.remove(si->second, 
+                                        std::make_pair(epsilons[i], si->first.dimension() - 1));
                     AssertMsg(zz.check_consistency(), "Zigzag representation must be consistent after removing a simplex");
-                    if (d)              std::cout << d->second << " " << d->first << " " << epsilons[i] << std::endl;
+                    if (d && ((d->first - epsilons[i]) != 0) && (d->second < skeleton_dimension))
+                        std::cout << d->second << " " << d->first << " " << epsilons[i] << std::endl;
                     CountNumBy(cComplexSize, si->first.dimension(), -1);
                     complex.erase(boost::prior(si.base()));
                     CountBy(cComplexSize, -1);
                     Count(cOperations);
+                } else if (face_leaving_subcomplex(si, size, from_multiplier*epsilons[i], from_multiplier*epsilons[i-1]))
+                {
+                    // Remove from subcomplex (i.e., remove and reinsert as outside of the subcomplex)
+                    rDebug("  Removing from subcomplex: %s", tostring(si->first).c_str());
+                    Death d = zz.remove(si->second, 
+                                        std::make_pair(epsilons[i], si->first.dimension() - 1));
+                    Count(cOperations);
+                    AssertMsg(zz.check_consistency(), "Zigzag representation must be consistent after removing a simplex");
+                    if (d && ((d->first - epsilons[i]) != 0) && (d->second < skeleton_dimension))
+                        std::cout << d->second << " " << d->first << " " << epsilons[i] << std::endl;
+                    leaving_subcomplex.push(si++);
                 } else
                     ++si;
+            }
+            while(!leaving_subcomplex.empty())
+            {
+                si = leaving_subcomplex.top();          // copying an iterator onto stack is probably Ok
+                Boundary b;
+                make_boundary(si->first, complex, zz, b);
+                Index idx; Death d;
+                boost::tie(idx, d) = zz.add(b,
+                                            false,      // now it is outside of the subcomplex
+                                            std::make_pair(epsilons[i], si->first.dimension()));
+                Count(cOperations);
+                si->second = idx;
+                if (d && ((d->first - epsilons[i]) != 0) && (d->second < skeleton_dimension))
+                    std::cout << d->second << " " << d->first << " " << epsilons[i] << std::endl;
+                leaving_subcomplex.pop();
             }
         }
         rDebug("Complex after removal:");
         for (Complex::const_iterator si = complex.begin(); si != complex.end(); ++si)
             rDebug("    %s", tostring(si->first).c_str());
+        
+        rInfo("Shrunk epsilon; complex size: %d", complex.size());
+        show_image_betti(zz, skeleton_dimension);
+        report_memory();
     }
 }

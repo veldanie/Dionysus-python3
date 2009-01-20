@@ -8,6 +8,7 @@
 #include <cmath>
 
 #include <boost/compressed_pair.hpp>
+#include <boost/optional.hpp>
 #include <boost/serialization/access.hpp>
 
 /**
@@ -58,10 +59,13 @@ std::ostream&                   operator<<(std::ostream& out, const PDPoint<Data
 { return (point.operator<<(out)); }
 
 template<class Point, class Iterator, class Evaluator, class Visitor>
-Point   make_point(Iterator i, const Evaluator& evaluator, const Visitor& visitor);
+boost::optional<Point>
+make_point(Iterator i, const Evaluator& evaluator, const Visitor& visitor);
 
 template<class Point, class Iterator, class Evaluator>
-Point   make_point(Iterator i, const Evaluator& evaluator)                  { return make_point<Point>(i, evaluator, Point::Visitor()); }
+boost::optional<Point>
+make_point(Iterator i, const Evaluator& evaluator)
+{ return make_point<Point>(i, evaluator, Point::Visitor()); }
 
 
 /**

@@ -48,11 +48,14 @@ init(Iterator bg, Iterator end, const Evaluator& evaluator, const Visitor& visit
 {
     for (Iterator cur = bg; cur != end; ++cur)
         if (cur->sign())
-            push_back(make_point(cur, evaluator, visitor));
+        {
+            boost::optional<Point> p = make_point(cur, evaluator, visitor);
+            if (p)  push_back(*p);
+        }
 }
 
 template<class Point, class Iterator, class Evaluator, class Visitor>
-Point   
+boost::optional<Point>
 make_point(Iterator i, const Evaluator& evaluator, const Visitor& visitor)
 {
     RealType x = evaluator(i);
@@ -62,6 +65,8 @@ make_point(Iterator i, const Evaluator& evaluator, const Visitor& visitor)
     
     Point p(x,y);
     visitor.point(i, p);
+    
+    if (x == y) return boost::optional<Point>();
 
     return p;
 }
@@ -90,7 +95,11 @@ void    init_diagrams(Diagrams& diagrams,
 
     for (Iterator cur = bg; cur != end; ++cur)
         if (cur->sign())
-            diagrams[dimension(cur)].push_back(make_point<typename PDiagram::Point>(cur, evaluator, visitor));
+        {
+            boost::optional<typename PDiagram::Point> p = make_point<typename PDiagram::Point>(cur, evaluator, visitor);
+            if (p)
+                diagrams[dimension(cur)].push_back(*p);
+        }
 }
 
 template<class D>

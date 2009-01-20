@@ -19,11 +19,12 @@
  * Class: ZigzagPersistence
  * TODO: this should probably be parametrized by Chain or Field
  */
-template<class BirthID_ = Empty<> >
+template<class BirthID_ = Empty<>, class SimplexData_ = Empty<> >
 class ZigzagPersistence
 {
     public:
         typedef                         BirthID_                                BirthID;
+        typedef                         SimplexData_                            SimplexData;
 
         struct ZNode;
         struct BNode;
@@ -49,8 +50,8 @@ class ZigzagPersistence
 
         struct ZNode
         {
-                                        ZNode(int o, const BirthID& b, BIndex l): 
-                                            order(o), birth(b), low(l)                  {}
+                                        ZNode(int o, BIndex l): 
+                                            order(o), low(l)                            {}
 
             int                         order;
             ZColumn                     z_column;
@@ -70,7 +71,7 @@ class ZigzagPersistence
             CColumn                     c_column;
         };
 
-        struct SimplexNode
+        struct SimplexNode: public SimplexData
         {
                                         SimplexNode(unsigned o, ZIndex l): 
                                             order(o), low(l)                            {}
@@ -79,26 +80,60 @@ class ZigzagPersistence
             ZRow                        z_row;
             CRow                        c_row;
             ZIndex                      low;            // which ZColumn has this SimplexNode as low
-#if !NDEBUG
+#if ZIGZAG_CONSISTENCY
             ZColumn                     boundary;       // NB: debug only
 #endif
         };
 
         // Constructor: ZigzagPersistence()
                                         ZigzagPersistence()                             {}
+        
+        // Function: add(bdry, birth)
+        IndexDeathPair                  add(ZColumn bdry, const BirthID& birth = BirthID())         { ZigzagVisitor zzv; return add<ZigzagVisitor>(bdry, birth, zzv); }
+        
+        // Function: remove(s, birth)
+        Death                           remove(SimplexIndex s, const BirthID& birth = BirthID())    { ZigzagVisitor zzv; return remove<ZigzagVisitor>(s, birth, zzv); }
+
  
+    protected:                                        
         // Function: add(s)
-        IndexDeathPair                  add(ZColumn bdry, const BirthID& birth = BirthID());
+        template<class Visitor>
+        IndexDeathPair                  add(ZColumn bdry, const BirthID& birth, Visitor& visitor);
 
         // Function: remove(s)
-        Death                           remove(SimplexIndex s, const BirthID& birth = BirthID());
+        template<class Visitor>
+        Death                           remove(SimplexIndex s, const BirthID& birth, Visitor& visitor);
 
+        // Struct: ZigzagVisitor
+        // Various methods of an instance of this class are called at different stages of addition and removal algorithm.
+        // NB: currently the places where it's called are catered for image zigzags, in the future this could be expanded 
+        //     to provide simple support for other algorithms
+        // TODO: not obvious that the methods should be const (and therefore the reference passed to add() and remove())
+        //       revisit when working on ImageZigzag
+        struct ZigzagVisitor
+        {
+            SimplexIndex                new_simplex(ZigzagPersistence& zz);
+
+            // Function: new_z_in_add(zz, z, u)
+            // Called when a new cycle is born after adding a simplex. The method is expected to add an element to z_list, and return its ZIndex.
+            ZIndex                      new_z_in_add(ZigzagPersistence& zz, const ZColumn& z, const BRow& u);
+            
+            BIndex                      select_j_in_remove(ZigzagPersistence& zz, const CRow& c_row);
+
+            ZIndex                      new_z_in_remove(ZigzagPersistence& zz);
+
+            void                        erasing_z(ZigzagPersistence& zz, ZIndex j)      {}
+
+            Death                       death(ZigzagPersistence& zz, ZIndex dying_z);
+        };
+
+    public:
         // Debug; non-const because Indices are iterators, and not const_iterators 
         void                            show_all();
         bool                            check_consistency(SimplexIndex s_skip, ZIndex z_skip, BIndex b_skip);
         bool                            check_consistency()                             { return check_consistency(s_list.end(), z_list.end(), b_list.end()); }
 
-    private:
+    protected:
         ZList                           z_list;
         BList                           b_list;
         SimplexList                     s_list;
