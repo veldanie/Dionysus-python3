@@ -1,8 +1,11 @@
 set							(targets						
 							 test-set-iterators
 							 test-consistencylist
-							 test-orderlist
-							 test-counters)
+							 test-orderlist)
+
+if                          (counters)
+    set                     (targets    ${targets} test-counters)
+endif                       (counters)
 
 foreach 					(t ${targets})
 	add_executable			(${t} ${t}.cpp)

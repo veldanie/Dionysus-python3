@@ -1,15 +1,24 @@
-set                         (targets                        
-                             alphashapes3d
-                             #alphashapes2d
-                             #alpharadius
-                             compare-diagrams)
-                             
-set                         (libraries                          ${libraries} 
+set                             (libraries                      ${libraries} 
                                                                 ${Boost_SERIALIZATION_LIBRARY}
                                                                 ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
-add_definitions             (${cgal_cxxflags})
-foreach                     (t ${targets})
-    add_executable          (${t} ${t}.cpp)
-    target_link_libraries   (${t} ${libraries} ${cgal_libraries})
-endforeach                  (t ${targets})
+# Build compare-diagrams
+add_executable                  (compare-diagrams               compare-diagrams.cpp)
+target_link_libraries           (compare-diagrams               ${libraries})
+
+# Add targets that depend on CGAL
+if                              (CGAL_FOUND)
+    set                         (targets                        alphashapes3d
+                                                                #alphashapes2d
+                                                                #alpharadius
+                                )
+    add_definitions             (${CGAL_CXX_FLAGS_INIT})
+    include_directories         (${CGAL_INCLUDE_DIRS})
+
+    foreach                     (t ${targets})
+        add_executable          (${t} ${t}.cpp)
+        target_link_libraries   (${t} ${libraries} ${CGAL_LIBRARY})
+    endforeach                  (t ${targets})
+else                            (CGAL_FOUND)
+    message(STATUS "CGAL not found, therefore alphashapes will not be built.")
+endif                           (CGAL_FOUND)

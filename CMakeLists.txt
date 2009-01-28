@@ -16,35 +16,9 @@ if                          (use_dsrpdb)
     find_path               (dsrpdb_INCLUDE_DIR         dsrpdb/Protein.h)
 endif                       (use_dsrpdb)
 
-#CGAL
-execute_process             (COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_SOURCE_DIR}/FindCGAL.Makefile libpaths
-                             OUTPUT_VARIABLE cgal_libpaths)
-execute_process             (COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_SOURCE_DIR}/FindCGAL.Makefile ldflags
-                             OUTPUT_VARIABLE cgal_ldflags)
-execute_process             (COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_SOURCE_DIR}/FindCGAL.Makefile cxxflags
-                             OUTPUT_VARIABLE cgal_cxxflags)
-execute_process             (COMMAND ${CMAKE_MAKE_PROGRAM} -f ${CMAKE_CURRENT_SOURCE_DIR}/FindCGAL.Makefile libpath
-                             OUTPUT_VARIABLE cgal_libpath)
-#string                     (REPLACE "\n" "" cgal_libpaths  ${cgal_libpaths})
-#string                     (REPLACE "\n" "" cgal_ldflags   ${cgal_ldflags})
-string                      (REPLACE "\n" "" cgal_cxxflags  ${cgal_cxxflags})
-string                      (REPLACE "\n" "" cgal_libpath   ${cgal_libpath})
-find_library                (cgal_LIBRARY               NAMES CGAL
-                                                        PATHS ${cgal_libpath})
-find_library                (core_LIBRARY               NAMES CGALcore++
-                                                        PATHS ${cgal_libpath})
-find_library                (mpfr_LIBRARY               NAMES mpfr)
-find_library                (gmp_LIBRARY                NAMES gmp)
-find_library                (gmpxx_LIBRARY              NAMES gmpxx)
-find_library                (m_LIBRARY                  NAMES m)
-
-set                         (cgal_libraries             ${cgal_LIBRARY} 
-                                                        ${core_LIBRARY}
-                                                        ${mpfr_LIBRARY} 
-                                                        ${gmp_LIBRARY} 
-                                                        ${gmpxx_LIBRARY} 
-                                                        ${m_LIBRARY})
-add_definitions             (-DCGAL_NO_ASSERTIONS -DCGAL_NO_PRECONDITIONS)
+# CGAL
+find_package                (CGAL)
+#add_definitions             (-DCGAL_NO_ASSERTIONS -DCGAL_NO_PRECONDITIONS)
 
 # SYNAPS
 if                          (use_synaps)

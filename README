@@ -3,7 +3,7 @@
 
 ## Dependencies
 
-  * [CGAL]-3.3 ---  for alpha-shapes and kinetic data structures
+  * [CGAL]-3.4 ---  for alpha-shapes and kinetic data structures
   * [DSR-PDB] ---   for reading in PDB files (if use_dsrpdb is turned on in cmake)
   * [CMake] ---     for controlling the build process
   * [boost] ---     great set of C++ libraries
