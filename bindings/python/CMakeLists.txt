@@ -1,10 +1,19 @@
+find_package                (PythonLibs)
+link_libraries              (${PYTHON_LIBRARIES})
+include_directories         (${PYTHON_INCLUDE_PATH})
 link_libraries              (${Boost_PYTHON_LIBRARY})
-include_directories         ("/usr/include/python2.6")
-link_directories            ("/usr/lib/python2.6")
+
+# currently can't build bindings with counters support, eventually FIXME
+remove_definitions          (-DCOUNTERS)
 add_library                 (_dionysus SHARED 
                                                 dionysus.cpp 
                                                 filtration.cpp
                                                 chain.cpp
                                                 static-persistence.cpp
-                                                simplex.cpp)
-target_link_libraries       (_dionysus ${libraries})                                            
+                                                simplex.cpp
+                                                zigzag-persistence.cpp
+
+                                                test-optional.cpp
+                            )
+
+target_link_libraries       (_dionysus ${libraries})

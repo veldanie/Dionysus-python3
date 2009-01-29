@@ -5,6 +5,7 @@
 #include <boost/python.hpp>
 #include <boost/python/stl_iterator.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/functional/hash.hpp>
 using namespace boost::python;
 
 /* Various wrappers for exposing Simplex to Python */
@@ -37,6 +38,20 @@ boost::shared_ptr<Simplex<V,T> >    init_from_iterator_data(object iter, T data)
     boost::shared_ptr<Simplex<V,T> > p(new Simplex<V,T>(stl_input_iterator<V>(iter), stl_input_iterator<V>(), data));
     return p;
 }
+
+// Simplex hash
+template<class V, class T>
+size_t                              hash_simplex(const Simplex<V,T>& s)
+{
+    return boost::hash_range(s.vertices().begin(), s.vertices().end());
+}
+
+template<class V, class T>
+size_t                              eq_simplex(const Simplex<V,T>& a, const Simplex<V,T>& b)
+{
+    return vertex_comparison(a,b) == 0;
+}
+
 
 /* Comparisons */
 // VertexComparison
@@ -77,6 +92,9 @@ void export_simplex()
         
         .add_property("vertices",   range(&vertices_begin<Vertex,Data>, &vertices_end<Vertex,Data>))
         .def(repr(self))
+
+        .def("__hash__",            &hash_simplex<Vertex, Data>)
+        .def("__eq__",              &eq_simplex<Vertex, Data>)
     ;
 
     def("vertex_cmp",               &vertex_comparison<Vertex, Data>);

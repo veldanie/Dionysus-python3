@@ -7,6 +7,7 @@ void export_simplex();
 void export_filtration();
 void export_static_persistence();
 void export_chain();
+void export_zigzag_persistence();
 
 #ifdef LOGGING
 void            enable_log(std::string s)
@@ -21,6 +22,8 @@ BOOST_PYTHON_MODULE(_dionysus)
     export_filtration();
     export_static_persistence();
     export_chain();
+
+    export_zigzag_persistence();
 
 #ifdef LOGGING
     bp::def("enable_log",           &enable_log);
