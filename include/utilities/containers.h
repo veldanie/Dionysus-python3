@@ -73,8 +73,8 @@ struct CountingBackInserter: public std::back_insert_iterator<C>,
                              public SizeStorage<C>
 {
     typedef                     CountingBackInserter                            Self;
-    typedef                     std::back_insert_iterator<C>  ParentIterator;
-    typedef                     SizeStorage<C>                ParentSize;
+    typedef                     std::back_insert_iterator<C>                    ParentIterator;
+    typedef                     SizeStorage<C>                                  ParentSize;
 
                                 CountingBackInserter(C& c):
                                     ParentIterator(c)                           {}
@@ -82,6 +82,56 @@ struct CountingBackInserter: public std::back_insert_iterator<C>,
     Self&                       operator++()                                    { ParentSize::operator++(); ParentIterator::operator++(); return *this; }
     Self                        operator++(int i)                               { Self tmp = *this; ParentSize::operator++(i); ParentIterator::operator++(i); return tmp; }
 };
+
+/**
+ * Class: PushBackFunctor<Container>
+ *
+ * Performs the same task as std::back_insert_iterator<Container>, but as a functor.
+ */
+template<class Container_>
+class PushBackFunctor
+{
+    public:
+        typedef                 Container_                                      Container;
+        typedef                 typename Container::value_type                  value_type;
+
+                                PushBackFunctor(Container& container):
+                                    container_(container)                       {}
+
+        void                    operator()(const value_type& v) const           { container_.push_back(v); }
+
+    private:
+        Container&              container_;
+};
+
+template<class Container>
+PushBackFunctor<Container>
+make_push_back_functor(Container& container)                                    { return PushBackFunctor<Container>(container); }
+
+/**
+ * Class: InsertFunctor<Container>
+ *
+ * Performs insertions of its arguments into the given container.
+ */
+template<class Container_>
+class InsertFunctor
+{
+    public:
+        typedef                 Container_                                      Container;
+        typedef                 typename Container::value_type                  value_type;
+
+                                InsertFunctor(Container& container):
+                                    container_(container)                       {}
+
+        void                    operator()(const value_type& v) const           { container_.insert(v); }
+
+    private:
+        Container&              container_;
+};
+
+template<class Container>
+InsertFunctor<Container>
+make_insert_functor(Container& container)                                       { return InsertFunctor<Container>(container); }
 
 /* Specializations */
 

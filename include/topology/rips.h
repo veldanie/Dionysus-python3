@@ -4,11 +4,14 @@
 #include <vector>
 #include <string>
 #include "simplex.h"
+#include <boost/iterator/counting_iterator.hpp>
+
 
 /**
- * RipsBase class
+ * Rips class
  *
- * Base class for the generator of Rips complexes.
+ * Class providing basic operations to work with Rips complexes. It implements Bron-Kerbosch algorithm, 
+ * and provides simple wrappers for various functions.
  *
  * Distances_ is expected to define types IndexType and DistanceType as well as 
  *               provide operator()(...) which given two IndexTypes should return 
@@ -16,7 +19,7 @@
  *               for iterating over IndexTypes as well as a method size().
  */
 template<class Distances_, class Simplex_ = Simplex<typename Distances_::IndexType> >
-class RipsBase
+class Rips
 {
     public:
         typedef             Distances_                                      Distances; 
@@ -24,72 +27,86 @@ class RipsBase
         typedef             typename Distances::DistanceType                DistanceType;
 
         typedef             Simplex_                                        Simplex;
-        typedef             std::vector<Simplex>                            SimplexVector;
+        typedef             typename Simplex::Vertex                        Vertex;             // should be the same as IndexType
+        typedef             typename Simplex::VertexContainer               VertexContainer;
 
         class               Evaluator;
         class               Comparison;
-        struct              ComparePair;
+        class               ComparePair;       
 
     public:
-                            RipsBase(const Distances& distances): 
+                            Rips(const Distances& distances):
                                 distances_(distances)                       {}
 
+        // Calls functor f on each simplex in the k-skeleton of the Rips complex
+        template<class Functor, class Iterator>
+        void                generate(Dimension k, DistanceType max, const Functor& f, 
+                                     Iterator candidates_begin, Iterator candidates_end) const;
+        
+        // Calls functor f on all the simplices of the Rips complex that contain the given vertex v
+        template<class Functor, class Iterator>
+        void                vertex_cofaces(IndexType v, Dimension k, DistanceType max, const Functor& f, 
+                                           Iterator candidates_begin, Iterator candidates_end) const;
+
+        // Calls functor f on all the simplices of the Rips complex that contain the given edge [u,v]
+        template<class Functor, class Iterator>
+        void                edge_cofaces(IndexType u, IndexType v, Dimension k, DistanceType max, const Functor& f, 
+                                         Iterator candidates_begin, Iterator candidates_end) const;
+        
+
+        // No Iterator argument means IndexType and distances().begin() - distances().end()
+        template<class Functor>
+        void                generate(Dimension k, DistanceType max, const Functor& f) const
+        { generate(k, max, f, boost::make_counting_iterator(distances().begin()), boost::make_counting_iterator(distances().end())); }
+        
+        template<class Functor>
+        void                vertex_cofaces(IndexType v, Dimension k, DistanceType max, const Functor& f) const
+        { vertex_cofaces(v, k, max, f, boost::make_counting_iterator(distances().begin()), boost::make_counting_iterator(distances().end())); }
+
+        template<class Functor>
+        void                edge_cofaces(IndexType u, IndexType v, Dimension k, DistanceType max, const Functor& f) const
+        { edge_cofaces(u, v, k, max, f, boost::make_counting_iterator(distances().begin()), boost::make_counting_iterator(distances().end())); }
+
+        
         const Distances&    distances() const                               { return distances_; }
         DistanceType        max_distance() const;
         
         DistanceType        distance(const Simplex& s1, const Simplex& s2) const;
 
+
+    private:
+        class               WithinDistance;
+
+        template<class Functor, class NeighborTest>
+        void                bron_kerbosch(VertexContainer&                          current, 
+                                          const VertexContainer&                    candidates, 
+                                          typename VertexContainer::const_iterator  excluded,
+                                          Dimension                                 max_dim,
+                                          const NeighborTest&                       neighbor,
+                                          const Functor&                            functor) const;
+        
     private:
         const Distances&    distances_;
 };
         
-template<class Distances_, class Simplex_ = Simplex<typename Distances_::IndexType> >
-class RipsGenerator: public RipsBase<Distances_, Simplex_>
-{
-    public:
-        typedef             RipsBase<Distances_, Simplex_>                  Parent;
-        typedef             typename Parent::Distances                      Distances;
-        typedef             typename Parent::Simplex                        Simplex;
-        typedef             typename Parent::SimplexVector                  SimplexVector;
-        typedef             typename Parent::DistanceType                   DistanceType;
-        typedef             typename Parent::IndexType                      IndexType;
-        typedef             typename Parent::ComparePair                    ComparePair;
-
-                            RipsGenerator(const Distances& distances):
-                                Parent(distances)                           {}
-
-        using               Parent::distances;
-
-        /// generate k-skeleton of the Rips complex
-        void                generate(SimplexVector& v, Dimension k, DistanceType max) const;
-};
-
-// Much more memory efficient, but also much slower
-template<class Distances_, class Simplex_ = Simplex<typename Distances_::IndexType> >
-class RipsGeneratorMemory: public RipsBase<Distances_, Simplex_>
-{
-    public:
-        typedef             RipsBase<Distances_, Simplex_>                  Parent;
-        typedef             typename Parent::Distances                      Distances;
-        typedef             typename Parent::Simplex                        Simplex;
-        typedef             typename Parent::SimplexVector                  SimplexVector;
-        typedef             typename Parent::DistanceType                   DistanceType;
-        typedef             typename Parent::IndexType                      IndexType;
-        typedef             typename Parent::ComparePair                    ComparePair;
-
-                            RipsGeneratorMemory(const Distances& distances):
-                                Parent(distances)                           {}
-
-        using               Parent::distances;
-        using               Parent::distance;
-
-        /// generate k-skeleton of the Rips complex
-        void                generate(SimplexVector& v, Dimension k, DistanceType max) const;
-};
-
 
 template<class Distances_, class Simplex_>
-class RipsBase<Distances_, Simplex_>::Evaluator
+class Rips<Distances_, Simplex_>::WithinDistance: public std::binary_function<Vertex, Vertex, bool>
+{
+    public:
+                            WithinDistance(const Distances_&    distances, 
+                                           DistanceType         max):
+                                distances_(distances), max_(max)                        {}
+
+        bool                operator()(Vertex u, Vertex v) const                        { return distances_(u, v) <= max_; }
+
+    private:
+        const Distances&    distances_;  
+        DistanceType        max_;
+};
+
+template<class Distances_, class Simplex_>
+class Rips<Distances_, Simplex_>::Evaluator: public std::unary_function<const Simplex&, DistanceType>
 {
     public:
         typedef             Simplex_                                        Simplex;
@@ -104,7 +121,7 @@ class RipsBase<Distances_, Simplex_>::Evaluator
 };
 
 template<class Distances_, class Simplex_>
-class RipsBase<Distances_, Simplex_>::Comparison
+class Rips<Distances_, Simplex_>::Comparison: public std::binary_function<const Simplex&, const Simplex&, bool>
 {
     public:
         typedef             Simplex_                                        Simplex;
@@ -112,11 +129,36 @@ class RipsBase<Distances_, Simplex_>::Comparison
                             Comparison(const Distances& distances):
                                 eval_(distances)                            {}
 
-        bool                operator()(const Simplex& s1, const Simplex& s2) const    { return eval_(s1) < eval_(s2); }
+        bool                operator()(const Simplex& s1, const Simplex& s2) const    
+        { 
+            DistanceType e1 = eval_(s1), 
+                         e2 = eval_(s2);
+            if (e1 == e2)
+                return s1.dimension() < s2.dimension();
+
+            return e1 < e2;
+        }
 
     private:
         Evaluator           eval_;
 };
+
+template<class Distances_, class Simplex_>
+struct Rips<Distances_, Simplex_>::ComparePair: 
+    public std::binary_function<const std::pair<IndexType, IndexType>&,
+                                const std::pair<IndexType, IndexType>&,
+                                bool>
+{
+                            ComparePair(const Distances& distances): 
+                                distances_(distances)                       {}
+
+        bool                operator()(const std::pair<IndexType, IndexType>& a,
+                                       const std::pair<IndexType, IndexType>& b)            {  return   distances_(a.first, a.second) <
+                                                                                                        distances_(b.first, b.second);  }
+
+        const Distances&    distances_;
+};
+
 
 /**
  * Class: ExplicitDistances 
@@ -159,7 +201,7 @@ class PairwiseDistances
         typedef             Container_                                      Container;
         typedef             Distance_                                       Distance;
         typedef             Index_                                          IndexType;
-        typedef             typename Distance::value_type                   DistanceType;
+        typedef             typename Distance::result_type                  DistanceType;
 
 
                             PairwiseDistances(const Container& container, 

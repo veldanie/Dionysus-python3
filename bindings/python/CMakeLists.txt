@@ -12,8 +12,6 @@ add_library                 (_dionysus SHARED
                                                 static-persistence.cpp
                                                 simplex.cpp
                                                 zigzag-persistence.cpp
-
-                                                test-optional.cpp
                             )
 
 target_link_libraries       (_dionysus ${libraries})

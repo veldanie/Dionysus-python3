@@ -22,14 +22,13 @@ static Counter*  cOperations =                      GetCounter("rips/operations"
 
 typedef     std::vector<double>                                     Point;
 typedef     std::vector<Point>                                      PointContainer;
-struct L2Distance
+struct L2Distance:
+    public std::binary_function<const Point&, const Point&, double>
 {
-    typedef     double                                              value_type;
-
-    value_type  operator()(const Point& p1, const Point& p2) const
+    result_type     operator()(const Point& p1, const Point& p2) const
     {
         AssertMsg(p1.size() == p2.size(), "Points must be in the same dimension (in L2Distance");
-        value_type sum = 0;
+        result_type sum = 0;
         for (size_t i = 0; i < p1.size(); ++i)
             sum += (p1[i] - p2[i])*(p1[i] - p2[i]);
 
@@ -42,10 +41,16 @@ typedef     PairDistances::DistanceType                             DistanceType
 typedef     PairDistances::IndexType                                Vertex;
 typedef     Simplex<Vertex>                                         Smplx;
 
-typedef     RipsBase<PairDistances, Smplx>                          RipsHelper;
-typedef     RipsHelper::Evaluator                                   SimplexEvaluator;
+typedef     Rips<PairDistances, Smplx>                              RipsGenerator;
+typedef     RipsGenerator::Evaluator                                SimplexEvaluator;
 
-typedef     std::pair<DistanceType, Dimension>                      BirthInfo;
+struct      BirthInfo
+{
+                    BirthInfo(DistanceType dist = DistanceType(), Dimension dim = Dimension()):
+                        distance(dist), dimension(dim)              {}
+    DistanceType    distance;
+    Dimension       dimension;
+};
 typedef     ImageZigzagPersistence<BirthInfo>                       Zigzag;
 typedef     Zigzag::SimplexIndex                                    Index;
 typedef     Zigzag::Death                                           Death;
@@ -81,13 +86,13 @@ bool        face_leaving_subcomplex(Complex::reverse_iterator si, const SimplexE
 void        show_image_betti(Zigzag& zz, Dimension skeleton)
 {
     for (Zigzag::ZIndex cur = zz.image_begin(); cur != zz.image_end(); ++cur)
-        if (cur->low == zz.boundary_end() && cur->birth.second < skeleton)
-            std::cout << "Class in the image of dimension: " << cur->birth.second << std::endl;
+        if (cur->low == zz.boundary_end() && cur->birth.dimension< skeleton)
+            rInfo("Class in the image of dimension: %d",  cur->birth.dimension);
 }
 
 
 std::ostream&   operator<<(std::ostream& out, const BirthInfo& bi)
-{ return (out << bi.first); }
+{ return (out << bi.distance); }
 
 namespace po = boost::program_options;
 
@@ -95,9 +100,9 @@ namespace po = boost::program_options;
 int main(int argc, char* argv[])
 {
 #ifdef LOGGING
-	rlog::RLogInit(argc, argv);
+    rlog::RLogInit(argc, argv);
 
-	stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
+    stdoutLog.subscribeTo( RLOG_CHANNEL("error") );
 #endif
     
     SetFrequency(cOperations, 25000);
@@ -106,11 +111,12 @@ int main(int argc, char* argv[])
     unsigned        ambient_dimension;
     unsigned        skeleton_dimension;
     float           from_multiplier, to_multiplier;
-    std::string     infilename;
+    std::string     infilename, outfilename;
 
     po::options_description hidden("Hidden options");
     hidden.add_options()
-        ("input-file",          po::value<std::string>(&infilename),        "Point set whose Rips zigzag we want to compute");
+        ("input-file",          po::value<std::string>(&infilename),        "Point set whose Rips zigzag we want to compute")
+        ("output-file",         po::value<std::string>(&outfilename),       "Location to save persistence pairs");
     
     po::options_description visible("Allowed options", 100);
     visible.add_options()
@@ -127,6 +133,7 @@ int main(int argc, char* argv[])
 
     po::positional_options_description pos;
     pos.add("input-file", 1);
+    pos.add("output-file", 2);
     
     po::options_description all; all.add(visible).add(hidden);
 
@@ -138,14 +145,14 @@ int main(int argc, char* argv[])
 #if LOGGING
     for (std::vector<std::string>::const_iterator cur = log_channels.begin(); cur != log_channels.end(); ++cur)
         stdoutLog.subscribeTo( RLOG_CHANNEL(cur->c_str()) );
-	/* Interesting channels
+    /* Interesting channels
      * "info", "debug", "topology/persistence"
      */
 #endif
 
     if (vm.count("help") || !vm.count("input-file"))
     { 
-        std::cout << "Usage: " << argv[0] << " [options] input-file" << std::endl;
+        std::cout << "Usage: " << argv[0] << " [options] input-file output-file" << std::endl;
         std::cout << visible << std::endl; 
         return 1; 
     }
@@ -164,6 +171,9 @@ int main(int argc, char* argv[])
         }
     }
     
+    // Create output file
+    std::ofstream out(outfilename.c_str());
+
     // Create pairwise distances
     PairDistances distances(points);
     
@@ -198,7 +208,7 @@ int main(int argc, char* argv[])
     // Construct zigzag
     Complex             complex;
     Zigzag              zz;
-    RipsHelper          aux(distances);
+    RipsGenerator       aux(distances);
     SimplexEvaluator    size(distances);
     
     // TODO: it probably makes sense to do things in reverse. 
@@ -216,7 +226,7 @@ int main(int argc, char* argv[])
         complex.insert(std::make_pair(sv, 
                                       zz.add(Boundary(), 
                                              true,         // vertex is always in the subcomplex
-                                             std::make_pair(epsilons[i], 0)).first));
+                                             BirthInfo(epsilons[i], 0)).first));
         CountNum(cComplexSize, 0);
         Count(cComplexSize);
         Count(cOperations);
@@ -246,7 +256,7 @@ int main(int argc, char* argv[])
                 Index idx; Death d;
                 boost::tie(idx, d) = zz.add(b, 
                                             (size(s) <= from_multiplier*epsilons[i-1]), 
-                                            std::make_pair(epsilons[i-1], s.dimension()));
+                                            BirthInfo(epsilons[i-1], s.dimension()));
                 if (!zz.check_consistency())
                 {
                     //zz.show_all();
@@ -258,8 +268,8 @@ int main(int argc, char* argv[])
                 Count(cOperations);
                 
                 // Death
-                if (d && ((d->first - epsilons[i-1]) != 0) && (d->second < skeleton_dimension))     
-                    std::cout << d->second << " " << d->first << " " << epsilons[i-1] << std::endl;
+                if (d && ((d->distance - epsilons[i-1]) != 0) && (d->dimension < skeleton_dimension))     
+                    out << d->dimension << " " << d->distance << " " << epsilons[i-1] << std::endl;
             }
         }
         rDebug("Complex after addition:");
@@ -286,10 +296,10 @@ int main(int argc, char* argv[])
                     //zz.show_all();
                     rDebug("  Removing from complex:   %s", tostring(si->first).c_str());
                     Death d = zz.remove(si->second, 
-                                        std::make_pair(epsilons[i], si->first.dimension() - 1));
+                                        BirthInfo(epsilons[i], si->first.dimension() - 1));
                     AssertMsg(zz.check_consistency(), "Zigzag representation must be consistent after removing a simplex");
-                    if (d && ((d->first - epsilons[i]) != 0) && (d->second < skeleton_dimension))
-                        std::cout << d->second << " " << d->first << " " << epsilons[i] << std::endl;
+                    if (d && ((d->distance - epsilons[i]) != 0) && (d->dimension < skeleton_dimension))
+                        out << d->dimension << " " << d->distance << " " << epsilons[i] << std::endl;
                     CountNumBy(cComplexSize, si->first.dimension(), -1);
                     complex.erase(boost::prior(si.base()));
                     CountBy(cComplexSize, -1);
@@ -299,11 +309,11 @@ int main(int argc, char* argv[])
                     // Remove from subcomplex (i.e., remove and reinsert as outside of the subcomplex)
                     rDebug("  Removing from subcomplex: %s", tostring(si->first).c_str());
                     Death d = zz.remove(si->second, 
-                                        std::make_pair(epsilons[i], si->first.dimension() - 1));
+                                        BirthInfo(epsilons[i], si->first.dimension() - 1));
                     Count(cOperations);
                     AssertMsg(zz.check_consistency(), "Zigzag representation must be consistent after removing a simplex");
-                    if (d && ((d->first - epsilons[i]) != 0) && (d->second < skeleton_dimension))
-                        std::cout << d->second << " " << d->first << " " << epsilons[i] << std::endl;
+                    if (d && ((d->distance - epsilons[i]) != 0) && (d->dimension < skeleton_dimension))
+                        out << d->dimension << " " << d->distance << " " << epsilons[i] << std::endl;
                     leaving_subcomplex.push(si++);
                 } else
                     ++si;
@@ -316,11 +326,11 @@ int main(int argc, char* argv[])
                 Index idx; Death d;
                 boost::tie(idx, d) = zz.add(b,
                                             false,      // now it is outside of the subcomplex
-                                            std::make_pair(epsilons[i], si->first.dimension()));
+                                            BirthInfo(epsilons[i], si->first.dimension()));
                 Count(cOperations);
                 si->second = idx;
-                if (d && ((d->first - epsilons[i]) != 0) && (d->second < skeleton_dimension))
-                    std::cout << d->second << " " << d->first << " " << epsilons[i] << std::endl;
+                if (d && ((d->distance - epsilons[i]) != 0) && (d->dimension < skeleton_dimension))
+                    out << d->dimension << " " << d->distance << " " << epsilons[i] << std::endl;
                 leaving_subcomplex.pop();
             }
         }

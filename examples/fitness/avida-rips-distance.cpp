@@ -9,9 +9,9 @@
 
 
 typedef         ExplicitDistances<AvidaPopulationDetail>            ExplicitDist;
-typedef         RipsGenerator<ExplicitDist>                         RipsGen;
+typedef         Rips<ExplicitDist>                                  RipsGen;
 typedef         RipsGen::Simplex                                    Smplx;
-typedef         RipsGen::SimplexVector                              Complex;
+typedef         std::vector<Smplx>                                  Complex;
 
 typedef         Filtration<Complex, unsigned>                       Fltr;
 typedef         StaticPersistence<>                                 Persistence;
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 
     rInfo("Starting to generate rips complex");
     Complex c;
-    rips.generate(c, 1, rips.max_distance()/2);
+    rips.generate(1, rips.max_distance()/2, make_push_back_functor(c));
     std::sort(c.begin(), c.end(), Smplx::VertexComparison());
     
     rInfo("Generated Rips complex, filling filtration");

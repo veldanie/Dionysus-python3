@@ -110,7 +110,7 @@ class Simplex
         /* Classes: Comparisons
          *
          * VertexComparison -           compare simplices based on the lexicographic ordering of their <vertices()>
-         * VertexComparison -           compare simplices based on the lexicographic ordering of their <vertices()> within each dimension
+         * VertexDimensionComparison -  compare simplices based on the lexicographic ordering of their <vertices()> within each dimension
          * DataComparison -             compare simplices based on their <data()>
          * DataDimensionComparison -    compare simplices based on their <data()> within each <dimension()>
          */
