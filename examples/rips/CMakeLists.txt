@@ -1,5 +1,6 @@
 set                         (targets                        
                              rips
+                             rips-image-zigzag
                              rips-zigzag)
                              
 foreach                     (t ${targets})

@@ -94,6 +94,9 @@ class ZigzagPersistence
         // Function: remove(s, birth)
         Death                           remove(SimplexIndex s, const BirthID& birth = BirthID())    { ZigzagVisitor zzv; return remove<ZigzagVisitor>(s, birth, zzv); }
 
+
+        ZIndex                          begin()                                                     { return z_list.begin(); }
+        ZIndex                          end()                                                       { return z_list.end(); }
  
     protected:                                        
         // Function: add(s)

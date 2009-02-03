@@ -1,5 +1,5 @@
 #include <topology/rips.h>
-#include <topology/zigzag-persistence.h>
+#include <topology/image-zigzag-persistence.h>
 #include <utilities/types.h>
 #include <utilities/containers.h>
 
@@ -55,7 +55,7 @@ typedef     Rips<PairDistances, Smplx>                              RipsGenerato
 typedef     RipsGenerator::Evaluator                                SimplexEvaluator;
 
 struct      BirthInfo;
-typedef     ZigzagPersistence<BirthInfo>                            Zigzag;
+typedef     ImageZigzagPersistence<BirthInfo>                       Zigzag;
 typedef     Zigzag::SimplexIndex                                    Index;
 typedef     Zigzag::Death                                           Death;
 typedef     std::map<Smplx, Index, 
@@ -74,12 +74,14 @@ struct      BirthInfo
 // Forward declarations of auxilliary functions
 void        report_death(std::ofstream& out, Death d, DistanceType epsilon, Dimension skeleton_dimension);
 void        make_boundary(const Smplx& s, Complex& c, const Zigzag& zz, Boundary& b);
+void        show_image_betti(Zigzag& zz, Dimension skeleton);
 std::ostream&   operator<<(std::ostream& out, const BirthInfo& bi);
 void        process_command_line_options(int           argc,
                                          char*         argv[],
                                          unsigned&     ambient_dimension,
                                          unsigned&     skeleton_dimension,
-                                         float&        multiplier,
+                                         float&        from_multiplier, 
+                                         float&        to_multiplier,
                                          std::string&  infilename,
                                          std::string&  outfilename);
 
@@ -101,9 +103,9 @@ int main(int argc, char* argv[])
 
     unsigned        ambient_dimension;
     unsigned        skeleton_dimension;
-    float           multiplier;
+    float           from_multiplier, to_multiplier;
     std::string     infilename, outfilename;
-    process_command_line_options(argc, argv, ambient_dimension, skeleton_dimension, multiplier, infilename, outfilename);
+    process_command_line_options(argc, argv, ambient_dimension, skeleton_dimension, from_multiplier, to_multiplier, infilename, outfilename);
 
     // Read in points
     std::ifstream in(infilename.c_str());
@@ -156,7 +158,7 @@ int main(int argc, char* argv[])
         {
             Vertex u = vertices[i];
             Vertex v = vertices[j];
-            if (distances(u,v) <= multiplier*epsilons[j-1])
+            if (distances(u,v) <= to_multiplier*epsilons[j-1])
                 edges.push_back(std::make_pair(u,v));
         }
     std::sort(edges.begin(), edges.end(), RipsGenerator::ComparePair(distances));
@@ -179,6 +181,7 @@ int main(int argc, char* argv[])
         add.start();
         complex.insert(std::make_pair(sv, 
                                       zz.add(Boundary(), 
+                                             true,         // vertex is always in the subcomplex
                                              BirthInfo(0, 0)).first));
         add.stop();
         //rDebug("Newly born cycle order: %d", complex[sv]->low->order);
@@ -189,25 +192,80 @@ int main(int argc, char* argv[])
 
     rInfo("Commencing computation");
     boost::progress_display show_progress(vertices.size());
-    unsigned ce     = 0;        // index of the current one past last edge in the complex
+    unsigned sce    = 0,        // index of the current one past last edge in the subcomplex
+             ce     = 0;        // index of the current one past last edge in the complex
     for (unsigned stage = 0; stage != vertices.size() - 1; ++stage)
     {
         unsigned i = vertices.size() - 1 - stage;
-        rInfo("Current stage %d: %d %f: %f", stage, 
-                                             vertices[i], epsilons[i-1],
-                                             multiplier*epsilons[i-1]);
+        rInfo("Current stage %d: %d %f: %f -> %f", stage, 
+                                                   vertices[i], epsilons[i-1],
+                                                   from_multiplier*epsilons[i-1],
+                                                   to_multiplier*epsilons[i-1]);
 
         /* Increase epsilon */
         // Record the cofaces of all the simplices that need to be removed and reinserted
         SimplexSet cofaces;
         rDebug("  Cofaces size: %d", cofaces.size());
+        while(sce < ce)
+        {
+            Vertex u,v;
+            boost::tie(u,v)     = edges[sce];
+            if (distances(u,v) <= from_multiplier*epsilons[i-1])
+                ++sce;
+            else
+                break;
+
+            // Skip an edge if any one of its vertices has been removed from the complex
+            bool skip_edge = false;
+            for (unsigned j = i+1; j != vertices.size(); ++j)
+                if (u == vertices[j] || v == vertices[j])
+                {
+                    // Debug only: eventually remove
+                    rDebug("  Skipping edge (%d, %d)", u, v);
+                    Smplx s; s.add(u); s.add(v);
+                    AssertMsg(complex.find(s) == complex.end(), "Simplex should not be in the complex.");
+                    skip_edge = true;
+                    break;
+                }
+            if (skip_edge) continue;
+            rDebug("  Generating cofaces for (%d, %d)", u, v);
+        
+            ec.start();
+            rips.edge_cofaces(u, v, 
+                              skeleton_dimension, 
+                              to_multiplier*epsilons[i], 
+                              make_insert_functor(cofaces),
+                              vertices.begin(),
+                              vertices.begin() + i + 1);
+            ec.stop();
+        }
+        rDebug("  Recorded cofaces to remove");
+        rDebug("  Cofaces size: %d", cofaces.size());
+        // Remove all the cofaces
+        for (SimplexSet::const_reverse_iterator cur = cofaces.rbegin(); cur != cofaces.rend(); ++cur)
+        {
+            rDebug("    Removing %s", tostring(*cur).c_str());
+            Complex::iterator si = complex.find(*cur);
+            remove.start();
+            AssertMsg(!si->second->subcomplex, "We should not remove simplices already in the subcomplex when we increase epsilon");
+            Death d = zz.remove(si->second,
+                                BirthInfo(epsilons[i-1], cur->dimension() - 1));
+            remove.stop();
+            complex.erase(si);
+            CountNumBy(cComplexSize, cur->dimension(), -1);
+            CountBy(cComplexSize, -1);
+            Count(cOperations);
+            AssertMsg(zz.check_consistency(), "Zigzag representation must be consistent after removing a simplex");
+            report_death(out, d, epsilons[i-1], skeleton_dimension);
+        }
+        rDebug("  Removed cofaces");
 
         // Add anything else that needs to be inserted into the complex
         while (ce < edges.size())
         {
             Vertex u,v;
             boost::tie(u,v)     = edges[ce];
-            if (distances(u,v) <= multiplier*epsilons[i-1])
+            if (distances(u,v) <= to_multiplier*epsilons[i-1])
                 ++ce;
             else
                 break;
@@ -215,13 +273,26 @@ int main(int argc, char* argv[])
             ec.start();
             rips.edge_cofaces(u, v, 
                               skeleton_dimension, 
-                              multiplier*epsilons[i-1], 
+                              to_multiplier*epsilons[i-1], 
                               make_insert_functor(cofaces),
                               vertices.begin(),
                               vertices.begin() + i + 1);
             ec.stop();
         }
         rDebug("  Recorded new cofaces to add");
+
+        // Progress sce
+        while (sce < ce)
+        {
+            Vertex u,v;
+            boost::tie(u,v)     = edges[sce];
+            rDebug("    Progressing sce=%d over (%d, %d) %f", sce, u, v, distances(u,v));
+            if (distances(u,v) <= from_multiplier*epsilons[i-1])   
+                ++sce;
+            else
+                break;
+        }
+        rDebug("  Moved subcomplex index forward");
 
         // Insert all the cofaces
         rDebug("  Cofaces size: %d", cofaces.size());
@@ -232,6 +303,7 @@ int main(int argc, char* argv[])
             make_boundary(*cur, complex, zz, b);
             add.start();
             boost::tie(idx, d)  = zz.add(b,
+                                         size(*cur) <= from_multiplier*epsilons[i-1],
                                          BirthInfo(epsilons[i-1], cur->dimension()));
             add.stop();
             //if (!d) rDebug("Newly born cycle order: %d", complex[*cur]->low->order);
@@ -243,6 +315,7 @@ int main(int argc, char* argv[])
             report_death(out, d, epsilons[i-1], skeleton_dimension);
         }
         rInfo("Increased epsilon; complex size: %d", complex.size());
+        show_image_betti(zz, skeleton_dimension);
         report_memory();
         
         /* Remove the vertex */
@@ -251,7 +324,7 @@ int main(int argc, char* argv[])
         vc.start();
         rips.vertex_cofaces(vertices[i], 
                             skeleton_dimension, 
-                            multiplier*epsilons[i-1], 
+                            to_multiplier*epsilons[i-1], 
                             make_insert_functor(cofaces),
                             vertices.begin(),
                             vertices.begin() + i + 1);
@@ -275,6 +348,7 @@ int main(int argc, char* argv[])
         rInfo("Removed vertex; complex size: %d", complex.size());
         for (Complex::const_iterator cur = complex.begin(); cur != complex.end(); ++cur)
             rDebug("  %s", tostring(cur->first).c_str());
+        show_image_betti(zz, skeleton_dimension);
         report_memory();
         
         ++show_progress;
@@ -317,7 +391,7 @@ void        make_boundary(const Smplx& s, Complex& c, const Zigzag& zz, Boundary
     for (Smplx::BoundaryIterator cur = s.boundary_begin(); cur != s.boundary_end(); ++cur)
     {
         b.append(c[*cur], zz.cmp);
-        rDebug("   %d", c[*cur]->order);
+        rDebug("   %d (inL=%d)", c[*cur]->order, b.back()->subcomplex);
     }
 }
 
@@ -335,6 +409,13 @@ bool        face_leaving_subcomplex(Complex::reverse_iterator si, const SimplexE
     return false;
 }
 
+void        show_image_betti(Zigzag& zz, Dimension skeleton)
+{
+    for (Zigzag::ZIndex cur = zz.image_begin(); cur != zz.image_end(); ++cur)
+        if (cur->low == zz.boundary_end() && cur->birth.dimension < skeleton)
+            rInfo("Class in the image of dimension: %d",  cur->birth.dimension);
+}
+
 
 std::ostream&   operator<<(std::ostream& out, const BirthInfo& bi)
 { return (out << bi.distance); }
@@ -343,7 +424,8 @@ void        process_command_line_options(int           argc,
                                          char*         argv[],
                                          unsigned&     ambient_dimension,
                                          unsigned&     skeleton_dimension,
-                                         float&        multiplier,
+                                         float&        from_multiplier, 
+                                         float&        to_multiplier,
                                          std::string&  infilename,
                                          std::string&  outfilename)
 {
@@ -359,7 +441,8 @@ void        process_command_line_options(int           argc,
         ("help,h",                                                                              "produce help message")
         ("ambient-dimsnion,a",  po::value<unsigned>(&ambient_dimension)->default_value(3),      "The ambient dimension of the point set")
         ("skeleton-dimsnion,s", po::value<unsigned>(&skeleton_dimension)->default_value(2),     "Dimension of the Rips complex we want to compute")
-        ("multiplier,m",        po::value<float>(&multiplier)->default_value(6),                "Multiplier for the epsilon (distance to next maxmin point) when computing the Rips complex");
+        ("from,f",              po::value<float>(&from_multiplier)->default_value(4),           "From multiplier for the epsilon (distance to next maxmin point) when computing the Rips complex")
+        ("to,t",                po::value<float>(&to_multiplier)->default_value(16),            "To multiplier for the epsilon (distance to next maxmin point) when computing the Rips complex");
 #if LOGGING
     std::vector<std::string>    log_channels;
     visible.add_options()
