@@ -1,6 +1,7 @@
 add_subdirectory			(alphashapes)
 #add_subdirectory			(ar-vineyard)
 add_subdirectory			(cech-complex)
+add_subdirectory			(cohomology)
 add_subdirectory			(fitness)
 #add_subdirectory			(grid)
 add_subdirectory			(triangle)
