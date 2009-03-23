@@ -1,5 +1,6 @@
 set                         (targets                        
                              rips
+                             rips-pairwise
                              rips-image-zigzag
                              rips-zigzag)
                              
