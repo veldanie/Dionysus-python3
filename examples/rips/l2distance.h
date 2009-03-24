@@ -17,7 +17,7 @@ struct L2Distance:
 {
     result_type     operator()(const Point& p1, const Point& p2) const
     {
-        AssertMsg(p1.size() == p2.size(), "Points must be in the same dimension (in L2Distance)");
+        AssertMsg(p1.size() == p2.size(), "Points must be in the same dimension (in L2Distance): dim1=%d, dim2=%d", p1.size(), p2.size());
         result_type sum = 0;
         for (size_t i = 0; i < p1.size(); ++i)
             sum += (p1[i] - p2[i])*(p1[i] - p2[i]);
@@ -36,6 +36,7 @@ void    read_points(const std::string& infilename, PointContainer& points, Dimen
         {
             double      x;
             in >> x;
+            if (!in) { points.pop_back(); break; }
             points.back().push_back(x);
         }
     }

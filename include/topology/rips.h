@@ -53,8 +53,14 @@ class Rips
         void                edge_cofaces(IndexType u, IndexType v, Dimension k, DistanceType max, const Functor& f, 
                                          Iterator candidates_begin, Iterator candidates_end) const;
         
+        // Calls functor f on all the simplices of the Rips complex that contain the given Simplex s
+        // (unlike the previous methods it does not call the functor on the Simplex s itself)
+        template<class Functor, class Iterator>
+        void                cofaces(const Simplex& s, Dimension k, DistanceType max, const Functor& f,
+                                    Iterator candidates_begin, Iterator candidates_end) const;
 
-        // No Iterator argument means IndexType and distances().begin() - distances().end()
+        
+        /* No Iterator argument means Iterator = IndexType and the range is [distances().begin(), distances().end()) */
         template<class Functor>
         void                generate(Dimension k, DistanceType max, const Functor& f) const
         { generate(k, max, f, boost::make_counting_iterator(distances().begin()), boost::make_counting_iterator(distances().end())); }
@@ -66,6 +72,10 @@ class Rips
         template<class Functor>
         void                edge_cofaces(IndexType u, IndexType v, Dimension k, DistanceType max, const Functor& f) const
         { edge_cofaces(u, v, k, max, f, boost::make_counting_iterator(distances().begin()), boost::make_counting_iterator(distances().end())); }
+
+        template<class Functor>
+        void                cofaces(const Simplex& s, Dimension k, DistanceType max, const Functor& f) const
+        { cofaces(s, k, max, f, boost::make_counting_iterator(distances().begin()), boost::make_counting_iterator(distances().end())); }
 
         
         const Distances&    distances() const                               { return distances_; }
@@ -83,7 +93,8 @@ class Rips
                                           typename VertexContainer::const_iterator  excluded,
                                           Dimension                                 max_dim,
                                           const NeighborTest&                       neighbor,
-                                          const Functor&                            functor) const;
+                                          const Functor&                            functor,
+                                          bool                                      check_initial = true) const;
         
     private:
         const Distances&    distances_;

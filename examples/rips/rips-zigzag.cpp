@@ -297,21 +297,6 @@ void        make_boundary(const Smplx& s, Complex& c, const Zigzag& zz, Boundary
     }
 }
 
-bool        face_leaving_subcomplex(Complex::reverse_iterator si, const SimplexEvaluator& size, DistanceType after, DistanceType before)
-{
-    const Smplx& s = si->first;
-    for (Smplx::VertexContainer::const_iterator v1 = s.vertices().begin(); v1 != s.vertices().end(); ++v1)
-        for (Smplx::VertexContainer::const_iterator v2 = boost::next(v1); v2 != s.vertices().end(); ++v2)
-        {
-            Smplx e; e.add(*v1); e.add(*v2);
-            if (size(e) > after && size(e) <= before)
-                return true;
-        }
-
-    return false;
-}
-
-
 std::ostream&   operator<<(std::ostream& out, const BirthInfo& bi)
 { return (out << bi.distance); }
 

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <utilities/log.h>
 #include <utilities/counter.h>
+#include <utilities/indirect.h>
 #include <boost/iterator/counting_iterator.hpp>
 #include <functional>
 
@@ -77,6 +78,42 @@ edge_cofaces(IndexType u, IndexType v, Dimension k, DistanceType max, const Func
     bron_kerbosch(current, candidates, boost::prior(candidates.begin()), k, neighbor, f);
 }
 
+template<class D, class S>
+template<class Functor, class Iterator>
+void
+Rips<D,S>::
+cofaces(const Simplex& s, Dimension k, DistanceType max, const Functor& f, Iterator bg, Iterator end) const
+{
+    rLog(rlRipsDebug,   "In cofaces(%s)", tostring(s).c_str());
+
+    WithinDistance neighbor(distances(), max);
+
+    // current      = s.vertices()
+    VertexContainer current(s.vertices().begin(), s.vertices().end());
+    
+    // candidates   = everything - s.vertices()     that is a neighbor() of every vertex in the simplex
+    VertexContainer candidates;
+    typedef difference_iterator<Iterator, 
+                                typename VertexContainer::const_iterator, 
+                                std::less<Vertex> >                     DifferenceIterator;
+    for (DifferenceIterator cur =  DifferenceIterator(bg, end, s.vertices().begin(), s.vertices().end()); 
+                            cur != DifferenceIterator(end, end, s.vertices().end(), s.vertices().end()); 
+                            ++cur)
+    {
+        bool nghbr = true;
+        for (typename VertexContainer::const_iterator v = s.vertices().begin(); v != s.vertices().end(); ++v)
+            if (!neighbor(*v, *cur))        { nghbr = false; break; }
+
+        if (nghbr)  
+        {
+            candidates.push_back(*cur);
+            rLog(rlRipsDebug,   "  added candidate: %d", *cur);
+        }
+    }
+
+    bron_kerbosch(current, candidates, boost::prior(candidates.begin()), k, neighbor, f, false);
+}
+
 
 template<class D, class S>
 template<class Functor, class NeighborTest>
@@ -87,11 +124,12 @@ bron_kerbosch(VertexContainer&                          current,
               typename VertexContainer::const_iterator  excluded,
               Dimension                                 max_dim,    
               const NeighborTest&                       neighbor,       
-              const Functor&                            functor) const
+              const Functor&                            functor,
+              bool                                      check_initial) const
 {
     rLog(rlRipsDebug,       "Entered bron_kerbosch");
     
-    if (!current.empty())
+    if (check_initial && !current.empty())
     {
         Simplex s(current);
         rLog(rlRipsDebug,   "Reporting simplex: %s", tostring(s).c_str());
