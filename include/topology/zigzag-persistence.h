@@ -97,6 +97,8 @@ class ZigzagPersistence
 
         ZIndex                          begin()                                                     { return z_list.begin(); }
         ZIndex                          end()                                                       { return z_list.end(); }
+
+        bool                            is_alive(ZIndex i) const                                    { return i->low == b_list.end(); }
  
     protected:                                        
         // Function: add(s)

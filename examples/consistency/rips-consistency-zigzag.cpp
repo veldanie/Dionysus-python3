@@ -222,7 +222,11 @@ int main(int argc, char* argv[])
                            complex, zz, out, remove);
         rInfo("  Subcomplex simplices removed");
         
-        rInfo("Complex size: %d", complex.size());
+        Dimension betti_1 = 0;
+        for (Zigzag::ZIndex cur = zz.begin(); cur != zz.end(); ++cur)
+            if (cur->birth.dimension == 1 && zz.is_alive(cur)) ++betti_1;
+        
+        rInfo("Complex size: %d, Betti_1 = %d", complex.size(), betti_1);
         
         ++show_progress;
     }
