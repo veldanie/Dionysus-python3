@@ -1,6 +1,8 @@
 #include <topology/cohomology-persistence.h>
 #include <topology/rips.h>
 
+#include <geometry/l2distance.h>
+
 #include <utilities/containers.h>           // for BackInsertFunctor
 #include <utilities/timer.h>
 
@@ -8,8 +10,6 @@
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/program_options.hpp>
-
-#include "../rips/l2distance.h"
 
 typedef     PairwiseDistances<PointContainer, L2Distance>           PairDistances;
 typedef     PairDistances::DistanceType                             DistanceType;

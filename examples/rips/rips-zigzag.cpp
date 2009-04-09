@@ -3,6 +3,8 @@
 #include <utilities/types.h>
 #include <utilities/containers.h>
 
+#include <geometry/l2distance.h>    // Point, PointContainer, L2DistanceType, read_points
+
 #include <utilities/log.h>
 #include <utilities/memory.h>       // for report_memory()
 #include <utilities/timer.h>
@@ -16,8 +18,6 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/program_options.hpp>
 #include <boost/progress.hpp>
-
-#include "l2distance.h"         // Point, PointContainer, L2DistanceType
 
 #ifdef COUNTERS
 static Counter*  cComplexSize =                     GetCounter("rips/size");

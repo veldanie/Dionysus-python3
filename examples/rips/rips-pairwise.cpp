@@ -4,6 +4,8 @@
 #include <topology/dynamic-persistence.h>
 #include <topology/persistence-diagram.h>
 
+#include <geometry/l2distance.h>
+
 #include <utilities/containers.h>           // for BackInsertFunctor
 #include <utilities/timer.h>
 
@@ -11,7 +13,6 @@
 
 #include <boost/program_options.hpp>
 
-#include "l2distance.h"
 
 typedef         PairwiseDistances<PointContainer, L2Distance>           PairDistances;
 typedef         PairDistances::DistanceType                             DistanceType;
