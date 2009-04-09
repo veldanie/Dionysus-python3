@@ -148,7 +148,7 @@ struct Linfty
                                                                                                       std::abs(p1.y() - p2.y())); }
     
     template<class Point>
-    RealType            diagonal(const Point& p) const                              { return std::abs(p.y() - p.x()); }
+    RealType            diagonal(const Point& p) const                              { return std::abs(p.y() - p.x())/2; }
 };
 
 // Function: bottleneck_distance(dgm1, dgm2)

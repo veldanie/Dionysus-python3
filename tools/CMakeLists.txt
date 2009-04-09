@@ -9,3 +9,4 @@ include                     (${QT_USE_FILE})
 #include_directories         (${QGLViewer_INCLUDE_DIR})
 
 add_subdirectory            (diagram-viewer)
+add_subdirectory            (matching)
