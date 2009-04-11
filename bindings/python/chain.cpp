@@ -4,7 +4,7 @@
 
 using namespace boost::python;
 
-typedef     SPersistence::OrderDescriptor::Chains::Chain        VChain;
+typedef     SPersistence::Chain                                 VChain;
 
 
 VChain::const_iterator      begin(const VChain& c)              { return c.begin(); }

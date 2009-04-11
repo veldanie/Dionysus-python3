@@ -1,4 +1,5 @@
-from _dionysus import *
+from    _dionysus   import *
+from    distances   import *
 
 
 #def init_with_data(s,v, d = None):

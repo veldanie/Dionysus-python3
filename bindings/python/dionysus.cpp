@@ -9,6 +9,8 @@ void export_static_persistence();
 void export_chain();
 void export_zigzag_persistence();
 
+void export_rips();
+
 #ifdef LOGGING
 void            enable_log(std::string s)
 {
@@ -24,6 +26,8 @@ BOOST_PYTHON_MODULE(_dionysus)
     export_chain();
 
     export_zigzag_persistence();
+
+    export_rips();
 
 #ifdef LOGGING
     bp::def("enable_log",           &enable_log);
