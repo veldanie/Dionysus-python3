@@ -6,8 +6,8 @@
 #include <boost/shared_ptr.hpp>
 namespace bp = boost::python;
 
-#include "python-zigzag-persistence.h"      // defines ZZPersistence, IZZPersistence
-#include "python-optional.h"
+#include "zigzag-persistence.h"             // defines ZZPersistence, IZZPersistence
+#include "optional.h"
 
 
 // ZigzagPersistence

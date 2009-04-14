@@ -3,7 +3,7 @@
 
 #include <topology/filtration.h>
 #include <boost/python.hpp>
-#include "python-simplex.h"
+#include "simplex.h"
 
 namespace bp = boost::python;
 

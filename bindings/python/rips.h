@@ -4,7 +4,7 @@
 #include <topology/rips.h>
 #include <utilities/indirect.h>
 
-#include "python-simplex.h"
+#include "simplex.h"
 
 #include <boost/python.hpp>
 #include <boost/python/stl_iterator.hpp>

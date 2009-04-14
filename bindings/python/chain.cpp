@@ -1,5 +1,5 @@
 #include <topology/chain.h>
-#include "python-static-persistence.h"
+#include "static-persistence.h"
 #include <boost/python.hpp>
 
 using namespace boost::python;

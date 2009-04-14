@@ -1,6 +1,6 @@
 #include <topology/rips.h>
 #include <boost/python.hpp>
-#include "python-rips.h"            // defines RipsWithDistances
+#include "rips.h"                   // defines RipsWithDistances
 
 #include <iostream>
 

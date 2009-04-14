@@ -8,6 +8,9 @@
 #include <boost/functional/hash.hpp>
 using namespace boost::python;
 
+#include "simplex.h"                // defines SimplexVD, Vertex, and Data
+
+
 /* Various wrappers for exposing Simplex to Python */
 // `vertices` property
 template<class V, class T>
@@ -47,8 +50,6 @@ int                                 vertex_comparison(const Simplex<V,T>& a, con
     return ThreeOutcomeCompare<typename Simplex<V,T>::VertexComparison>().compare(a,b);
 }
 
-
-#include "python-simplex.h"         // defines SimplexVD, Vertex, and Data
 
 void export_simplex()
 {

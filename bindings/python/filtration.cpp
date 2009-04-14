@@ -1,13 +1,13 @@
 #include <topology/filtration.h>
 #include <boost/iterator.hpp>
-#include "python-simplex.h"
+#include "simplex.h"
 #include <iostream>
 
 #include <boost/python.hpp>
 using namespace boost::python;
 
 
-#include "python-filtration.h"      // defines ListFiltration, ListTraits, ListRandomAccessIterator
+#include "filtration.h"      // defines ListFiltration, ListTraits, ListRandomAccessIterator
 
 // Filtration python iterator interface    
 class FiltrationPythonIterator:

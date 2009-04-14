@@ -1,10 +1,11 @@
 #include <topology/static-persistence.h>
-#include "python-filtration.h"
 
 #include <boost/python.hpp>
 using namespace boost::python;
 
-#include "python-static-persistence.h"
+#include "filtration.h"
+#include "static-persistence.h"
+
 
 boost::shared_ptr<SPersistence>     init_from_filtration(object f)
 {
