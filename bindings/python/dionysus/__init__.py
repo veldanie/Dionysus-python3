@@ -10,7 +10,7 @@ def init_with_data(self, v, d = None):
 def repr_with_data(self):
     str = self._cpp_repr_()
     if hasattr(self, 'data'):
-        str += '%f' % self.data
+        str += ' %f' % self.data
     return str
 
 Simplex._cpp_init_ =    Simplex.__init__

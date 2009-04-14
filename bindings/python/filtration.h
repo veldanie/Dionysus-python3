@@ -58,4 +58,30 @@ struct ListTraits
 
 typedef         Filtration<bp::list, unsigned, ListTraits>          ListFiltration;
 
+
+// Filtration python iterator interface    
+class FiltrationPythonIterator:
+    public boost::iterator_adaptor<FiltrationPythonIterator,    // Derived
+                                   ListFiltration::Index,       // Base
+                                   unsigned>                    // Value
+{
+    public:
+        typedef                 FiltrationPythonIterator                                        Self;
+        typedef                 boost::iterator_adaptor<Self,           
+                                                        ListFiltration::Index,
+                                                        unsigned>                               Parent;
+
+                                FiltrationPythonIterator(ListFiltration::Index i):
+                                    Parent(i)                                                   {}
+
+    private:
+        friend class boost::iterator_core_access;
+
+        Parent::reference dereference() const
+        {
+            // FIXME: I hate the const_cast here, how do I get rid of it?
+            return const_cast<unsigned&>(this->base()->base().base());
+        }
+};
+
 #endif

@@ -5,5 +5,6 @@
 
 typedef         StaticPersistence<>             SPersistence;
 typedef         SPersistence::OrderElement      SPersistenceNode;
+typedef         SPersistence::OrderIndex        SPersistenceIndex;
 
 #endif

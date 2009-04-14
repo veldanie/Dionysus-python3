@@ -1,18 +1,15 @@
-#include <topology/chain.h>
-#include "static-persistence.h"
 #include <boost/python.hpp>
+#include <boost/python/iterator.hpp>
 
-using namespace boost::python;
+namespace bp = boost::python;
 
-typedef     SPersistence::Chain                                 VChain;
+#include "chain.h"
 
-
-VChain::const_iterator      begin(const VChain& c)              { return c.begin(); }
-VChain::const_iterator      end(const VChain& c)                { return c.end(); }
 
 void export_chain()
 {
-    class_<VChain>("Chain")
-        .def("__iter__",    range(&begin, &end))
+    bp::class_<VChain>("Chain")
+        .def("__iter__",    bp::iterator<VChain>())
+        .def("__len__",     &VChain::size)
     ;
 }
