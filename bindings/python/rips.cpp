@@ -26,6 +26,8 @@ void export_rips()
         .def("edge_cofaces",        &RipsWithDistances::edge_cofaces_candidates)
 
         .def("cmp",                 &RipsWithDistances::cmp)
+        .def("cmp",                 &RipsWithDistances::cmp_native)
         .def("eval",                &RipsWithDistances::eval)
+        .def("eval",                &RipsWithDistances::eval_native)
     ;
 }

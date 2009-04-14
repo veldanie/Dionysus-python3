@@ -11,13 +11,17 @@ namespace bp = boost::python;
 class ListRandomAccessIterator:
     public boost::iterator_adaptor<ListRandomAccessIterator,                // Derived
                                    boost::counting_iterator<unsigned>,      // Base
-                                   SimplexVD>                               // Value
+                                   SimplexObject,                           // Value
+                                   boost::use_default,
+                                   SimplexObject>
 {
     public:
         typedef                 ListRandomAccessIterator                                        Self;
         typedef                 boost::iterator_adaptor<ListRandomAccessIterator,           
                                                         boost::counting_iterator<unsigned>,     
-                                                        SimplexVD>                              Parent;
+                                                        SimplexObject,
+                                                        boost::use_default,
+                                                        SimplexObject>                          Parent;
                     
                                 ListRandomAccessIterator()                                      {}
 
@@ -28,11 +32,7 @@ class ListRandomAccessIterator:
         friend class boost::iterator_core_access;
         friend class FiltrationPythonIterator;
 
-        Parent::reference       dereference() const
-        {
-            const SimplexVD& s = bp::extract<const SimplexVD&>(l_[*(this->base())]);
-            return const_cast<SimplexVD&>(s);       // FIXME: get rid of const_cast
-        }
+        Parent::reference       dereference() const                                             { return bp::object(l_[*(this->base())]); }
 
         bp::list                l_;
 };
@@ -41,17 +41,17 @@ class ListRandomAccessIterator:
 struct ListTraits
 {
     typedef     bp::list                                        Complex;
-    typedef     SimplexVD                                       Simplex;
+    typedef     SimplexObject                                   Simplex;
     typedef     ListRandomAccessIterator                        Index;
     typedef     std::less<Index>                                IndexComparison;
 
-    typedef     BinarySearchMap<Simplex, Index,
-                                Simplex::VertexComparison>      SimplexIndexMap;
+    typedef     BinarySearchMap<SimplexVD, Index,
+                                SimplexVD::VertexComparison>    SimplexIndexMap;
 
     static SimplexIndexMap      simplex_index_map(const Complex& l)             { return SimplexIndexMap(begin(l), end(l)); }
     static SimplexIndexMap      simplex_index_map(Index bg, Index end)          { return SimplexIndexMap(bg, end); }
 
-    static unsigned             size(const Complex& l)                          { return bp::extract<unsigned>(l.attr("__len__")()); }
+    static unsigned             size(const Complex& l)                          { return bp::len(l); }
     static Index                begin(const Complex& l)                         { return Index(l, 0); }
     static Index                end(const Complex& l)                           { return Index(l, size(l)); }
 };

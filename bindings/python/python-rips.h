@@ -92,11 +92,11 @@ class RipsWithDistances
                                bp::stl_input_iterator<IndexType>(seq), bp::stl_input_iterator<IndexType>());
         }
 
-        int                 cmp(const SimplexVD& s1, const SimplexVD& s2) const     
-        { return cmp_.compare(s1, s2); }
+        int                 cmp(const SimplexObject& s1, const SimplexObject& s2) const                     { return cmp_native(s1, s2); }
+        int                 cmp_native(const SimplexVD& s1, const SimplexVD& s2) const                      { return cmp_.compare(s1, s2); }
         
-        DistanceType        eval(const SimplexVD& s) const     
-        { return eval_(s); }
+        DistanceType        eval(const SimplexObject& s) const                                              { return eval_native(s); }
+        DistanceType        eval_native(const SimplexVD& s) const                                           { return eval_(s); }
         
     private:
         DistancesWrapper                            distances_;

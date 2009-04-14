@@ -13,11 +13,6 @@ boost::shared_ptr<SPersistence>     init_from_filtration(object f)
     return p;
 }
 
-void                                pair_simplices(SPersistence& p)
-{
-    p.pair_simplices(); 
-}
-
 void export_static_persistence()
 {
     class_<SPersistenceNode>("StaticPersistenceNode")
@@ -28,9 +23,7 @@ void export_static_persistence()
 
     class_<SPersistence>("StaticPersistence", no_init)
         .def("__init__",        make_constructor(&init_from_filtration))
-
-        .def("pair_simplices",  &pair_simplices)
-
+        .def("pair_simplices",  (void (SPersistence::*)())  &SPersistence::pair_simplices)
         .def("__iter__",        range(&SPersistence::begin, &SPersistence::end))
         .def("__len__",         &SPersistence::size)
     ;

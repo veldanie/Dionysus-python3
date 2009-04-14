@@ -103,12 +103,13 @@ Simplex<V,T>::
 operator<<(std::ostream& out) const
 {
     typename VertexContainer::const_iterator cur = vertices().begin();
-    out << *cur;
+    out << "<" << *cur;
     for (++cur; cur != vertices().end(); ++cur)
     {
         out << ", " << *cur;
     }
-    out << " [" << data() << "] ";
+    out << ">";
+    // out << " [" << data() << "] ";
 
     return out;
 }
