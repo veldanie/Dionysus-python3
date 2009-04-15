@@ -7,6 +7,9 @@
 
 namespace bp = boost::python;
 
+namespace dionysus { 
+namespace python   {
+
 // Random access iterator into python's list (using integer indices)
 class ListRandomAccessIterator:
     public boost::iterator_adaptor<ListRandomAccessIterator,                // Derived
@@ -83,5 +86,7 @@ class FiltrationPythonIterator:
             return const_cast<unsigned&>(this->base()->base().base());
         }
 };
+
+} } // namespace dionysus::python
 
 #endif

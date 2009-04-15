@@ -6,9 +6,10 @@
 #include <boost/python/stl_iterator.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/functional/hash.hpp>
-using namespace boost::python;
+namespace bp = boost::python;
 
 #include "simplex.h"                // defines SimplexVD, Vertex, and Data
+namespace dp = dionysus::python;
 
 
 /* Various wrappers for exposing Simplex to Python */
@@ -22,9 +23,9 @@ typename Simplex<V,T>::VertexContainer::const_iterator
 
 // Constructor from iterator
 template<class V, class T>
-boost::shared_ptr<Simplex<V,T> >    init_from_iterator(object iter)                      
+boost::shared_ptr<Simplex<V,T> >    init_from_iterator(bp::object iter)                      
 { 
-    boost::shared_ptr<Simplex<V,T> > p(new Simplex<V,T>(stl_input_iterator<V>(iter), stl_input_iterator<V>()));
+    boost::shared_ptr<Simplex<V,T> > p(new Simplex<V,T>(bp::stl_input_iterator<V>(iter), bp::stl_input_iterator<V>()));
     return p;
 }
 
@@ -53,25 +54,25 @@ int                                 vertex_comparison(const Simplex<V,T>& a, con
 
 void export_simplex()
 {
-    class_<SimplexVD>("Simplex")
-        .def("__init__",            make_constructor(&init_from_iterator<Vertex, Data>))
+    bp::class_<dp::SimplexVD>("Simplex")
+        .def("__init__",            bp::make_constructor(&init_from_iterator<dp::Vertex, dp::Data>))
 
-        .def("add",                 &SimplexVD::add)
-        .add_property("boundary",   range(&SimplexVD::boundary_begin, &SimplexVD::boundary_end))
-        .def("contains",            &SimplexVD::contains)
-        .def("join",                (void (SimplexVD::*)(const SimplexVD&)) &SimplexVD::join)
-        .def("dimension",           &SimplexVD::dimension)
+        .def("add",                 &dp::SimplexVD::add)
+        .add_property("boundary",   bp::range(&dp::SimplexVD::boundary_begin, &dp::SimplexVD::boundary_end))
+        .def("contains",            &dp::SimplexVD::contains)
+        .def("join",                (void (dp::SimplexVD::*)(const dp::SimplexVD&)) &dp::SimplexVD::join)
+        .def("dimension",           &dp::SimplexVD::dimension)
         
-        .add_property("vertices",   range(&vertices_begin<Vertex,Data>, &vertices_end<Vertex,Data>))
-        .def(repr(self))
+        .add_property("vertices",   bp::range(&vertices_begin<dp::Vertex, dp::Data>, &vertices_end<dp::Vertex, dp::Data>))
+        .def(repr(bp::self))
 
-        .def("__hash__",            &hash_simplex<Vertex, Data>)
-        .def("__eq__",              &eq_simplex<Vertex, Data>)
+        .def("__hash__",            &hash_simplex<dp::Vertex, dp::Data>)
+        .def("__eq__",              &eq_simplex<dp::Vertex, dp::Data>)
     ;
 
-    class_<SimplexObject>("SimplexObject")
-        .def("__getattribute__",    &SimplexObject::getattribute)
+    bp::class_<dp::SimplexObject>("SimplexObject")
+        .def("__getattribute__",    &dp::SimplexObject::getattribute)
     ;
 
-    def("vertex_cmp",               &vertex_comparison<Vertex, Data>);
+    bp::def("vertex_cmp",           &vertex_comparison<dp::Vertex, dp::Data>);
 }

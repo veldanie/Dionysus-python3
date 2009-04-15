@@ -13,6 +13,8 @@
 namespace bp = boost::python;
 
 
+namespace dionysus { 
+namespace python   {
 
 // This strange wrapper is necessary because Rips<...> stores only a const reference to the distances. 
 // Something on the C++ side of things must store the actual DistancesWrapper object, and that's the 
@@ -104,5 +106,7 @@ class RipsWithDistances
         ThreeOutcomeCompare<Comparison>             cmp_;           // in Python, cmp is a three outcome comparison
         Evaluator                                   eval_;
 };
+
+} } // namespace dionysus::python
 
 #endif

@@ -8,6 +8,9 @@
 namespace bp = boost::python;
 
 
+namespace dionysus {
+namespace python   {
+
 /**
  * SimplexVD is a base class for Python simplices (it's exposed to python as Simplex)
  *
@@ -57,5 +60,7 @@ struct SimplexObjectToSimplexVD
         return (PyObject*) &so;
     }
 };
+
+} } // namespace dionysus::python
 
 #endif

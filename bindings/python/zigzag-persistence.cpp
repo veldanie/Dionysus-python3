@@ -8,49 +8,50 @@ namespace bp = boost::python;
 
 #include "zigzag-persistence.h"             // defines ZZPersistence, IZZPersistence
 #include "optional.h"
+namespace dp = dionysus::python;
 
 
 // ZigzagPersistence
-bp::tuple                           zzp_add(ZZPersistence& zzp, bp::object bdry, BirthID birth)
+bp::tuple                           zzp_add(dp::ZZPersistence& zzp, bp::object bdry, dp::BirthID birth)
 {
     // Make ZColumn    
     // NB: it's extremely weird that I have to do it this way, 
     //     but for some reason I cannot just create boundary on the stack
-    boost::shared_ptr<ZZPersistence::ZColumn> 
-                                            boundary(new ZZPersistence::ZColumn(bp::stl_input_iterator<ZZPersistence::SimplexIndex>(bdry), 
-                                                                                bp::stl_input_iterator<ZZPersistence::SimplexIndex>()));
+    boost::shared_ptr<dp::ZZPersistence::ZColumn> 
+                                            boundary(new dp::ZZPersistence::ZColumn(bp::stl_input_iterator<dp::ZZPersistence::SimplexIndex>(bdry), 
+                                                                                    bp::stl_input_iterator<dp::ZZPersistence::SimplexIndex>()));
     boundary->sort(zzp.cmp);
 
-    ZZPersistence::SimplexIndex             i;
-    ZZPersistence::Death                    d;
+    dp::ZZPersistence::SimplexIndex         i;
+    dp::ZZPersistence::Death                d;
     boost::tie(i,d)                                 = zzp.add(*boundary, birth); 
     return bp::make_tuple(i,d);
 }
 
-ZZPersistence::Death                zzp_remove(ZZPersistence& zzp, ZZPersistence::SimplexIndex s, ZZPersistence::BirthID birth)
+dp::ZZPersistence::Death            zzp_remove(dp::ZZPersistence& zzp, dp::ZZPersistence::SimplexIndex s, dp::ZZPersistence::BirthID birth)
 {
     return zzp.remove(s, birth); 
 }
 
 
 // ImageZigzagPersistence
-bp::tuple                           izzp_add(IZZPersistence& izzp, bp::object bdry, bool subcomplex, BirthID birth)
+bp::tuple                           izzp_add(dp::IZZPersistence& izzp, bp::object bdry, bool subcomplex, dp::BirthID birth)
 {
     // Make ZColumn    
     // NB: it's extremely weird that I have to do it this way, 
     //     but for some reason I cannot just create boundary on the stack
-    boost::shared_ptr<IZZPersistence::ZColumn> 
-                                            boundary(new IZZPersistence::ZColumn(bp::stl_input_iterator<IZZPersistence::SimplexIndex>(bdry), 
-                                                                                 bp::stl_input_iterator<IZZPersistence::SimplexIndex>()));
+    boost::shared_ptr<dp::IZZPersistence::ZColumn> 
+                                            boundary(new dp::IZZPersistence::ZColumn(bp::stl_input_iterator<dp::IZZPersistence::SimplexIndex>(bdry), 
+                                                                                     bp::stl_input_iterator<dp::IZZPersistence::SimplexIndex>()));
     boundary->sort(izzp.cmp);
 
-    IZZPersistence::SimplexIndex            i;
-    IZZPersistence::Death                   d;
+    dp::IZZPersistence::SimplexIndex            i;
+    dp::IZZPersistence::Death                   d;
     boost::tie(i,d)                                 = izzp.add(*boundary, subcomplex, birth); 
     return bp::make_tuple(i,d);
 }
 
-IZZPersistence::Death               izzp_remove(IZZPersistence& izzp, IZZPersistence::SimplexIndex s, IZZPersistence::BirthID birth)
+dp::IZZPersistence::Death           izzp_remove(dp::IZZPersistence& izzp, dp::IZZPersistence::SimplexIndex s, dp::IZZPersistence::BirthID birth)
 {
     return izzp.remove(s, birth); 
 }
@@ -66,20 +67,20 @@ unsigned                            si_order(T& si)
 
 void export_zigzag_persistence()
 {
-    python_optional<BirthID>();   
+    python_optional<dp::BirthID>();   
 
-    bp::class_<ZZPersistence::SimplexIndex>("SimplexIndex")
-        .def("order",           &si_order<ZZPersistence::SimplexIndex>);
+    bp::class_<dp::ZZPersistence::SimplexIndex>("SimplexIndex")
+        .def("order",           &si_order<dp::ZZPersistence::SimplexIndex>);
     
-    bp::class_<IZZPersistence::SimplexIndex>("ISimplexIndex")
-        .def("order",           &si_order<IZZPersistence::SimplexIndex>);
+    bp::class_<dp::IZZPersistence::SimplexIndex>("ISimplexIndex")
+        .def("order",           &si_order<dp::IZZPersistence::SimplexIndex>);
 
-    bp::class_<ZZPersistence>("ZigzagPersistence")
+    bp::class_<dp::ZZPersistence>("ZigzagPersistence")
         .def("add",             &zzp_add)
         .def("remove",          &zzp_remove)
     ;
     
-    bp::class_<IZZPersistence>("ImageZigzagPersistence")
+    bp::class_<dp::IZZPersistence>("ImageZigzagPersistence")
         .def("add",             &izzp_add)
         .def("remove",          &izzp_remove)
     ;

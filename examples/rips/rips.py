@@ -37,4 +37,4 @@ f = Filtration(lst, r.cmp)
 p = StaticPersistence(f)
 p.pair_simplices()
 for s in p:
-    print s, s.sign()
+    print lst[f[p(s)]], s.sign()

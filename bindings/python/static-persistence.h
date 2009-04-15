@@ -3,8 +3,13 @@
 
 #include <topology/static-persistence.h>
 
+namespace dionysus {
+namespace python   {
+
 typedef         StaticPersistence<>             SPersistence;
 typedef         SPersistence::OrderElement      SPersistenceNode;
 typedef         SPersistence::OrderIndex        SPersistenceIndex;
+
+} } // namespace dionysus::python
 
 #endif
