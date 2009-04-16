@@ -1,5 +1,7 @@
+#include <utilities/log.h>
+
 AlphaSimplex2D::	    
-AlphaSimplex2D(const ::Vertex& v): alpha_(0), attached_(false)
+AlphaSimplex2D(const Delaunay2D::Vertex& v): alpha_(0), attached_(false)
 {
 	for (int i = 0; i < 3; ++i)
 		if (v.face()->vertex(i)->point() == v.point())
@@ -7,7 +9,7 @@ AlphaSimplex2D(const ::Vertex& v): alpha_(0), attached_(false)
 }
 
 AlphaSimplex2D::	    
-AlphaSimplex2D(const Edge& e): attached_(false)
+AlphaSimplex2D(const Delaunay2D::Edge& e): attached_(false)
 {
     Face_handle f = e.first;
 	for (int i = 0; i < 3; ++i)
@@ -16,7 +18,7 @@ AlphaSimplex2D(const Edge& e): attached_(false)
 }
 
 AlphaSimplex2D::	    
-AlphaSimplex2D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt): attached_(false)
+AlphaSimplex2D(const Delaunay2D::Edge& e, const SimplexSet& simplices, const Delaunay2D& Dt): attached_(false)
 {
     Face_handle f = e.first;
 	for (int i = 0; i < 3; ++i)
@@ -26,7 +28,7 @@ AlphaSimplex2D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt): 
 	Face_handle o = f->neighbor(e.second);
 	int oi = o->index(f);
 
-	VertexSet::const_iterator v = Parent::vertices().begin();
+	VertexSet::const_iterator v = static_cast<const Parent*>(this)->vertices().begin();
 	const Point& p1 = (*v++)->point();
 	const Point& p2 = (*v)->point();
 	
@@ -55,25 +57,15 @@ AlphaSimplex2D(const Edge& e, const SimplexSet& simplices, const Delaunay& Dt): 
 }
 
 AlphaSimplex2D::	    
-AlphaSimplex2D(const Face& f): attached_(false)
+AlphaSimplex2D(const Delaunay2D::Face& f): attached_(false)
 {
 	for (int i = 0; i < 3; ++i)
 		Parent::add(f.vertex(i));
-	VertexSet::const_iterator v = Parent::vertices().begin();
+	VertexSet::const_iterator v = static_cast<const Parent*>(this)->vertices().begin();
 	Point p1 = (*v++)->point();
 	Point p2 = (*v++)->point();
 	Point p3 = (*v)->point();
 	alpha_ = CGAL::squared_radius(p1, p2, p3);
-}
-
-AlphaSimplex2D::Cycle
-AlphaSimplex2D::boundary() const
-{
-	Cycle bdry;
-	Parent::Cycle pbdry = Parent::boundary();
-	for (Parent::Cycle::const_iterator cur = pbdry.begin(); cur != pbdry.end(); ++cur)
-		bdry.push_back(*cur);
-	return bdry;
 }
 
 
@@ -99,11 +91,8 @@ operator<<(std::ostream& out) const
 	return out;
 }
 
-
-void fill_alpha_order(const Delaunay& Dt, AlphaSimplex2DVector& alpha_order)
+void fill_simplex_set(const Delaunay2D& Dt, AlphaSimplex2D::SimplexSet& simplices)
 {
-	// Compute all simplices with their alpha values and attachment information
-	AlphaSimplex2D::SimplexSet simplices;
 	for(Face_iterator cur = Dt.finite_faces_begin(); cur != Dt.finite_faces_end(); ++cur)
 		simplices.insert(AlphaSimplex2D(*cur));
 	rInfo("Faces inserted");
@@ -113,10 +102,18 @@ void fill_alpha_order(const Delaunay& Dt, AlphaSimplex2DVector& alpha_order)
 	for(Vertex_iterator cur = Dt.finite_vertices_begin(); cur != Dt.finite_vertices_end(); ++cur)
 		simplices.insert(AlphaSimplex2D(*cur));
 	rInfo("Vertices inserted");
+}
+
+void fill_complex(const Delaunay2D& Dt, AlphaSimplex2DVector& alpha_order)
+{
+	// Compute all simplices with their alpha values and attachment information
+	AlphaSimplex2D::SimplexSet simplices;
+    fill_simplex_set(Dt, simplices);
     
 	// Sort simplices by their alpha values
 	alpha_order.resize(simplices.size());
 	std::copy(simplices.begin(), simplices.end(), alpha_order.begin());
-	std::sort(alpha_order.begin(), alpha_order.end(), AlphaSimplex2D::AlphaOrder());
+	// std::sort(alpha_order.begin(), alpha_order.end(), AlphaSimplex2D::AlphaOrder());
+	std::sort(alpha_order.begin(), alpha_order.end(), AlphaSimplex2D::VertexComparison());
 }
 

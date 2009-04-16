@@ -1,5 +1,7 @@
+#include <utilities/log.h>
+
 AlphaSimplex3D::	    
-AlphaSimplex3D(const ::Vertex& v): alpha_(0), attached_(false)
+AlphaSimplex3D(const Delaunay3D::Vertex& v): alpha_(0), attached_(false)
 {
 	for (int i = 0; i < 4; ++i)
 		if (v.cell()->vertex(i)->point() == v.point())
@@ -7,7 +9,7 @@ AlphaSimplex3D(const ::Vertex& v): alpha_(0), attached_(false)
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Delaunay::Edge& e)
+AlphaSimplex3D(const Delaunay3D::Edge& e)
 {
     Cell_handle c = e.first;
 	Parent::add(c->vertex(e.second));
@@ -15,7 +17,7 @@ AlphaSimplex3D(const Delaunay::Edge& e)
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Delaunay::Edge& e, const SimplexSet& simplices, const Delaunay& Dt, Facet_circulator facet_bg)
+AlphaSimplex3D(const Delaunay3D::Edge& e, const SimplexSet& simplices, const Delaunay3D& Dt, Facet_circulator facet_bg)
 {
     Cell_handle c = e.first;
 	Parent::add(c->vertex(e.second));
@@ -57,7 +59,7 @@ AlphaSimplex3D(const Delaunay::Edge& e, const SimplexSet& simplices, const Delau
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Delaunay::Facet& f)
+AlphaSimplex3D(const Delaunay3D::Facet& f)
 {
     Cell_handle c = f.first;
 	for (int i = 0; i < 4; ++i)
@@ -66,7 +68,7 @@ AlphaSimplex3D(const Delaunay::Facet& f)
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Delaunay::Facet& f, const SimplexSet& simplices, const Delaunay& Dt)
+AlphaSimplex3D(const Delaunay3D::Facet& f, const SimplexSet& simplices, const Delaunay3D& Dt)
 {
     Cell_handle c = f.first;
 	for (int i = 0; i < 4; ++i)
@@ -106,7 +108,7 @@ AlphaSimplex3D(const Delaunay::Facet& f, const SimplexSet& simplices, const Dela
 }
 
 AlphaSimplex3D::	    
-AlphaSimplex3D(const Delaunay::Cell& c): attached_(false)
+AlphaSimplex3D(const Delaunay3D::Cell& c): attached_(false)
 {
 	for (int i = 0; i < 4; ++i)
 		Parent::add(c.vertex(i));
@@ -140,11 +142,9 @@ operator<<(std::ostream& out) const
 	return out;
 }
 
-
-void fill_complex(const Delaunay& Dt, AlphaSimplex3DVector& alpha_order)
+void fill_simplex_set(const Delaunay3D& Dt, AlphaSimplex3D::SimplexSet& simplices)
 {
 	// Compute all simplices with their alpha values and attachment information
-	AlphaSimplex3D::SimplexSet simplices;
 	for(Cell_iterator cur = Dt.finite_cells_begin(); cur != Dt.finite_cells_end(); ++cur)
 		simplices.insert(AlphaSimplex3D(*cur));
 	rInfo("Cells inserted");
@@ -157,6 +157,12 @@ void fill_complex(const Delaunay& Dt, AlphaSimplex3DVector& alpha_order)
 	for(Vertex_iterator cur = Dt.finite_vertices_begin(); cur != Dt.finite_vertices_end(); ++cur)
 		simplices.insert(AlphaSimplex3D(*cur));
 	rInfo("Vertices inserted");
+}
+
+void fill_complex(const Delaunay3D& Dt, AlphaSimplex3DVector& alpha_order)
+{
+	AlphaSimplex3D::SimplexSet simplices;
+    fill_simplex_set(Dt, simplices);
     
 	// Sort simplices by their alpha values
 	alpha_order.resize(simplices.size());

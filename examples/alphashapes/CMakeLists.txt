@@ -9,7 +9,7 @@ target_link_libraries           (compare-diagrams               ${libraries})
 # Add targets that depend on CGAL
 if                              (CGAL_FOUND)
     set                         (targets                        alphashapes3d
-                                                                #alphashapes2d
+                                                                alphashapes2d
                                                                 #alpharadius
                                 )
     add_definitions             (${CGAL_CXX_FLAGS_INIT})

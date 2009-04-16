@@ -62,7 +62,7 @@ int main(int argc, char** argv)
     // Read in the point set and compute its Delaunay triangulation
     std::ifstream in(infilename.c_str());
     double x,y,z;
-    Delaunay Dt;
+    Delaunay3D Dt;
     while(in)
     {
         in >> x >> y >> z;
