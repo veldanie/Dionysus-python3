@@ -17,7 +17,7 @@ max = float(argv[3])
 
 points = [p for p in points_file(filename)]
 distances = PairwiseDistances(points)
-#distances = ExplicitDistances(distances)           # speeds up generation of the Rips complex at the expense of memory usage
+distances = ExplicitDistances(distances)           # speeds up generation of the Rips complex at the expense of memory usage
 rips = Rips(distances)
 print time.asctime(), "Rips initialized"
 
@@ -38,3 +38,17 @@ print time.asctime(), "Initialized StaticPersistence"
 
 p.pair_simplices()
 print time.asctime(), "Simplices paired"
+
+print "Outputting persistence diagram"
+for i in p:
+    if i.sign():
+        b = simplices[f[p(i)]]
+
+        if b.dimension() >= skeleton: continue
+
+        if i == i.pair:
+            print b.dimension(), b.data, "inf"
+            continue
+
+        d = simplices[f[p(i.pair)]]
+        print b.dimension(), b.data, d.data

@@ -15,7 +15,7 @@ class PairwiseDistances:
         return len(self.points)
 
     def __call__(self, p1, p2):
-        return self.norm([x - y for (x,y) in zip(self.points[p1], self.points[p2])])
+        return self.norm((x - y for (x,y) in zip(self.points[p1], self.points[p2])))
 
 # Caches all distances specified by `distances`
 class ExplicitDistances:

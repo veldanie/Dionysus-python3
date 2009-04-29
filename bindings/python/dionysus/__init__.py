@@ -1,5 +1,6 @@
 from    _dionysus   import *
 from    distances   import *
+from    zigzag      import *
 
 
 def init_with_data(self, v, d = None):
@@ -23,6 +24,7 @@ def data_cmp(s1, s2):
     return cmp(s1.data, s2.data)
 
 def data_dim_cmp(s1,s2):
-    dim_cmp = cmp(s1.dimension(), s2.dimension())
-    if dim_cmp: return dim_cmp
-    else:       return data_cmp(s1,s2)
+    return cmp(s1.dimension(), s2.dimension()) or data_cmp(s1,s2)
+
+def vertex_dim_cmp(s1, s2):
+    return cmp(s1.dimension(), s2.dimension()) or vertex_cmp(s1, s2)
