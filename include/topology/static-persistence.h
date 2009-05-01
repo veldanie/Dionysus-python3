@@ -2,7 +2,34 @@
 #define __STATIC_PERSISTENCE_H__
 
 #include "order.h"
+#include "cycles.h"
 #include "filtration.h"
+
+#include <utilities/types.h>
+
+
+template<class Data_, class ChainTraits_, class ContainerTraits_, class Element_ = use_default> 
+struct PairCycleData: public Data_
+{
+    typedef     Data_                                                                   Data;
+    typedef     typename if_default<Element_, PairCycleData>::type                      Element;
+    typedef     PairCycleData<Data, ChainTraits_, ContainerTraits_, Element>            Self;
+
+    typedef     typename ContainerTraits_::template rebind<Element>::other              ContainerTraits;
+    typedef     typename ContainerTraits::Index                                         Index;
+    typedef     typename ChainTraits_::template rebind<Index>::other                    ChainTraits;
+    typedef     typename ChainTraits::Chain                                             Chain;
+    typedef     Chain                                                                   Cycle;
+
+                PairCycleData(Index p = Index(), const Cycle& z = Cycle(), const Data& d = Data()):
+                    Data(d), pair(p), cycle(z)
+                {}
+    
+    bool        sign() const                                                            { return cycle.empty(); }
+
+    Index       pair;
+    Cycle       cycle;
+};
 
 /**
  * Class: StaticPersistence
@@ -15,8 +42,11 @@
  *   OrderDescriptor_ -     class describing how the order is stored; it defaults to <VectorOrderDescriptor> 
  *                          which serves as a prototypical class
  */
-template<class Data_ = Empty<>,
-         class OrderDescriptor_ =   VectorOrderDescriptor<> >
+template<class Data_ =              Empty<>,
+         class ChainTraits_ =       VectorChains<>,
+         class Comparison_ =        GreaterComparison<>,
+         class ContainerTraits_ =   VectorContainer<>,
+         class Element_ =           PairCycleData<Data_, ChainTraits_, ContainerTraits_> >
 class StaticPersistence
 {
     public:
@@ -24,22 +54,20 @@ class StaticPersistence
         // The data type stored in each order element
         typedef                         Data_                                                   Data;
 
-        /* Typedefs: Order
-         * Types associated with the order
-         *
-         * OrderDescriptor -        template parameter rebound with `Data` carrying all the necessary information
-         * Order -                  the container class itself
-         * OrderIndex -             iterator into the Order
-         * OrderComparison -        a class for comparing OrderIndices
-         */
-        typedef                         typename OrderDescriptor_::
-                                                 template RebindData<Data>::
-                                                 other                                          OrderDescriptor;
-        typedef                         OrderTraits<OrderDescriptor>                            Traits;
-        typedef                         typename Traits::Order                                  Order;
-        typedef                         typename Traits::Index                                  OrderIndex;
-        typedef                         typename Traits::Element                                OrderElement;
-        typedef                         typename Traits::Comparison                             OrderComparison;
+        typedef                         Element_                                                Element;
+        typedef                         typename ContainerTraits_::
+                                                    template rebind<Element>::other             ContainerTraits;
+        typedef                         typename ContainerTraits::Container                     Container;
+        typedef                         Container                                               Order;
+        typedef                         typename ContainerTraits::Index                         OrderIndex;
+        typedef                         typename ContainerTraits::Element                       OrderElement;
+        typedef                         typename ChainTraits_::
+                                                    template rebind<OrderIndex>::other          ChainTraits;
+        typedef                         typename ChainTraits::Chain                             Chain;
+        typedef                         Chain                                                   Cycle;
+        
+        typedef                         typename Comparison_::
+                                                    template rebind<OrderIndex>::other          OrderComparison;
 
         /* Constructor: StaticPersistence()
          * TODO: write a description

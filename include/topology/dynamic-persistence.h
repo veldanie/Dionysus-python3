@@ -11,27 +11,31 @@ static Counter*  cTrailLength =             GetCounter("persistence/pair/traille
 static Counter*  cChainLength =             GetCounter("persistence/pair/chainlength");     // the size of matrix V in R=DV decomposition
 #endif // COUNTERS
 
-template<class Data, class OrderDescriptor_, class ConsistencyIndex>
-struct TrailData_: public Data
+template<class Data_, class ChainTraits_, class ContainerTraits_, class ConsistencyIndex_>
+struct TrailData: public PairCycleData<Data_, ChainTraits_, ContainerTraits_, 
+                                       TrailData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_> >
 {
-    typedef TrailData_<Data, OrderDescriptor_, ConsistencyIndex>                Self;
+    typedef     Data_                                                                   Data;
+    typedef     ConsistencyIndex_                                                       ConsistencyIndex;
 
-    typedef typename OrderTraits<typename OrderDescriptor_::
-                                          template RebindData<Self>::
-                                          other>::Index                         OrderIndex;
-    typedef typename OrderDescriptor_::
-                     Chains::template rebind<OrderIndex>::other::Chain          Trail;
+    typedef     PairCycleData<Data_, ChainTraits_, ContainerTraits_, TrailData>         Parent;
+    typedef     TrailData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_>     Self;
+
+    // typedef     typename ContainerTraits_::template rebind<Self>::other                 ContainerTraits;
+    // typedef     typename ContainerTraits::Index                                         Index;
+    // typedef     typename ChainTraits_::template rebind<Index>::other                    ChainTraits;
+    // typedef     typename ChainTraits::Chain                                             Chain;
+    typedef     typename Parent::Index                                                  Index;
+    typedef     typename Parent::Chain                                                  Chain;
+    typedef     Chain                                                                   Trail;
     
     template<class Comparison>
-    struct ConsistencyComparison
+    struct ConsistencyComparison: public std::binary_function<const Index&, const Index&, bool>
     {
-        typedef             const OrderIndex&                                   first_argument_type;
-        typedef             const OrderIndex&                                   second_argument_type;
-        typedef             bool                                                result_type;
+                        ConsistencyComparison(const Comparison& cmp = Comparison()): 
+                            cmp_(cmp)                                                   {}
 
-        ConsistencyComparison(const Comparison& cmp = Comparison()): cmp_(cmp)  {}
-
-        bool operator()(const OrderIndex& a, const OrderIndex& b) const         { return cmp_(a->consistency, b->consistency); }
+        bool            operator()(const Index& a, const Index& b) const                { return cmp_(a->consistency, b->consistency); }
 
         Comparison      cmp_;
     };
@@ -56,25 +60,28 @@ struct TrailData_: public Data
 // That way one could provide a simple consistency descriptor that just stored some integers describing the original 
 // position, or one could provide consistency that is references into the complex
 template<class Data_ =                  Empty<>, 
-         class OrderDescriptor_ =       VectorOrderDescriptor<>,
+         class ChainTraits_ =           VectorChains<>,
+         class Comparison_ =            GreaterComparison<>,
+         class ContainerTraits_ =       VectorContainer<>,
          class ConsistencyIndex_ =      size_t,
-         class ConsistencyComparison_ = std::less<ConsistencyIndex_> >
+         class ConsistencyComparison_ = std::less<ConsistencyIndex_>,
+         class Element_ =               TrailData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_> >
 class DynamicPersistenceTrails: 
-    public StaticPersistence<TrailData_<Data_, OrderDescriptor_, ConsistencyIndex_>, 
-                             OrderDescriptor_>
+    public StaticPersistence<Data_, ChainTraits_, Comparison_, ContainerTraits_, Element_>
 {
     public:
         typedef         Data_                                                           Data;
-        typedef         TrailData_<Data_, OrderDescriptor_, ConsistencyIndex_>          TrailData;
-        typedef         StaticPersistence<TrailData, OrderDescriptor_>                  Parent;
+        typedef         Element_                                                        Element;
+        typedef         StaticPersistence<Data_, ChainTraits_, Comparison_,
+                                          ContainerTraits_, Element_>                   Parent;
  
-        typedef         typename Parent::Traits                                         Traits;
-        typedef         typename Parent::OrderDescriptor                                OrderDescriptor;
+        typedef         typename Parent::ContainerTraits                                Traits;
+        typedef         typename Parent::Order                                          Order;
         typedef         typename Parent::OrderComparison                                OrderComparison;
         typedef         typename Parent::OrderIndex                                     OrderIndex;
         typedef         ConsistencyIndex_                                               ConsistencyIndex;
         typedef         ThreeOutcomeCompare<
-                            typename TrailData::
+                            typename Element::
                             template ConsistencyComparison<ConsistencyComparison_> >    ConsistencyComparison;
 
         /**
@@ -86,7 +93,7 @@ class DynamicPersistenceTrails:
          */
         template<class Filtration>      DynamicPersistenceTrails(const Filtration&              f, 
                                                                  const OrderComparison&         ocmp =  OrderComparison(),
-                                                                 const ConsistencyComparison_&  ccmp =  ConsistencyComparison_());
+                                                                 const ConsistencyComparison&   ccmp =  ConsistencyComparison());
         
         void                            pair_simplices();
 
@@ -143,23 +150,27 @@ class DynamicPersistenceTrails:
         ConsistencyComparison           ccmp_;
 };
 
-template<class Data, class OrderDescriptor_, class ConsistencyIndex>
-struct ChainData_: public Data
+template<class Data_, class ChainTraits_, class ContainerTraits_, class ConsistencyIndex_>
+struct ChainData: public PairCycleData<Data_, ChainTraits_, ContainerTraits_,
+                                       ChainData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_> >
 {
-    typedef ChainData_<Data, OrderDescriptor_, ConsistencyIndex>                Self;
+    typedef     Data_                                                                   Data;
+    typedef     ConsistencyIndex_                                                       ConsistencyIndex;
 
-    typedef typename OrderTraits<typename OrderDescriptor_::
-                                          template RebindData<Self>::
-                                          other>::Index                         OrderIndex;
-    typedef typename OrderDescriptor_::
-                     Chains::template rebind<OrderIndex>::other::Chain          Chain;
+    typedef     PairCycleData<Data_, ChainTraits_, ContainerTraits_, ChainData>         Parent;
+    typedef     ChainData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_>     Self;
+
+    typedef     typename Parent::Index                                                  Index;
+    typedef     typename Parent::Chain                                                  Chain;
+    typedef     Chain                                                                   Trail;
     
     template<class Comparison>
-    struct ConsistencyComparison: public std::binary_function<const OrderIndex&, const OrderIndex&, bool>
+    struct ConsistencyComparison: public std::binary_function<const Index&, const Index&, bool>
     {
-        ConsistencyComparison(const Comparison& cmp = Comparison()): cmp_(cmp)  {}
+                        ConsistencyComparison(const Comparison& cmp = Comparison()): 
+                            cmp_(cmp)                                                   {}
 
-        bool operator()(const OrderIndex& a, const OrderIndex& b) const         { return cmp_(a->consistency, b->consistency); }
+        bool            operator()(const Index& a, const Index& b) const                { return cmp_(a->consistency, b->consistency); }
 
         Comparison      cmp_;
     };
@@ -183,25 +194,28 @@ struct ChainData_: public Data
  *                          which serves as a prototypical class
  */
 template<class Data_ =                  Empty<>, 
-         class OrderDescriptor_ =       VectorOrderDescriptor<>,
+         class ChainTraits_ =           VectorChains<>,
+         class Comparison_ =            GreaterComparison<>,
+         class ContainerTraits_ =       VectorContainer<>,
          class ConsistencyIndex_ =      size_t,
-         class ConsistencyComparison_ = std::less<ConsistencyIndex_> >
+         class ConsistencyComparison_ = std::less<ConsistencyIndex_>,
+         class Element_ =               ChainData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_> >
 class DynamicPersistenceChains: 
-    public StaticPersistence<ChainData_<Data_, OrderDescriptor_, ConsistencyIndex_>, 
-                             OrderDescriptor_>
+    public StaticPersistence<Data_, ChainTraits_, Comparison_, ContainerTraits_, Element_>
 {
     public:
         typedef         Data_                                                           Data;
-        typedef         ChainData_<Data_, OrderDescriptor_, ConsistencyIndex_>          ChainData;
-        typedef         StaticPersistence<ChainData, OrderDescriptor_>                  Parent;
+        typedef         Element_                                                        Element;
+        typedef         StaticPersistence<Data_, ChainTraits_, Comparison_,
+                                          ContainerTraits_, Element_>                   Parent;
  
-        typedef         typename Parent::Traits                                         Traits;
-        typedef         typename Parent::OrderDescriptor                                OrderDescriptor;
+        typedef         typename Parent::ContainerTraits                                Traits;
+        typedef         typename Parent::Order                                          Order;
         typedef         typename Parent::OrderComparison                                OrderComparison;
         typedef         typename Parent::OrderIndex                                     OrderIndex;
         typedef         ConsistencyIndex_                                               ConsistencyIndex;
         typedef         ThreeOutcomeCompare<
-                            typename ChainData::
+                            typename Element::
                             template ConsistencyComparison<ConsistencyComparison_> >    ConsistencyComparison;
 
         /**
@@ -213,7 +227,7 @@ class DynamicPersistenceChains:
          */
         template<class Filtration>      DynamicPersistenceChains(const Filtration&              f, 
                                                                  const OrderComparison&         ocmp =  OrderComparison(),
-                                                                 const ConsistencyComparison_&  ccmp =  ConsistencyComparison_());
+                                                                 const ConsistencyComparison&   ccmp =  ConsistencyComparison());
         
         void                            pair_simplices();
 

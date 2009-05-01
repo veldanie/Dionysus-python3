@@ -22,25 +22,25 @@ static Counter*  cTranspositionCase4 =          GetCounter("persistence/transpos
 
 /* Trails */
 
-template<class D, class OD, class CI, class CC>
+template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
 template<class Filtration>
-DynamicPersistenceTrails<D,OD,CI,CC>::
-DynamicPersistenceTrails(const Filtration& f, const OrderComparison& ocmp, const CC& ccmp):
+DynamicPersistenceTrails<D,CT,Cmp,OT,CI,CC,E>::
+DynamicPersistenceTrails(const Filtration& f, const OrderComparison& ocmp, const ConsistencyComparison& ccmp):
     Parent(f, ocmp), ccmp_(ccmp)
 {}
         
-template<class D, class OD, class CI, class CC>
+template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
 void
-DynamicPersistenceTrails<D,OD,CI,CC>::
+DynamicPersistenceTrails<D,CT,Cmp,OT,CI,CC,E>::
 pair_simplices()
 { 
     Parent::pair_simplices(begin(), end(), PairingTrailsVisitor(begin(), ccmp_));
 }
 
-template<class D, class OD, class CI, class CC>
+template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
 template<class Visitor>
 bool
-DynamicPersistenceTrails<D,OD,CI,CC>::
+DynamicPersistenceTrails<D,CT,Cmp,OT,CI,CC,E>::
 transpose(OrderIndex i, const Visitor& visitor)
 {
 #if LOGGING
@@ -49,7 +49,7 @@ transpose(OrderIndex i, const Visitor& visitor)
 
     Count(cTransposition);
     typedef                 OrderIndex                                  Index;
-    typedef                 typename TrailData::Trail::iterator         TrailIterator;
+    typedef                 typename Element::Trail::iterator           TrailIterator;
 
     visitor.transpose(i);
     
@@ -222,9 +222,9 @@ transpose(OrderIndex i, const Visitor& visitor)
     return false; // to avoid compiler complaints; we should never reach this point
 }
 
-template<class D, class OD, class CI, class CC>
+template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
 void
-DynamicPersistenceTrails<D,OD,CI,CC>::
+DynamicPersistenceTrails<D,CT,Cmp,OT,CI,CC,E>::
 swap(OrderIndex i, OrderIndex j)
 {
     std::swap<Data>(*i, *j);
@@ -234,9 +234,9 @@ swap(OrderIndex i, OrderIndex j)
     std::swap(i->trail, j->trail);
 }
 
-template<class D, class OD, class CI, class CC>
+template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
 void
-DynamicPersistenceTrails<D,OD,CI,CC>::
+DynamicPersistenceTrails<D,CT,Cmp,OT,CI,CC,E>::
 pairing_switch(OrderIndex i, OrderIndex j)
 {
     OrderIndex i_pair = i->pair;
@@ -262,16 +262,16 @@ pairing_switch(OrderIndex i, OrderIndex j)
 
 /* Chains */
 
-template<class D, class OD, class CI, class CC>
+template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
 template<class Filtration>
-DynamicPersistenceChains<D,OD,CI,CC>::
-DynamicPersistenceChains(const Filtration& f, const OrderComparison& ocmp, const CC& ccmp):
+DynamicPersistenceChains<D,CT,Cmp,OT,CI,CC,E>::
+DynamicPersistenceChains(const Filtration& f, const OrderComparison& ocmp, const ConsistencyComparison& ccmp):
     Parent(f, ocmp), ccmp_(ccmp)
 {}
         
-template<class D, class OD, class CI, class CC>
+template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
 void
-DynamicPersistenceChains<D,OD,CI,CC>::
+DynamicPersistenceChains<D,CT,Cmp,OT,CI,CC,E>::
 pair_simplices()
 { 
     Parent::pair_simplices(begin(), end(), PairingChainsVisitor(begin(), ccmp_, size()));

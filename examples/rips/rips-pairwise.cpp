@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
     // Output cycles
     for (Persistence::OrderIndex cur = p.begin(); cur != p.end(); ++cur)
     {
-        Persistence::OrderDescriptor::Cycle& cycle = cur->cycle;
+        Persistence::Cycle& cycle = cur->cycle;
 
         if (!cur->sign())        // only negative simplices have non-empty cycles
         {
@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
         }
 
         // Iterate over the cycle
-        for (Persistence::OrderDescriptor::Cycle::const_iterator si =  cycle.begin();
+        for (Persistence::Cycle::const_iterator si =  cycle.begin();
                                                                  si != cycle.end();     ++si)
         {
             const Smplx& s = f.simplex(f.begin() + (*si - p.begin()));

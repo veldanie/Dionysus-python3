@@ -14,9 +14,9 @@ static Counter*  cPersistencePairBoundaries =               GetCounter("persiste
 static Counter*  cPersistencePairCycleLength =              GetCounter("persistence/pair/cyclelength");
 #endif // COUNTERS
 
-template<class D, class OD>
+template<class D, class CT, class Cmp, class OT, class E>
 template<class Filtration>
-StaticPersistence<D, OD>::
+StaticPersistence<D, CT, Cmp, OT, E>::
 StaticPersistence(const Filtration& filtration, 
                   const OrderComparison& ocmp):
     order_(filtration.size()),
@@ -26,9 +26,6 @@ StaticPersistence(const Filtration& filtration,
     OffsetMap<typename Filtration::IntermediateIndex, OrderIndex>       om(0, ocur);            // TODO: this is customized for std::vector Order
     for (typename Filtration::Index cur = filtration.begin(); cur != filtration.end(); ++cur, ++ocur)
     {
-        // Convert the Filtration::IndexBoundary into a Cycle, and 
-        typedef typename OrderDescriptor::Chains::Cycle         Cycle;
-
         OrderElement& oe = *ocur;
         oe.pair = ocur;
 
@@ -37,10 +34,10 @@ StaticPersistence(const Filtration& filtration,
     }
 }
 
-template<class D, class OD>
+template<class D, class CT, class Cmp, class OT, class E>
 template<class Visitor>
 void 
-StaticPersistence<D, OD>::
+StaticPersistence<D, CT, Cmp, OT, E>::
 pair_simplices(OrderIndex bg, OrderIndex end, const Visitor& visitor)
 {
 #if LOGGING
@@ -55,8 +52,7 @@ pair_simplices(OrderIndex bg, OrderIndex end, const Visitor& visitor)
         rLog(rlPersistence, "Simplex %s", outmap(j).c_str());
 
         OrderElement& oe = *j;
-        typedef typename OrderDescriptor::Chains::Cycle         Cycle;
-        Cycle& z = oe.cycle;
+        typename OrderElement::Cycle& z = oe.cycle;
         rLog(rlPersistence, "  has boundary: %s", z.tostring(outmap).c_str());
         
         CountNum(cPersistencePairBoundaries, oe.cycle.size());

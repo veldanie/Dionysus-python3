@@ -21,6 +21,18 @@ typedef 	const unsigned int&		version_type;
 template<typename T = void>
 struct      Empty                   {};
 
+
+struct      use_default             {};
+
+template<class T, class Default>
+struct      if_default
+{ typedef   T           type; };
+
+template<class Default>
+struct      if_default<use_default, Default>
+{ typedef   Default     type; };
+
+
 template<typename T>
 std::ostream& operator<<(std::ostream& out, Empty<T> e) { return out; }
 

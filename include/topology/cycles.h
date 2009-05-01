@@ -21,15 +21,7 @@ struct VectorChains
 {
     typedef             OrderIndex_                                             OrderIndex;
     typedef             ChainWrapper<vector<OrderIndex> >                       Chain;
-    typedef             Chain                                                   Cycle;
-
-    Cycle               cycle;
-
-                        VectorChains()                                          {}
-                        VectorChains(Cycle z): cycle(z)                         {}
-
-    bool                sign() const                                            { return cycle.empty(); }
-
+    
     template<class U> struct rebind
     { typedef           VectorChains<U>         other; };
 };
@@ -39,14 +31,6 @@ struct DequeChains
 {
     typedef             OrderIndex_                                             OrderIndex;
     typedef             ChainWrapper<deque<OrderIndex> >                        Chain;
-    typedef             Chain                                                   Cycle;
-
-    Cycle               cycle;
-
-                        DequeChains()                                           {}
-                        DequeChains(Cycle z): cycle(z)                          {}
-
-    bool                sign() const                                            { return cycle.empty(); }
 
     template<class U> struct rebind
     { typedef           DequeChains<U>         other; };
@@ -57,14 +41,6 @@ struct ListChains
 {
     typedef             OrderIndex_                                             OrderIndex;
     typedef             ChainWrapper<List<OrderIndex> >                         Chain;
-    typedef             Chain                                                   Cycle;
-
-    Cycle               cycle;
-
-                        ListChains()                                            {}
-                        ListChains(Cycle z): cycle(z)                           {}
-    
-    bool                sign() const                                            { return cycle.empty(); }
     
     template<class U> struct rebind
     { typedef           ListChains<U>           other; };
