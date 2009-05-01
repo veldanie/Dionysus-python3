@@ -8,5 +8,8 @@ include                     (${QT_USE_FILE})
 #find_path                   (QGLViewer_INCLUDE_DIR      QGLViewer/qglviewer.h)
 #include_directories         (${QGLViewer_INCLUDE_DIR})
 
+add_executable              (extract-diagram                extract-diagram.cpp)
+target_link_libraries       (extract-diagram                ${libraries} ${Boost_SERIALIZATION_LIBRARY})
+
 add_subdirectory            (diagram-viewer)
 add_subdirectory            (matching)

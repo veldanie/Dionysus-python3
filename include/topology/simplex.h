@@ -114,16 +114,16 @@ class Simplex
          * DataComparison -             compare simplices based on their <data()>
          * DataDimensionComparison -    compare simplices based on their <data()> within each <dimension()>
          */
-        
-        /* Classes: Functors
-         * DataEvaluator -              return data given a simplex
-         * DimensionExtractor -         return dimesnion given a simplex
-         */
         struct VertexComparison;
         struct VertexDimensionComparison;
         struct DataComparison;
         struct DataDimensionComparison;
 
+        /* Classes: Functors
+         *
+         * DataEvaluator -              return data given a simplex
+         * DimensionExtractor -         return dimesnion given a simplex
+         */
         struct DataEvaluator;
         struct DimensionExtractor;
     

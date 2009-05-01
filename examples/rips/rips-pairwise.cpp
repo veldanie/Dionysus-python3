@@ -112,7 +112,6 @@ void        program_options(int argc, char* argv[], std::string& infilename, Dim
 
     po::positional_options_description pos;
     pos.add("input-file", 1);
-    pos.add("output-file", 2);
     
     po::options_description all; all.add(visible).add(hidden);
 
