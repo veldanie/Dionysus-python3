@@ -75,7 +75,7 @@ transpose(OrderIndex i, const Visitor& visitor)
         if (i_in_i_prev)
         {
             rLog(rlTranspositions, "Case 1, U[i,i+1] = 1");
-            i_prev->trail.erase(*i_in_i_prev);
+            i_prev->trail.remove(*i_in_i_prev);
         }
 
         Index k = i_prev->pair;
@@ -211,7 +211,7 @@ transpose(OrderIndex i, const Visitor& visitor)
         if (i_in_i_prev)
         {
             rLog(rlTranspositions, "Case 4, U[i,i+1] = 1");
-            i_prev->trail.erase(*i_in_i_prev);
+            i_prev->trail.remove(*i_in_i_prev);
         }
         swap(i_prev, i);
         rLog(rlTranspositions, "Case 4");

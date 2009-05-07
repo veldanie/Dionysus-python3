@@ -77,7 +77,8 @@ class ChainWrapper: public Container_,
         
         /// \name Modifiers
         /// @{
-        void                                    remove(const_reference x);
+        void                                    remove(iterator i)                              { ChainRepresentation::erase(i); Size::operator--(); }
+        void                                    remove(const_reference x)                       { remove(std::find(begin(), end(), x)); }
 
         template<class ConsistencyComparison>
         void                                    append(const_reference x, const ConsistencyComparison& cmp);
@@ -106,8 +107,10 @@ class ChainWrapper: public Container_,
         std::string                             tostring(const OutputMap& outmap = OutputMap()) const;
         /// @}
         
-    private:
+        /// Technically, it's an internal operation, and should be followed by a sort()
         using                                   ChainRepresentation::push_back;
+
+    private:
         using                                   ChainRepresentation::insert;
         using                                   ChainRepresentation::erase;
         

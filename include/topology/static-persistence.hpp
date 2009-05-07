@@ -41,7 +41,7 @@ StaticPersistence<D, CT, Cmp, OT, E>::
 pair_simplices(OrderIndex bg, OrderIndex end, const Visitor& visitor)
 {
 #if LOGGING
-    typename Traits::OutputMap outmap(order_);
+    typename ContainerTraits::OutputMap outmap(order_);
 #endif
 
     // FIXME: need sane output for logging

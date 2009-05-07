@@ -41,15 +41,6 @@ ChainWrapper(Iterator bg, Iterator end):
 {}
 
 template<class C>
-void
-ChainWrapper<C>::
-remove(const_reference x)
-{
-    erase(std::find(begin(), end(), x));
-    Size::operator--();
-}
-
-template<class C>
 template<class ConsistencyCmp>
 void
 ChainWrapper<C>::
