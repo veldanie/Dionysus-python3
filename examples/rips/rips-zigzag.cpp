@@ -58,12 +58,11 @@ struct      BirthInfo
 };
 
 // Forward declarations of auxilliary functions
-void        report_death(std::ofstream& out, Death d, DistanceType epsilon, Dimension skeleton_dimension);
+void        report_death(std::ostream& out, Death d, DistanceType epsilon, Dimension skeleton_dimension);
 void        make_boundary(const Smplx& s, Complex& c, const Zigzag& zz, Boundary& b);
 std::ostream&   operator<<(std::ostream& out, const BirthInfo& bi);
 void        process_command_line_options(int           argc,
                                          char*         argv[],
-                                         unsigned&     ambient_dimension,
                                          unsigned&     skeleton_dimension,
                                          float&        multiplier,
                                          std::string&  infilename,
@@ -85,15 +84,14 @@ int main(int argc, char* argv[])
     SetTrigger(cOperations, cComplexSize);
 #endif
 
-    unsigned        ambient_dimension;
     unsigned        skeleton_dimension;
     float           multiplier;
     std::string     infilename, outfilename;
-    process_command_line_options(argc, argv, ambient_dimension, skeleton_dimension, multiplier, infilename, outfilename);
+    process_command_line_options(argc, argv, skeleton_dimension, multiplier, infilename, outfilename);
 
     // Read in points
     PointContainer      points;
-    read_points(infilename, points, ambient_dimension);
+    read_points(infilename, points);
     
     // Create output file
     std::ofstream out(outfilename.c_str());
@@ -281,7 +279,7 @@ int main(int argc, char* argv[])
 
 
             
-void        report_death(std::ofstream& out, Death d, DistanceType epsilon, Dimension skeleton_dimension)
+void        report_death(std::ostream& out, Death d, DistanceType epsilon, Dimension skeleton_dimension)
 {
     if (d && ((d->distance - epsilon) != 0) && (d->dimension < skeleton_dimension))
         out << d->dimension << " " << d->distance << " " << epsilon << std::endl;
@@ -302,7 +300,6 @@ std::ostream&   operator<<(std::ostream& out, const BirthInfo& bi)
 
 void        process_command_line_options(int           argc, 
                                          char*         argv[],
-                                         unsigned&     ambient_dimension,
                                          unsigned&     skeleton_dimension,
                                          float&        multiplier,
                                          std::string&  infilename,
@@ -318,7 +315,6 @@ void        process_command_line_options(int           argc,
     po::options_description visible("Allowed options", 100);
     visible.add_options()
         ("help,h",                                                                              "produce help message")
-        ("ambient-dimsnion,a",  po::value<unsigned>(&ambient_dimension)->default_value(3),      "The ambient dimension of the point set")
         ("skeleton-dimsnion,s", po::value<unsigned>(&skeleton_dimension)->default_value(2),     "Dimension of the Rips complex we want to compute")
         ("multiplier,m",        po::value<float>(&multiplier)->default_value(6),                "Multiplier for the epsilon (distance to next maxmin point) when computing the Rips complex");
 #if LOGGING

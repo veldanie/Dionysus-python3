@@ -7,6 +7,8 @@
 #include <fstream>
 #include <functional>
 #include <cmath>
+#include <string>
+#include <sstream>
 
 
 typedef     std::vector<double>                                     Point;
@@ -26,19 +28,18 @@ struct L2Distance:
     }
 };
 
-void    read_points(const std::string& infilename, PointContainer& points, Dimension ambient)
+void    read_points(const std::string& infilename, PointContainer& points)
 {
     std::ifstream in(infilename.c_str());
-    while(in)
+    std::string   line;
+    while(std::getline(in, line))
     {
+        if (line[0] == '#') continue;               // comment line in the file
+        std::stringstream linestream(line);
+        double x;
         points.push_back(Point());
-        for (unsigned i = 0; i < ambient; ++i)
-        {
-            double      x;
-            in >> x;
-            if (!in) { points.pop_back(); break; }
+        while (linestream >> x)
             points.back().push_back(x);
-        }
     }
 }
 

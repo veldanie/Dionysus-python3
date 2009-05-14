@@ -26,18 +26,18 @@ typedef         Filtration<SimplexVector, unsigned>                     Fltr;
 typedef         DynamicPersistenceChains<>                              Persistence;
 typedef         PersistenceDiagram<>                                    PDgm;
 
-void            program_options(int argc, char* argv[], std::string& infilename, Dimension& ambient, Dimension& skeleton, DistanceType& max_distance);
+void            program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance);
 
 int main(int argc, char* argv[])
 {
-    Dimension               ambient, skeleton;
+    Dimension               skeleton;
     DistanceType            max_distance;
     std::string             infilename;
 
-    program_options(argc, argv, infilename, ambient, skeleton, max_distance);
+    program_options(argc, argv, infilename, skeleton, max_distance);
 
     PointContainer          points;
-    read_points(infilename, points, ambient);
+    read_points(infilename, points);
 
     PairDistances           distances(points);
     Generator               rips(distances);
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
     persistence_timer.check("Persistence timer");
 }
 
-void        program_options(int argc, char* argv[], std::string& infilename, Dimension& ambient, Dimension& skeleton, DistanceType& max_distance)
+void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance)
 {
     namespace po = boost::program_options;
 
@@ -106,7 +106,6 @@ void        program_options(int argc, char* argv[], std::string& infilename, Dim
     po::options_description visible("Allowed options", 100);
     visible.add_options()
         ("help,h",                                                                                  "produce help message")
-        ("ambient-dimsnion,a",  po::value<Dimension>(&ambient)->default_value(3),                   "The ambient dimension of the point set")
         ("skeleton-dimsnion,s", po::value<Dimension>(&skeleton)->default_value(2),                  "Dimension of the Rips complex we want to compute")
         ("max-distance,m",      po::value<DistanceType>(&max_distance)->default_value(Infinity),    "Maximum value for the Rips complex construction");
 

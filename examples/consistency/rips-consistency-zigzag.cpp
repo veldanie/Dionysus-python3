@@ -71,7 +71,6 @@ void        report_death(std::ostream& out, const BirthInfo& birth, const BirthI
 void        make_boundary(const Smplx& s, Complex& c, const Zigzag& zz, Boundary& b);
 void        process_command_line_options(int           argc,
                                          char*         argv[],
-                                         unsigned&     ambient_dimension,
                                          unsigned&     skeleton_dimension,
                                          float&        epsilon,
                                          std::string&  points_filename,
@@ -98,16 +97,15 @@ int main(int argc, char* argv[])
     SetTrigger(cOperations, cComplexSize);
 #endif
 
-    unsigned        ambient_dimension;
     unsigned        skeleton_dimension;
     float           epsilon;
     std::string     points_filename, subsample_filename, outfilename;
-    process_command_line_options(argc, argv, ambient_dimension, skeleton_dimension, epsilon, 
+    process_command_line_options(argc, argv, skeleton_dimension, epsilon, 
                                              points_filename, subsample_filename, outfilename);
 
     // Read in points
     PointContainer      points;
-    read_points(points_filename, points, ambient_dimension);
+    read_points(points_filename, points);
     
     // Read in subsamples
     std::ifstream subsample_in(subsample_filename.c_str());
@@ -285,7 +283,6 @@ void        remove_simplex(const Smplx& s, const BirthInfo& birth, const BirthIn
 
 void        process_command_line_options(int           argc,
                                          char*         argv[],
-                                         unsigned&     ambient_dimension,
                                          unsigned&     skeleton_dimension,
                                          float&        epsilon,
                                          std::string&  points_filename,
@@ -303,7 +300,6 @@ void        process_command_line_options(int           argc,
     po::options_description visible("Allowed options", 100);
     visible.add_options()
         ("help,h",                                                                              "produce help message")
-        ("ambient-dimsnion,a",  po::value<unsigned>(&ambient_dimension)->default_value(3),      "The ambient dimension of the point set")
         ("skeleton-dimsnion,s", po::value<unsigned>(&skeleton_dimension)->default_value(2),     "Dimension of the Rips complex we want to compute")
         ("epsilon,e",           po::value<float>(&epsilon)->default_value(0),                   "epsilon to use when computing the Rips complex");
 #if LOGGING

@@ -7,6 +7,8 @@
 #include <utilities/memory.h>       // for report_memory()
 #include <utilities/timer.h>
 
+#include <geometry/l2distance.h>    // for L2Distance and read_points()
+
 #include <map>
 #include <cmath>
 #include <fstream>
@@ -23,21 +25,6 @@ static Counter*  cComplexSize =                     GetCounter("rips/size");
 static Counter*  cOperations =                      GetCounter("rips/operations");
 #endif // COUNTERS
 
-typedef     std::vector<double>                                     Point;
-typedef     std::vector<Point>                                      PointContainer;
-struct L2Distance:
-    public std::binary_function<const Point&, const Point&, double>
-{
-    result_type     operator()(const Point& p1, const Point& p2) const
-    {
-        AssertMsg(p1.size() == p2.size(), "Points must be in the same dimension (in L2Distance)");
-        result_type sum = 0;
-        for (size_t i = 0; i < p1.size(); ++i)
-            sum += (p1[i] - p2[i])*(p1[i] - p2[i]);
-
-        return sqrt(sum);
-    }
-};
 typedef     PairwiseDistances<PointContainer, L2Distance>           PairDistances;
 typedef     PairDistances::DistanceType                             DistanceType;
 
@@ -78,7 +65,6 @@ void        show_image_betti(Zigzag& zz, Dimension skeleton);
 std::ostream&   operator<<(std::ostream& out, const BirthInfo& bi);
 void        process_command_line_options(int           argc,
                                          char*         argv[],
-                                         unsigned&     ambient_dimension,
                                          unsigned&     skeleton_dimension,
                                          float&        from_multiplier, 
                                          float&        to_multiplier,
@@ -101,25 +87,14 @@ int main(int argc, char* argv[])
     SetTrigger(cOperations, cComplexSize);
 #endif
 
-    unsigned        ambient_dimension;
     unsigned        skeleton_dimension;
     float           from_multiplier, to_multiplier;
     std::string     infilename, outfilename;
-    process_command_line_options(argc, argv, ambient_dimension, skeleton_dimension, from_multiplier, to_multiplier, infilename, outfilename);
+    process_command_line_options(argc, argv, skeleton_dimension, from_multiplier, to_multiplier, infilename, outfilename);
 
     // Read in points
-    std::ifstream in(infilename.c_str());
     PointContainer      points;
-    while(in)
-    {
-        points.push_back(Point());
-        for (unsigned i = 0; i < ambient_dimension; ++i)
-        {
-            DistanceType    x;
-            in >> x;
-            points.back().push_back(x);
-        }
-    }
+    read_points(infilename, points);
     
     // Create output file
     std::ofstream out(outfilename.c_str());
@@ -422,7 +397,6 @@ std::ostream&   operator<<(std::ostream& out, const BirthInfo& bi)
 
 void        process_command_line_options(int           argc, 
                                          char*         argv[],
-                                         unsigned&     ambient_dimension,
                                          unsigned&     skeleton_dimension,
                                          float&        from_multiplier, 
                                          float&        to_multiplier,
@@ -439,7 +413,6 @@ void        process_command_line_options(int           argc,
     po::options_description visible("Allowed options", 100);
     visible.add_options()
         ("help,h",                                                                              "produce help message")
-        ("ambient-dimsnion,a",  po::value<unsigned>(&ambient_dimension)->default_value(3),      "The ambient dimension of the point set")
         ("skeleton-dimsnion,s", po::value<unsigned>(&skeleton_dimension)->default_value(2),     "Dimension of the Rips complex we want to compute")
         ("from,f",              po::value<float>(&from_multiplier)->default_value(4),           "From multiplier for the epsilon (distance to next maxmin point) when computing the Rips complex")
         ("to,t",                po::value<float>(&to_multiplier)->default_value(16),            "To multiplier for the epsilon (distance to next maxmin point) when computing the Rips complex");
