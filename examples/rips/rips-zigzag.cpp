@@ -4,6 +4,7 @@
 #include <utilities/containers.h>
 
 #include <geometry/l2distance.h>    // Point, PointContainer, L2DistanceType, read_points
+#include <geometry/distances.h>
 
 #include <utilities/log.h>
 #include <utilities/memory.h>       // for report_memory()

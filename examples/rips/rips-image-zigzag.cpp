@@ -8,6 +8,7 @@
 #include <utilities/timer.h>
 
 #include <geometry/l2distance.h>    // for L2Distance and read_points()
+#include <geometry/distances.h>
 
 #include <map>
 #include <cmath>

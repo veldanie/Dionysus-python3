@@ -5,6 +5,7 @@
 #include <topology/persistence-diagram.h>
 
 #include <geometry/l2distance.h>
+#include <geometry/distances.h>
 
 #include <utilities/containers.h>           // for BackInsertFunctor
 #include <utilities/timer.h>

@@ -2,6 +2,7 @@
 #include <topology/zigzag-persistence.h>
 
 #include <geometry/l2distance.h>    // Point, PointContainer, L2DistanceType, read_points
+#include <geometry/distances.h>
 
 #include <utilities/types.h>
 #include <utilities/containers.h>

@@ -7,6 +7,8 @@
 #include <topology/rips.h>
 #include <topology/static-persistence.h>
 
+#include <geometry/distances.h>     // for ExplicitDistances
+
 
 typedef         ExplicitDistances<AvidaPopulationDetail>            ExplicitDist;
 typedef         Rips<ExplicitDist>                                  RipsGen;
