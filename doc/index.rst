@@ -4,6 +4,17 @@ Welcome to Dionysus' documentation!
 Dionysus is a C++ library for computing persistent homology. It provides
 implementations of the following algorithms:
 
+.. sidebar:: Contents
+   
+   .. toctree::
+      :maxdepth: 1
+   
+      get-build-install
+      tutorial
+      examples/index
+      python/overview
+      bibliography
+
 * Persistent homology computation [ELZ02]_ [ZC05]_
 * Vineyards [CEM06]_    |cpp-only|
 * Persistent cohomology computation (described in [dSVJ09]_)    |cpp-only|
@@ -27,17 +38,6 @@ the low-level C++ functionality as well as high-level auxilliary routines. Their
 "thinness" is meant to provide the efficiency benefits of C++ together with the
 simplicity, elegance, and interactivity of Python. Since they mimick the C++
 functionality, their documentation may be a helpful resource for the latter.
-
-Contents:
-
-.. toctree::
-   :maxdepth: 1
-
-   get-build-install
-   tutorial
-   examples/index
-   python/overview
-   bibliography
 
 
 .. include::    substitutions.aux
