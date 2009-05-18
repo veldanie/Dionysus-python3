@@ -7,7 +7,7 @@
 namespace bp = boost::python;
 
 
-#include "filtration.h"      // defines ListFiltration, ListTraits, ListRandomAccessIterator
+#include "filtration.h"      // defines ListFiltration, ListTraits
 #include "utils.h"           // defines PythonCmp
 namespace dp = dionysus::python;
 

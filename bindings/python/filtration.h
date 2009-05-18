@@ -4,48 +4,19 @@
 #include <topology/filtration.h>
 #include <boost/python.hpp>
 #include "simplex.h"
+#include "utils.h"                      // for ListRandomAccessIterator
 
 namespace bp = boost::python;
 
 namespace dionysus { 
 namespace python   {
 
-// Random access iterator into python's list (using integer indices)
-class ListRandomAccessIterator:
-    public boost::iterator_adaptor<ListRandomAccessIterator,                // Derived
-                                   boost::counting_iterator<unsigned>,      // Base
-                                   SimplexObject,                           // Value
-                                   boost::use_default,
-                                   SimplexObject>
-{
-    public:
-        typedef                 ListRandomAccessIterator                                        Self;
-        typedef                 boost::iterator_adaptor<ListRandomAccessIterator,           
-                                                        boost::counting_iterator<unsigned>,     
-                                                        SimplexObject,
-                                                        boost::use_default,
-                                                        SimplexObject>                          Parent;
-                    
-                                ListRandomAccessIterator()                                      {}
-
-                                ListRandomAccessIterator(bp::list l, unsigned i):
-                                    Parent(i), l_(l)                                            {}
-
-    private:
-        friend class boost::iterator_core_access;
-        friend class FiltrationPythonIterator;
-
-        Parent::reference       dereference() const                                             { return bp::object(l_[*(this->base())]); }
-
-        bp::list                l_;
-};
-
 // ComplexTraits describing complexes of type list
 struct ListTraits
 {
     typedef     bp::list                                        Complex;
     typedef     SimplexObject                                   Simplex;
-    typedef     ListRandomAccessIterator                        Index;
+    typedef     ListRandomAccessIterator<Simplex>               Index;
     typedef     std::less<Index>                                IndexComparison;
 
     typedef     BinarySearchMap<SimplexVD, Index,
