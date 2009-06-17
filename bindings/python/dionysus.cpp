@@ -10,8 +10,10 @@ void export_chain();
 void export_zigzag_persistence();
 
 void export_rips();
+#ifndef NO_CGAL
 void export_alphashapes2d();
 void export_alphashapes3d();
+#endif
 
 #ifdef LOGGING
 void            enable_log(std::string s)
@@ -30,8 +32,10 @@ BOOST_PYTHON_MODULE(_dionysus)
     export_zigzag_persistence();
 
     export_rips();
+#ifndef NO_CGAL
     export_alphashapes2d();
     export_alphashapes3d();
+#endif
 
 #ifdef LOGGING
     bp::def("enable_log",           &enable_log);

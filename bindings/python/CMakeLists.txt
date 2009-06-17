@@ -26,6 +26,7 @@ if                          (CGAL_FOUND)
     link_libraries          (${CGAL_LIBRARY})                                            
 else                            (CGAL_FOUND)
     message(STATUS "CGAL not found, alphashape bindings will not be built")
+    add_definitions         (-DNO_CGAL)
 endif                       (CGAL_FOUND)
 
 add_library                 (_dionysus SHARED   ${sources})
