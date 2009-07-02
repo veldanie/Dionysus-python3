@@ -1,0 +1,34 @@
+.. _examples:
+
+Examples
+========
+
+The most basic example and therefore a good place to start getting acquainted
+with the library is the :ref:`triangle-example`. It adds simplices of a triangle
+one by one, and then (in case of a :ref:`triangle-zigzag-example`), removes them
+one by one.
+
+.. toctree::
+    
+    triangle
+    triangle-zigzag
+    
+The simplest example that instead of specifying the complex explicitly,
+constructs it from the input point set is the :ref:`alpha-shape-example`. The
+example reads points from a file, determines their dimension dynamically (based
+on the number of coordinates in the first line of the file), and then constructs
+an alpha shape and outputs its persistence diagram.
+
+.. toctree::
+
+    alphashape
+
+Another example that follows a similar strategy is the computation of the
+Vietoris-Rips complex. Since only pairwise distances are required it works with
+points in arbitrary dimension. (Of course, in dimensions 2 and 3 the complexes
+are much larger than those for the :ref:`alpha-shape-example`).
+
+.. toctree::
+    :maxdepth: 1
+
+    rips
