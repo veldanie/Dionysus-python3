@@ -28,7 +28,9 @@ typedef     Persistence::SimplexIndex                               Index;
 typedef     Persistence::Death                                      Death;
 typedef     std::map<Smplx, Index, Smplx::VertexComparison>         Complex;
 
-void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance, ZpField::Element& prime);
+#include "output.h"         // for output_*()
+
+void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance, ZpField::Element& prime, std::string& boundary_name, std::string& cocycle_prefix, std::string& vertices_name, std::string& diagram_name);
 
 int main(int argc, char* argv[])
 {
@@ -41,9 +43,16 @@ int main(int argc, char* argv[])
     Dimension               skeleton;
     DistanceType            max_distance;
     ZpField::Element        prime;
-    std::string             infilename;
+    std::string             infilename, boundary_name, cocycle_prefix, vertices_name, diagram_name;
 
-    program_options(argc, argv, infilename, skeleton, max_distance, prime);
+    program_options(argc, argv, infilename, skeleton, max_distance, prime, boundary_name, cocycle_prefix, vertices_name, diagram_name);
+    std::ofstream           bdry_out(boundary_name.c_str());
+    std::ofstream           vertices_out(vertices_name.c_str());
+    std::ofstream           diagram_out(diagram_name.c_str());
+    std::cout << "Boundary matrix: " << boundary_name << std::endl;
+    std::cout << "Cocycles:        " << cocycle_prefix << "*.ccl" << std::endl;
+    std::cout << "Vertices:        " << vertices_name << std::endl;
+    std::cout << "Diagram:         " << diagram_name << std::endl;
 
     Timer total_timer; total_timer.start();
     PointContainer          points;
@@ -52,14 +61,18 @@ int main(int argc, char* argv[])
     PairDistances           distances(points);
     Generator               rips(distances);
     Generator::Evaluator    size(distances);
+    Generator::Comparison   cmp(distances);
     SimplexVector           v;
     Complex                 c;
     
     Timer rips_timer; rips_timer.start();
     rips.generate(skeleton, max_distance, make_push_back_functor(v));
-    std::sort(v.begin(), v.end(), Generator::Comparison(distances));
+    std::sort(v.begin(), v.end(), cmp);
     rips_timer.stop();
     std::cout << "Simplex vector generated, size: " << v.size() << std::endl;
+
+    output_boundary_matrix(bdry_out, v, cmp);
+    output_vertex_indices(vertices_out, v);
 
     Timer persistence_timer; persistence_timer.start();
     ZpField                 zp(prime);
@@ -81,28 +94,24 @@ int main(int argc, char* argv[])
         if (d && (size(*cur) - d->get<1>()) > 0)
         {
             AssertMsg(d->get<0>() == cur->dimension() - 1, "Dimensions must match");
-            std::cout << (cur->dimension() - 1) << " " << d->get<1>() << " " << size(*cur) << std::endl;
+            diagram_out << (cur->dimension() - 1) << " " << d->get<1>() << " " << size(*cur) << std::endl;
         }
     }
-    // output infinte persistence cocycles
+    // output infinte persistence pairs 
     for (Persistence::CocycleIndex cur = p.begin(); cur != p.end(); ++cur)
-        std::cout << cur->birth.get<0>() << " " << cur->birth.get<1>() << " inf" << std::endl;
+        diagram_out << cur->birth.get<0>() << " " << cur->birth.get<1>() << " inf" << std::endl;
     persistence_timer.stop();
 
 
     // p.show_cocycles();
-    // Output alive cocycles
+    // Output alive cocycles of dimension 1
+    unsigned i = 0;
     for (Persistence::Cocycles::const_iterator cur = p.begin(); cur != p.end(); ++cur)
     {
-        std::cout << "Cocycle of dimension: " << cur->birth.get<0>() << " born at " << cur->birth.get<1>() << std::endl;
-        for (Persistence::ZColumn::const_iterator zcur = cur->zcolumn.begin(); zcur != cur->zcolumn.end(); ++zcur)
-        {
-            const Smplx& s = **(zcur->si);
-            std::cout << zcur->coefficient << " ";
-            for (Smplx::VertexContainer::const_iterator vcur = s.vertices().begin(); vcur != s.vertices().end(); ++vcur)
-                std::cout << *vcur << " ";
-            std::cout << std::endl;
-        }
+        if (cur->birth.get<0>() != 1) continue;
+        output_cocycle(cocycle_prefix, i, v, *cur, prime, cmp);
+        // std::cout << "Cocycle of dimension: " << cur->birth.get<0>() << " born at " << cur->birth.get<1>() << std::endl;
+        ++i;
     }
     total_timer.stop();
     rips_timer.check("Rips timer");
@@ -110,7 +119,7 @@ int main(int argc, char* argv[])
     total_timer.check("Total timer");
 }
 
-void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance, ZpField::Element& prime)
+void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance, ZpField::Element& prime, std::string& boundary_name, std::string& cocycle_prefix, std::string& vertices_name, std::string& diagram_name)
 {
     namespace po = boost::program_options;
 
@@ -122,8 +131,12 @@ void        program_options(int argc, char* argv[], std::string& infilename, Dim
     visible.add_options()
         ("help,h",                                                                                  "produce help message")
         ("skeleton-dimsnion,s", po::value<Dimension>(&skeleton)->default_value(2),                  "Dimension of the Rips complex we want to compute")
-        ("prime,p",             po::value<ZpField::Element>(&prime)->default_value(2),              "Prime p for the field F_p")
-        ("max-distance,m",      po::value<DistanceType>(&max_distance)->default_value(Infinity),    "Maximum value for the Rips complex construction");
+        ("prime,p",             po::value<ZpField::Element>(&prime)->default_value(11),             "Prime p for the field F_p")
+        ("max-distance,m",      po::value<DistanceType>(&max_distance)->default_value(Infinity),    "Maximum value for the Rips complex construction")
+        ("boundary,b",          po::value<std::string>(&boundary_name),                             "Filename where to output the boundary matrix")
+        ("cocycle,c",           po::value<std::string>(&cocycle_prefix),                            "Prefix of the filename where to output the 1-dimensional cocycles")
+        ("vertices,v",          po::value<std::string>(&vertices_name),                             "Filename where to output the simplex-vertex mapping")
+        ("diagram,d",           po::value<std::string>(&diagram_name),                              "Filename where to output the persistence diagram");
 #if LOGGING
     std::vector<std::string>    log_channels;
     visible.add_options()
@@ -132,7 +145,6 @@ void        program_options(int argc, char* argv[], std::string& infilename, Dim
 
     po::positional_options_description pos;
     pos.add("input-file", 1);
-    pos.add("output-file", 2);
     
     po::options_description all; all.add(visible).add(hidden);
 
