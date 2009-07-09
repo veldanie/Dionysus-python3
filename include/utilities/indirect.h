@@ -28,6 +28,27 @@ IndirectComparison<Comparison> make_indirect_comparison(const Comparison& cmp)
 { return IndirectComparison<Comparison>(cmp); }
 
 
+template<class Comparison_>
+class FirstComparison
+{
+    public:
+        typedef     Comparison_                             Comparison;
+
+                    FirstComparison(Comparison cmp): 
+                        cmp_(cmp)                           {}
+
+        template<class Pair>
+        bool        operator()(const Pair& a, const Pair& b) const
+        { return cmp_(a.first, b.first); }
+
+    private:
+        Comparison  cmp_;
+};
+template<class Comparison>
+FirstComparison<Comparison> make_first_comparison(const Comparison& cmp)
+{ return FirstComparison<Comparison>(cmp); }
+
+
 template<class Comparison>
 struct ThreeOutcomeCompare: public Comparison
 {

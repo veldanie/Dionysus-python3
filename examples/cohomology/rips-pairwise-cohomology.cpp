@@ -6,6 +6,7 @@
 
 #include <utilities/containers.h>           // for BackInsertFunctor
 #include <utilities/timer.h>
+#include <utilities/log.h>
 
 #include <string>
 
@@ -15,28 +16,36 @@
 typedef     PairwiseDistances<PointContainer, L2Distance>           PairDistances;
 typedef     PairDistances::DistanceType                             DistanceType;
 typedef     PairDistances::IndexType                                Vertex;
-    
-typedef     CohomologyPersistence<DistanceType>                     Persistence;
-typedef     Persistence::SimplexIndex                               Index;
-typedef     Persistence::Death                                      Death;
-
+ 
 typedef     Rips<PairDistances>                                     Generator;
 typedef     Generator::Simplex                                      Smplx;
-
-typedef     std::map<Smplx, Index, 
-                     Smplx::VertexComparison>                       Complex;
 typedef     std::vector<Smplx>                                      SimplexVector;
+typedef     SimplexVector::const_iterator                           SV_const_iterator;
 
-void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance);
+typedef     boost::tuple<Dimension, DistanceType>                   BirthInfo;
+typedef     CohomologyPersistence<BirthInfo, SV_const_iterator>     Persistence;
+typedef     Persistence::SimplexIndex                               Index;
+typedef     Persistence::Death                                      Death;
+typedef     std::map<Smplx, Index, Smplx::VertexComparison>         Complex;
+
+void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance, ZpField::Element& prime);
 
 int main(int argc, char* argv[])
 {
+#ifdef LOGGING
+    rlog::RLogInit(argc, argv);
+
+    stderrLog.subscribeTo( RLOG_CHANNEL("error") );
+#endif
+
     Dimension               skeleton;
     DistanceType            max_distance;
+    ZpField::Element        prime;
     std::string             infilename;
 
-    program_options(argc, argv, infilename, skeleton, max_distance);
+    program_options(argc, argv, infilename, skeleton, max_distance, prime);
 
+    Timer total_timer; total_timer.start();
     PointContainer          points;
     read_points(infilename, points);
 
@@ -46,30 +55,62 @@ int main(int argc, char* argv[])
     SimplexVector           v;
     Complex                 c;
     
+    Timer rips_timer; rips_timer.start();
     rips.generate(skeleton, max_distance, make_push_back_functor(v));
     std::sort(v.begin(), v.end(), Generator::Comparison(distances));
+    rips_timer.stop();
     std::cout << "Simplex vector generated, size: " << v.size() << std::endl;
 
     Timer persistence_timer; persistence_timer.start();
-    Persistence p;
+    ZpField                 zp(prime);
+    Persistence             p(zp);
     for (SimplexVector::const_iterator cur = v.begin(); cur != v.end(); ++cur)
     {
         std::vector<Index>      boundary;
-        for (Smplx::BoundaryIterator bcur  = cur->boundary_begin(); 
-                                     bcur != cur->boundary_end();       ++bcur)
+        for (Smplx::BoundaryIterator bcur  = cur->boundary_begin(); bcur != cur->boundary_end(); ++bcur)
             boundary.push_back(c[*bcur]);
         
         Index idx; Death d;
-        boost::tie(idx, d)      = p.add(boundary.begin(), boundary.end(), size(*cur));
-        c[*cur] = idx;
-        if (d && (size(*cur) - *d) > 0)
-            std::cout << (cur->dimension() - 1) << " " << *d << " " << size(*cur) << std::endl;
+        bool store = cur->dimension() < skeleton;
+        boost::tie(idx, d)      = p.add(boundary.begin(), boundary.end(), boost::make_tuple(cur->dimension(), size(*cur)), store, cur);
+        
+        // c[*cur] = idx;
+        if (store)
+            c.insert(std::make_pair(*cur, idx));
+
+        if (d && (size(*cur) - d->get<1>()) > 0)
+        {
+            AssertMsg(d->get<0>() == cur->dimension() - 1, "Dimensions must match");
+            std::cout << (cur->dimension() - 1) << " " << d->get<1>() << " " << size(*cur) << std::endl;
+        }
     }
+    // output infinte persistence cocycles
+    for (Persistence::CocycleIndex cur = p.begin(); cur != p.end(); ++cur)
+        std::cout << cur->birth.get<0>() << " " << cur->birth.get<1>() << " inf" << std::endl;
     persistence_timer.stop();
+
+
+    // p.show_cocycles();
+    // Output alive cocycles
+    for (Persistence::Cocycles::const_iterator cur = p.begin(); cur != p.end(); ++cur)
+    {
+        std::cout << "Cocycle of dimension: " << cur->birth.get<0>() << " born at " << cur->birth.get<1>() << std::endl;
+        for (Persistence::ZColumn::const_iterator zcur = cur->zcolumn.begin(); zcur != cur->zcolumn.end(); ++zcur)
+        {
+            const Smplx& s = **(zcur->si);
+            std::cout << zcur->coefficient << " ";
+            for (Smplx::VertexContainer::const_iterator vcur = s.vertices().begin(); vcur != s.vertices().end(); ++vcur)
+                std::cout << *vcur << " ";
+            std::cout << std::endl;
+        }
+    }
+    total_timer.stop();
+    rips_timer.check("Rips timer");
     persistence_timer.check("Persistence timer");
+    total_timer.check("Total timer");
 }
 
-void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance)
+void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance, ZpField::Element& prime)
 {
     namespace po = boost::program_options;
 
@@ -81,7 +122,13 @@ void        program_options(int argc, char* argv[], std::string& infilename, Dim
     visible.add_options()
         ("help,h",                                                                                  "produce help message")
         ("skeleton-dimsnion,s", po::value<Dimension>(&skeleton)->default_value(2),                  "Dimension of the Rips complex we want to compute")
+        ("prime,p",             po::value<ZpField::Element>(&prime)->default_value(2),              "Prime p for the field F_p")
         ("max-distance,m",      po::value<DistanceType>(&max_distance)->default_value(Infinity),    "Maximum value for the Rips complex construction");
+#if LOGGING
+    std::vector<std::string>    log_channels;
+    visible.add_options()
+        ("log,l",               po::value< std::vector<std::string> >(&log_channels),           "log channels to turn on (info, debug, etc)");
+#endif
 
     po::positional_options_description pos;
     pos.add("input-file", 1);
@@ -93,6 +140,11 @@ void        program_options(int argc, char* argv[], std::string& infilename, Dim
     po::store(po::command_line_parser(argc, argv).
                   options(all).positional(pos).run(), vm);
     po::notify(vm);
+
+#if LOGGING
+    for (std::vector<std::string>::const_iterator cur = log_channels.begin(); cur != log_channels.end(); ++cur)
+        stderrLog.subscribeTo( RLOG_CHANNEL(cur->c_str()) );
+#endif
 
     if (vm.count("help") || !vm.count("input-file"))
     { 
