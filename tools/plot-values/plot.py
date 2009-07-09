@@ -27,18 +27,17 @@ def plot(val_fn, pts_fn, output_fn):
     values = [(v-m) % 1. for v in values]
     print "V:", min(values), max(values)
 
-    aspect = (max(yy) - min(yy))/(max(xx) - min(xx)) + .1
-    # aspect = .5
-
     # hsv()
-    # fig = figure(figsize = (3,3*aspect))
+    fig = figure()
+    scatter(xx,yy,s=10,c=values)
+    colorbar()
+    
     # ax = fig.add_axes([-.05,-.1,1.1,1.1])
     ax = axes()
     ax.set_axis_off()
     ax.set_aspect('equal', 'box')
-    ax.scatter(xx,yy,s=10,c=values)
     # adjust(0,0,1,1,0,0)
-    colorbar()
+
     fig.savefig(output_fn)
 
 if __name__ == '__main__':
