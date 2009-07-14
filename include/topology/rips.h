@@ -84,7 +84,7 @@ class Rips
         DistanceType        distance(const Simplex& s1, const Simplex& s2) const;
 
 
-    private:
+    protected:
         class               WithinDistance;
 
         template<class Functor, class NeighborTest>
@@ -96,7 +96,7 @@ class Rips
                                           const Functor&                            functor,
                                           bool                                      check_initial = true) const;
         
-    private:
+    protected:
         const Distances&    distances_;
 };
         
@@ -111,7 +111,7 @@ class Rips<Distances_, Simplex_>::WithinDistance: public std::binary_function<Ve
 
         bool                operator()(Vertex u, Vertex v) const                        { return distances_(u, v) <= max_; }
 
-    private:
+    protected:
         const Distances&    distances_;  
         DistanceType        max_;
 };
@@ -127,7 +127,7 @@ class Rips<Distances_, Simplex_>::Evaluator: public std::unary_function<const Si
 
         DistanceType        operator()(const Simplex& s) const;
 
-    private:
+    protected:
         const Distances&    distances_;
 };
 
@@ -150,7 +150,7 @@ class Rips<Distances_, Simplex_>::Comparison: public std::binary_function<const 
             return e1 < e2;
         }
 
-    private:
+    protected:
         Evaluator           eval_;
 };
 
