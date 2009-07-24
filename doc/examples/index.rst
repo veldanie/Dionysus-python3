@@ -42,3 +42,6 @@ achieve this is available.
     :maxdepth: 1
 
     cohomology
+
+A simple example of computing persistence of a lower-star filtration is in
+:sfile:`examples/lsfiltration.py`.    

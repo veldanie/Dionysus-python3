@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
     // Generate 2-skeleton of the Rips complex for epsilon = 50
     rips.generate(skeleton, max_distance, make_push_back_functor(complex));
     std::sort(complex.begin(), complex.end(), Smplx::VertexComparison());       // unnecessary
-    std::cout << "Generated complex of size: " << complex.size() << std::endl;
+    std::cout << "# Generated complex of size: " << complex.size() << std::endl;
 
     // Generate filtration with respect to distance and compute its persistence
     Fltr f(complex.begin(), complex.end(), Generator::Comparison(distances));
@@ -70,30 +70,34 @@ int main(int argc, char* argv[])
             const Smplx& b = f.simplex(f.begin() + (birth - p.begin()));        // eventually this will be encapsulated behind an interface
             const Smplx& d = f.simplex(f.begin() + (cur   - p.begin()));
             
-            if (b.dimension() != 1) continue;
-            std::cout << "Pair: (" << size(b) << ", " << size(d) << ")" << std::endl;
+            // if (b.dimension() != 1) continue;
+            // std::cout << "Pair: (" << size(b) << ", " << size(d) << ")" << std::endl;
+            if (b.dimension() >= skeleton) continue;
+            std::cout << b.dimension() << " " << size(b) << " " << size(d) << std::endl;
         } else if (cur->pair == cur)    // positive could be unpaired
         {
             const Smplx& b = f.simplex(f.begin() + (cur - p.begin()));
-            if (b.dimension() != 1) continue;
+            // if (b.dimension() != 1) continue;
             
-            std::cout << "Unpaired birth: " << size(b) << std::endl;
-            cycle = cur->chain;
+            // std::cout << "Unpaired birth: " << size(b) << std::endl;
+            // cycle = cur->chain;
+            if (b.dimension() >= skeleton) continue;
+            std::cout << b.dimension() << " " << size(b) << " inf" << std::endl;
         }
 
         // Iterate over the cycle
-        for (Persistence::Cycle::const_iterator si =  cycle.begin();
-                                                                 si != cycle.end();     ++si)
-        {
-            const Smplx& s = f.simplex(f.begin() + (*si - p.begin()));
-            //std::cout << s.dimension() << std::endl;
-            const Smplx::VertexContainer& vertices = s.vertices();          // std::vector<Vertex> where Vertex = Distances::IndexType
-            AssertMsg(vertices.size() == s.dimension() + 1, "dimension of a simplex is one less than the number of its vertices");
-            std::cout << vertices[0] << " " << vertices[1] << std::endl;
-        }
+        // for (Persistence::Cycle::const_iterator si =  cycle.begin();
+        //                                                          si != cycle.end();     ++si)
+        // {
+        //     const Smplx& s = f.simplex(f.begin() + (*si - p.begin()));
+        //     //std::cout << s.dimension() << std::endl;
+        //     const Smplx::VertexContainer& vertices = s.vertices();          // std::vector<Vertex> where Vertex = Distances::IndexType
+        //     AssertMsg(vertices.size() == s.dimension() + 1, "dimension of a simplex is one less than the number of its vertices");
+        //     std::cout << vertices[0] << " " << vertices[1] << std::endl;
+        // }
     }
     
-    persistence_timer.check("Persistence timer");
+    persistence_timer.check("# Persistence timer");
 }
 
 void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance)
