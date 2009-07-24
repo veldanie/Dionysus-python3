@@ -1,9 +1,7 @@
 from    math        import sqrt
 
 def l2(p):
-    return sqrt(                                        # take the square root
-            reduce(lambda x, y: x + y,                  # add them all up
-                   map(lambda x: x**2, p)))             # square each coordinate
+    return sqrt(sum((x**2 for x in p)))
 
 # Pairwise distances between the elements of `points` with respect to some `norm`
 class PairwiseDistances:
@@ -37,5 +35,6 @@ class ExplicitDistances:
 def points_file(filename):
     fd = open(filename)
     for line in fd.xreadlines():
+        if line.startswith('#'): continue
         yield map(float, line.strip().split())
     fd.close()
