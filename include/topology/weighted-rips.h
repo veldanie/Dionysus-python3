@@ -109,6 +109,4 @@ class WeightedRips<Distances_, Simplex_>::Comparison: public Rips<Distances_, Si
         }
 };
 
-#include "weighted-rips.hpp"
-
 #endif // __WEIGHTED_RIPS_H__

@@ -1,6 +1,7 @@
 set                         (targets                        
                              rips-cohomology
                              rips-pairwise-cohomology
+			     rips-weighted-cohomology
                              triangle-cohomology
                             )
                              
