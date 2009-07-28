@@ -7,7 +7,6 @@
 #include "rips.h"
 #include <boost/iterator/counting_iterator.hpp>
 
-
 /**
  * WeightedRips class
  *

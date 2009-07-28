@@ -37,6 +37,12 @@ void            program_options(int argc, char* argv[], std::string& infilename,
 
 int main(int argc, char* argv[])
 {
+#ifdef LOGGING
+    rlog::RLogInit(argc, argv);
+
+    stderrLog.subscribeTo( RLOG_CHANNEL("error") );
+#endif
+
     Dimension               skeleton;
     DistanceType            max_distance;
     std::string             infilename;
@@ -58,7 +64,7 @@ int main(int argc, char* argv[])
         it->data() = rips.distance(*it, *it);
 
     std::sort(complex.begin(), complex.end(), Smplx::VertexComparison());       // unnecessary
-    std::cout << "Generated complex of size: " << complex.size() << std::endl;
+    std::cout << "# Generated complex of size: " << complex.size() << std::endl;
 
     // Generate filtration with respect to distance and compute its persistence
     Fltr f(complex.begin(), complex.end(), DataDimensionComparison<Smplx>());
@@ -92,7 +98,7 @@ int main(int argc, char* argv[])
         }
     }
     
-    persistence_timer.check("Persistence timer");
+    persistence_timer.check("# Persistence timer");
 }
 
 void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance)
@@ -108,6 +114,11 @@ void        program_options(int argc, char* argv[], std::string& infilename, Dim
         ("help,h",                                                                                  "produce help message")
         ("skeleton-dimsnion,s", po::value<Dimension>(&skeleton)->default_value(2),                  "Dimension of the weighted Rips complex we want to compute")
         ("max-distance,m",      po::value<DistanceType>(&max_distance)->default_value(Infinity),    "Maximum value for the weighted Rips complex construction");
+#if LOGGING
+    std::vector<std::string>    log_channels;
+    visible.add_options()
+        ("log,l",               po::value< std::vector<std::string> >(&log_channels),           "log channels to turn on (info, debug, etc)");
+#endif
 
     po::positional_options_description pos;
     pos.add("input-file", 1);
@@ -118,6 +129,15 @@ void        program_options(int argc, char* argv[], std::string& infilename, Dim
     po::store(po::command_line_parser(argc, argv).
                   options(all).positional(pos).run(), vm);
     po::notify(vm);
+
+#if LOGGING
+    for (std::vector<std::string>::const_iterator cur = log_channels.begin(); cur != log_channels.end(); ++cur)
+        stderrLog.subscribeTo( RLOG_CHANNEL(cur->c_str()) );
+    /**
+     * Interesting channels
+     * "info", "debug", "topology/persistence"
+     */
+#endif
 
     if (vm.count("help") || !vm.count("input-file"))
     { 

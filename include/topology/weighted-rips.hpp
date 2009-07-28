@@ -9,10 +9,10 @@
 #include <functional>
 
 #ifdef LOGGING
-static rlog::RLogChannel* rlRips =                  DEF_CHANNEL("rips/info", rlog::Log_Debug);  /* TODO: change rips/ to weighted-rips/ ? */
-static rlog::RLogChannel* rlRipsDebug =             DEF_CHANNEL("rips/debug", rlog::Log_Debug); /* TODO: same here */
+static rlog::RLogChannel* rlWeightedRips =                  DEF_CHANNEL("weightedrips/info", rlog::Log_Debug);
+static rlog::RLogChannel* rlWeightedRipsDebug =             DEF_CHANNEL("weightedrips/debug", rlog::Log_Debug);
 #endif // LOGGING
 
 #ifdef COUNTERS
-static Counter*  cClique =                          GetCounter("rips/clique");                  /* TODO: same here */
+static Counter*  cClique =                          GetCounter("weightedrips/clique");
 #endif // COUNTERS
