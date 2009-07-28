@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 
     stderrLog.subscribeTo(RLOG_CHANNEL("info"));
     stderrLog.subscribeTo(RLOG_CHANNEL("error"));
-    //stderrLog.subscribeTo(RLOG_CHANNEL("topology"));
+    stderrLog.subscribeTo(RLOG_CHANNEL("topology"));
 #endif
 
     SimplexVector v;
@@ -66,10 +66,13 @@ int main(int argc, char** argv)
 
     // Compute persistence
     Complex         c;
-    Persistence     p;
+    ZpField         zp(11);
+    Persistence     p(zp);
     unsigned i = 0;
     for (SimplexVector::const_iterator cur = v.begin(); cur != v.end(); ++cur)
     {
+        std::cout << "-------" << std::endl;
+
         std::vector<Index>      boundary;
         for (Smplx::BoundaryIterator bcur  = cur->boundary_begin(); 
                                      bcur != cur->boundary_end();       ++bcur)
@@ -84,7 +87,7 @@ int main(int argc, char** argv)
             // (i.e. when a 1 class kills 0, it's really that in cohomology forward 0 kills 1,
             //  in cohomology backward 1 kills 0, and in homology 1 kills 0)
 
-        //p.show_cycles();
+        p.show_cocycles();
     }
 }
 

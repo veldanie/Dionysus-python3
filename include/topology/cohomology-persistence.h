@@ -16,6 +16,7 @@
 #include <list>
 #include <utility>
 
+#include <topology/field-arithmetic.h>
 #include "utilities/types.h"
 
 #include <boost/optional.hpp>
@@ -23,86 +24,105 @@
 namespace bi = boost::intrusive;
 
 
-template<class BirthInfo_, class SimplexData_ = Empty<> >
+template<class BirthInfo_, class SimplexData_ = Empty<>, class Field_ = ZpField>
 class CohomologyPersistence
 {
     public:
         typedef             BirthInfo_                                                  BirthInfo;
         typedef             SimplexData_                                                SimplexData;
+        typedef             Field_                                                      Field;
+
+        typedef             typename Field::Element                                     FieldElement;
 
 
-        struct SNode;
+                            CohomologyPersistence(const Field& field = Field()):
+                                field_(field)                                           {}
+
+
+        // An entry in a cocycle column
+        struct  SNode;      // members: si, coefficient, ci
+        typedef             s::vector<SNode>                                            ZColumn;
         typedef             bi::list<SNode, bi::constant_time_size<false> >             ZRow;
+        class   CompareSNode;
 
-        // Simplex representation
-        struct SHead: public SimplexData
-        {
-                            SHead(const SHead& other):
-                                SimplexData(other), order(other.order)                  {}  // don't copy row since we can't
-                            SHead(const SimplexData& sd, unsigned o): 
-                                SimplexData(sd), order(o)                               {}
-
-            // intrusive list corresponding to row of s in Z^*, not ordered in any particular order
-            ZRow            row;
-            unsigned        order;
-        };
-
+        struct  SHead;      // members: row, order
         typedef             s::list<SHead>                                              Simplices;
         typedef             typename Simplices::iterator                                SimplexIndex;
 
-        struct Cocycle;
+        struct  Cocycle;    // members: zcolumn, birth, order
         typedef             s::list<Cocycle>                                            Cocycles;
         typedef             typename Cocycles::iterator                                 CocycleIndex;
-        
-        // An entry in a cocycle column; it's also an element in an intrusive list, hence the list_base_hook<>
-        typedef             bi::list_base_hook<bi::link_mode<bi::auto_unlink> >         auto_unlink_hook;
-        struct SNode: public auto_unlink_hook
-        {
-                            SNode()                                                     {}
-                            SNode(SimplexIndex sidx): si(sidx)                          {}
+        typedef             std::pair<CocycleIndex, FieldElement>                       CocycleCoefficientPair;
 
-            // eventually store a field element
-
-            SimplexIndex    si;
-            CocycleIndex    cocycle;                    // TODO: is there no way to get rid of this overhead?
-
-            void            unlink()                    { auto_unlink_hook::unlink(); }
-        };
-        class CompareSNode;
-
-        typedef             s::vector<SNode>                                            ZColumn;
-        struct Cocycle
-        {
-                            Cocycle(const BirthInfo& b, unsigned o):
-                                birth(b), order(o)                                      {}
-
-            ZColumn         cocycle;
-            BirthInfo       birth;
-            unsigned        order;
-
-            bool            operator<(const Cocycle& other) const                       { return order > other.order; }
-            bool            operator==(const Cocycle& other) const                      { return order == other.order; }
-        };
-
-        typedef             boost::optional<BirthInfo>  Death;
-        typedef             std::pair<SimplexIndex,
-                                      Death>            IndexDeathPair;
+        typedef             boost::optional<BirthInfo>                                  Death;
+        typedef             std::pair<SimplexIndex, Death>                              IndexDeathPair;
 
         // return either a SimplexIndex or a Death
         // BI = BoundaryIterator; it should dereference to a SimplexIndex
         template<class BI>
-        IndexDeathPair      add(BI begin, BI end, BirthInfo b, const SimplexData& sd = SimplexData());
+        IndexDeathPair      add(BI begin, BI end, BirthInfo b, bool store = true, const SimplexData& sd = SimplexData());
 
-        void                show_cycles() const;
-
+        void                show_cocycles() const;
+        CocycleIndex        begin()                                                     { return cocycles_.begin(); }
+        CocycleIndex        end()                                                       { return cocycles_.end(); }
 
     private:
-        void                add_cocycle(Cocycle& z1, Cocycle& z2);
+        void                add_cocycle(CocycleCoefficientPair& z1, CocycleCoefficientPair& z2);
 
     private:
         Simplices           simplices_;
         Cocycles            cocycles_;
+        Field               field_;
 };
+        
+// Simplex representation
+template<class BirthInfo_, class SimplexData_, class Field_>
+struct CohomologyPersistence<BirthInfo_, SimplexData_, Field_>::SHead: public SimplexData
+{
+                    SHead(const SHead& other):
+                        SimplexData(other), order(other.order)                  {}  // don't copy row since we can't
+                    SHead(const SimplexData& sd, unsigned o): 
+                        SimplexData(sd), order(o)                               {}
+
+    // intrusive list corresponding to row of s in Z^*, not ordered in any particular order
+    ZRow            row;
+    unsigned        order;
+};
+
+// An entry in a cocycle column; it's also an element in an intrusive list, hence the list_base_hook<>
+typedef             bi::list_base_hook<bi::link_mode<bi::auto_unlink> >         auto_unlink_hook;
+template<class BirthInfo_, class SimplexData_, class Field_>
+struct CohomologyPersistence<BirthInfo_, SimplexData_, Field_>::SNode: public auto_unlink_hook
+{
+                    SNode(const SNode& other):
+                        si(other.si), coefficient(other.coefficient), 
+                        ci(other.ci)                                            {}
+
+                    SNode(SimplexIndex sidx, FieldElement coef, CocycleIndex cidx): 
+                        si(sidx), coefficient(coef), ci(cidx)                   {}
+
+    SimplexIndex    si;
+    FieldElement    coefficient;
+
+    CocycleIndex    ci;                         // TODO: is there no way to get rid of this overhead?
+
+    void            unlink()                    { auto_unlink_hook::unlink(); }
+};
+
+template<class BirthInfo_, class SimplexData_, class Field_>
+struct CohomologyPersistence<BirthInfo_, SimplexData_, Field_>::Cocycle
+{
+                    Cocycle(const BirthInfo& b, unsigned o):
+                        birth(b), order(o)                                      {}
+
+    ZColumn         zcolumn;
+    BirthInfo       birth;
+    unsigned        order;
+
+    bool            operator<(const Cocycle& other) const                       { return order > other.order; }
+    bool            operator==(const Cocycle& other) const                      { return order == other.order; }
+};
+
 
 #include "cohomology-persistence.hpp"
 

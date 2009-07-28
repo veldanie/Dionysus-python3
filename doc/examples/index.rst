@@ -32,3 +32,16 @@ are much larger than those for the :ref:`alpha-shape-example`).
     :maxdepth: 1
 
     rips
+
+One may use persistent cohomology algorithm to extract persistent cocycles,
+turn them into harmonic cocycles, and use them to parametrize the input point
+set; for details see [dSVJ09]_. The explanation of how to use Dionysus to
+achieve this is available.
+
+.. toctree::
+    :maxdepth: 1
+
+    cohomology
+
+A simple example of computing persistence of a lower-star filtration is in
+:sfile:`examples/lsfiltration.py`.    
