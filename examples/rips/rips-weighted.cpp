@@ -60,9 +60,6 @@ int main(int argc, char* argv[])
     // Generate skeleton of the weighted Rips complex for epsilon = 50
     rips.generate(skeleton, max_distance, make_push_back_functor(complex));
 
-    for (SimplexVector::iterator it = complex.begin(); it != complex.end(); ++it)
-        it->data() = rips.distance(*it, *it);
-
     std::sort(complex.begin(), complex.end(), Smplx::VertexComparison());       // unnecessary
     std::cout << "# Generated complex of size: " << complex.size() << std::endl;
 

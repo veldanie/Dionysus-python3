@@ -39,7 +39,50 @@ class WeightedRips : public Rips<Distances_, Simplex_>
                             WeightedRips(const Distances& distances):
                                 Rips<Distances_, Simplex_>(distances)                             {}
 
+                            template<class Functor>
+                            void generate(Dimension k, DistanceType max, const Functor& f) const;
+
 };
+
+/**
+ * DistanceDataStackingFunctor class
+ * 
+ * Class providing a functor that is to be called by WeightedRips::generate(). This functor
+ * takes as an argument (to its constructor) the original functor passed by the user to
+ * generate(), and a new ``double'' functor is created. Assuming that the functor acts on
+ * simplices, first the value of the simplex is computed (the radius at which the simplex
+ * appears in the weighted Rips complex), the data field of the simplex is populated with
+ * this value, and then the original functor is called (it has no idea that it was
+ * intercepted).
+ */
+
+template<class Rips_, class Functor_>
+class DistanceDataStackingFunctor
+{
+	public:
+		typedef     typename Rips_::Simplex         Simplex_;
+
+		DistanceDataStackingFunctor(const Rips_ &r, const Functor_ &f):
+			rips(r), original_functor(f) { }
+
+		void operator()(const Simplex_ &s) const
+		{
+			Simplex_         s_new(s);
+			s_new.data()   = rips.distance(s_new, s_new);
+			original_functor(s_new);
+		}
+
+	private:
+		const Rips_       &rips;
+		const Functor_    &original_functor;
+};
+
+template<class Distances_, class Simplex_>
+template<class Functor>
+void WeightedRips<Distances_,Simplex_>::generate(Dimension k, DistanceType max, const Functor &f) const
+{
+	Rips<Distances_,Simplex_>::generate(k, max, DistanceDataStackingFunctor<WeightedRips<Distances_,Simplex_>,Functor>(*this, f));
+}
 
 template<class Distances_, class Simplex_>
 class WeightedRips<Distances_, Simplex_>::Evaluator: public Rips<Distances_, Simplex_>::Evaluator
