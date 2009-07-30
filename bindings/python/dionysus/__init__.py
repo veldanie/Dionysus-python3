@@ -1,5 +1,5 @@
 from    _dionysus   import *
-from    distances   import *
+from    distances   import l2, ExplicitDistances, points_file
 from    zigzag      import *
 
 

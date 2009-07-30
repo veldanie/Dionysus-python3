@@ -172,7 +172,9 @@ Speed-up suggestions
 Currently, when the choice comes between efficiency and flexibility, the Python
 bindings err on the side of flexibility. There is hope that in the future the
 choice won't really be necessary. Meanwhile, one can use a few techniques that
-speed up computation at the expense of memory:
+speed up computation at the expense of memory. Note, however, that since the
+recent switch of :class:`PairwiseDistances` to C++ rather than pure Python, it
+is not clear whether these deliver a substantial speed-up:
 
 * To avoid (possibly expensive) computation of distances during Rips complex
   generation, store :class:`ExplicitDistances` (see :ref:`distances`)::

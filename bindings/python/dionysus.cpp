@@ -12,6 +12,8 @@ void export_zigzag_persistence();
 void export_cohomology_persistence();
 
 void export_rips();
+void export_pairwise_distances();
+
 #ifndef NO_CGAL
 void export_alphashapes2d();
 void export_alphashapes3d();
@@ -36,6 +38,8 @@ BOOST_PYTHON_MODULE(_dionysus)
     export_cohomology_persistence();
 
     export_rips();
+    export_pairwise_distances();
+
 #ifndef NO_CGAL
     export_alphashapes2d();
     export_alphashapes3d();

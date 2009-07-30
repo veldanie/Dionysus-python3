@@ -9,7 +9,7 @@ import  time
 def main(filename, skeleton, max):
     points = [p for p in points_file(filename)]
     distances = PairwiseDistances(points)
-    distances = ExplicitDistances(distances)           # speeds up generation of the Rips complex at the expense of memory usage
+    # distances = ExplicitDistances(distances)           # speeds up generation of the Rips complex at the expense of memory usage
     rips = Rips(distances)
     print time.asctime(), "Rips initialized"
 

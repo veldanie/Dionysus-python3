@@ -1,6 +1,8 @@
 #ifndef __DISTANCES_H__
 #define __DISTANCES_H__
 
+#include <vector>
+
 /**
  * Class: ExplicitDistances 
  * Stores the pairwise distances of Distances_ instance passed at construction. 

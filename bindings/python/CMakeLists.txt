@@ -15,6 +15,7 @@ set                         (sources
                                                 zigzag-persistence.cpp
                                                 cohomology-persistence.cpp
                                                 rips.cpp
+                                                distances.cpp
                             )
 set                         (bindings_libraries ${libraries})
 
