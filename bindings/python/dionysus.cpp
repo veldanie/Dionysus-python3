@@ -7,7 +7,9 @@ void export_simplex();
 void export_filtration();
 void export_static_persistence();
 void export_chain();
+void export_birthid();
 void export_zigzag_persistence();
+void export_cohomology_persistence();
 
 void export_rips();
 #ifndef NO_CGAL
@@ -29,7 +31,9 @@ BOOST_PYTHON_MODULE(_dionysus)
     export_static_persistence();
     export_chain();
 
+    export_birthid();
     export_zigzag_persistence();
+    export_cohomology_persistence();
 
     export_rips();
 #ifndef NO_CGAL

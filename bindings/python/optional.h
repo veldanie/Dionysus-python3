@@ -2,6 +2,8 @@
 #define __PYTHON_OPTIONAL_H__
 
 #include <boost/python.hpp>
+#include <boost/optional.hpp>
+#include <boost/utility.hpp>
 
 // Taken from an email by John Wiegley; 
 // http://mail.python.org/pipermail/cplusplus-sig/2007-May/012003.html

@@ -11,7 +11,9 @@ set                         (sources
                                                 chain.cpp
                                                 static-persistence.cpp
                                                 simplex.cpp
+                                                birthid.cpp
                                                 zigzag-persistence.cpp
+                                                cohomology-persistence.cpp
                                                 rips.cpp
                             )
 set                         (bindings_libraries ${libraries})

@@ -1,7 +1,8 @@
 :class:`ZigzagPersistence` class
 ================================
 
-The class deals with the setting :math:`K_1 \rightarrow K_2 \leftarrow K_3 \rightarrow \dots`
+The class deals with the setting :math:`K_1 \rightarrow K_2 \leftarrow K_3 \rightarrow \dots`.
+The :ref:`triangle-zigzag-example` illustrates the use of :class:`ZigzagPersistence`.
 
 .. class:: ZigzagPersistence
 
@@ -33,8 +34,6 @@ The class deals with the setting :math:`K_1 \rightarrow K_2 \leftarrow K_3 \righ
                   passed as `birth` to :meth:`~ZigzagPersistence.add` or
                   :meth:`~ZigzagPersistence.remove` when the class that just
                   died was born.
-
-The :ref:`triangle-zigzag-example` illustrates the use of :class:`ZigzagPersistence`.
 
 
 Auxilliary functions
