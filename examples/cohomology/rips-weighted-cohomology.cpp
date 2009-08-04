@@ -5,6 +5,7 @@
 #include <geometry/distances.h>
 
 #include <utilities/containers.h>           // for BackInsertFunctor
+#include <utilities/property-maps.h>
 #include <utilities/timer.h>
 #include <utilities/log.h>
 
@@ -14,20 +15,21 @@
 #include <boost/program_options.hpp>
 #include <boost/progress.hpp>
 
+#include "wrappers.h"
+
 typedef     PairwiseDistances<PointContainer, WeightedL2Distance>   PairDistances;
 typedef     PairDistances::DistanceType                             DistanceType;
 typedef     PairDistances::IndexType                                Vertex;
  
-typedef     WeightedRips<PairDistances>                             Generator;
+typedef     boost::tuple<Dimension, DistanceType>                   BirthInfo;
+typedef     CohomologyPersistence<BirthInfo, Wrapper<unsigned> >    Persistence;
+typedef     Persistence::SimplexIndex                               Index;
+typedef     Persistence::Death                                      Death;
+
+typedef     WeightedRips<PairDistances, Simplex<Vertex, Index> >    Generator;
 typedef     Generator::Simplex                                      Smplx;
 typedef     std::vector<Smplx>                                      SimplexVector;
 typedef     SimplexVector::const_iterator                           SV_const_iterator;
-
-typedef     boost::tuple<Dimension, DistanceType>                   BirthInfo;
-typedef     CohomologyPersistence<BirthInfo, SV_const_iterator>     Persistence;
-typedef     Persistence::SimplexIndex                               Index;
-typedef     Persistence::Death                                      Death;
-typedef     std::map<Smplx, Index, Smplx::VertexComparison>         Complex;
 
 #include "output.h"         // for output_*()
 
@@ -64,41 +66,53 @@ int main(int argc, char* argv[])
     Generator::Evaluator    size(distances);
     Generator::Comparison   cmp(distances);
     SimplexVector           v;
-    Complex                 c;
-    
+
     Timer rips_timer; rips_timer.start();
     rips.generate(skeleton, max_distance, make_push_back_functor(v));
-    std::sort(v.begin(), v.end(), cmp);
+
+    /* Keep simplices sorted lexicographically (so that we can binary search through them) */
+    std::sort(v.begin(), v.end(), Smplx::VertexComparison());
+
+    /* We also need the simplices sorted by value though for the filtration:
+       index_in_v[j] refers to the simplex v[index_in_v[j]]                      */
+    std::vector<unsigned> index_in_v(v.size());
+    for (unsigned idx = 0; idx < v.size(); ++idx)
+        index_in_v[idx] = idx;
+    std::sort(index_in_v.begin(), index_in_v.end(), IndirectIndexComparison<SimplexVector, Generator::Comparison>(v, cmp));
+
+    /* Set up map access to the lexicographically sorted simplices */
+    BinarySearchMap<Smplx, SimplexVector::iterator, Smplx::VertexComparison> map_of_v(v.begin(), v.end());
+
     rips_timer.stop();
     std::cout << "Simplex vector generated, size: " << v.size() << std::endl;
 
-    /*output_boundary_matrix(bdry_out, v, cmp);
+    /*output_boundary_matrix(bdry_out, v, Smplx::VertexComparison());
     output_vertex_indices(vertices_out, v);*/
 
     Timer persistence_timer; persistence_timer.start();
     ZpField                 zp(prime);
     Persistence             p(zp);
     boost::progress_display show_progress(v.size());
-    for (SimplexVector::const_iterator cur = v.begin(); cur != v.end(); ++cur)
+    for (unsigned j = 0; j < index_in_v.size(); ++j)
     {
+        SimplexVector::const_iterator cur = v.begin() + index_in_v[j];
         std::vector<Index>      boundary;
         for (Smplx::BoundaryIterator bcur  = cur->boundary_begin(); bcur != cur->boundary_end(); ++bcur)
-            boundary.push_back(c[*bcur]);
+            boundary.push_back(map_of_v[*bcur]->data());
         
         Index idx; Death d;
         bool store = cur->dimension() < skeleton;
-        boost::tie(idx, d)      = p.add(boundary.begin(), boundary.end(), boost::make_tuple(cur->dimension(), size(*cur)), store, cur);
+        boost::tie(idx, d)      = p.add(boundary.begin(), boundary.end(), boost::make_tuple(cur->dimension(), size(*cur)), store, index_in_v[j]);
         
-        // c[*cur] = idx;
         if (store)
-            c.insert(std::make_pair(*cur, idx));
+            map_of_v[*cur]->data() = idx;
 
         if (d && (size(*cur) - d->get<1>()) > 0)
         {
             AssertMsg(d->get<0>() == cur->dimension() - 1, "Dimensions must match");
             diagram_out << (cur->dimension() - 1) << " " << d->get<1>() << " " << size(*cur) << std::endl;
         }
-	++show_progress;
+        ++show_progress;
     }
     // output infinte persistence pairs 
     for (Persistence::CocycleIndex cur = p.begin(); cur != p.end(); ++cur)
@@ -112,7 +126,7 @@ int main(int argc, char* argv[])
     for (Persistence::Cocycles::const_iterator cur = p.begin(); cur != p.end(); ++cur)
     {
         if (cur->birth.get<0>() != 1) continue;
-        output_cocycle(cocycle_prefix, i, v, *cur, prime, cmp);
+        output_cocycle(cocycle_prefix, i, v, *cur, prime);
         // std::cout << "Cocycle of dimension: " << cur->birth.get<0>() << " born at " << cur->birth.get<1>() << std::endl;
         ++i;
     }

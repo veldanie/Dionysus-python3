@@ -13,14 +13,16 @@ bool neq(const Smplx& s1, const Smplx& s2)
     return cmp(s1, s2) || cmp(s2, s1);
 }
 
-unsigned index(const SimplexVector& v, const Smplx& s, const Generator::Comparison& cmp)
+template<class Comparison>
+unsigned index(const SimplexVector& v, const Smplx& s, const Comparison& cmp)
 {
     SimplexVector::const_iterator it = std::lower_bound(v.begin(), v.end(), s, cmp);
     while (neq(*it, s)) ++it;
     return it - v.begin();
 }
 
-void output_boundary_matrix(std::ostream& out, const SimplexVector& v, const Generator::Comparison& cmp)
+template<class Comparison>
+void output_boundary_matrix(std::ostream& out, const SimplexVector& v, const Comparison& cmp)
 {
     unsigned i = 0;
     for (SimplexVector::const_iterator cur = v.begin(); cur != v.end(); ++cur)
@@ -49,7 +51,7 @@ void output_vertex_indices(std::ostream& out, const SimplexVector& v)
     }
 }
 
-void output_cocycle(std::string cocycle_prefix, unsigned i, const SimplexVector& v, const Persistence::Cocycle& c, ZpField::Element prime, const Generator::Comparison& cmp)
+void output_cocycle(std::string cocycle_prefix, unsigned i, const SimplexVector& v, const Persistence::Cocycle& c, ZpField::Element prime)
 {
     std::ostringstream istr; istr << '-' << i;
     std::string filename = cocycle_prefix + istr.str() + ".ccl";
@@ -57,8 +59,8 @@ void output_cocycle(std::string cocycle_prefix, unsigned i, const SimplexVector&
     out << "# Cocycle born at " << c.birth.get<1>() << std::endl;
     for (Persistence::ZColumn::const_iterator zcur = c.zcolumn.begin(); zcur != c.zcolumn.end(); ++zcur)
     {
-        const Smplx& s = **(zcur->si);
+        //const Smplx& s = **(zcur->si);
         out << (zcur->coefficient <= prime/2 ? zcur->coefficient : zcur->coefficient - prime) << " ";
-        out << index(v, s, cmp) << "\n";
+        out << zcur->si->getValue() << "\n";
     }
 }
