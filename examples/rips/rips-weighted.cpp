@@ -55,6 +55,7 @@ int main(int argc, char* argv[])
     PairDistances           distances(points);
     Generator               rips(distances);
     Generator::Evaluator    size(distances);
+    Generator::Comparison   cmp (distances);
     SimplexVector           complex;
     
     // Generate skeleton of the weighted Rips complex for epsilon = 50
@@ -64,7 +65,7 @@ int main(int argc, char* argv[])
     std::cout << "# Generated complex of size: " << complex.size() << std::endl;
 
     // Generate filtration with respect to distance and compute its persistence
-    Fltr f(complex.begin(), complex.end(), DataDimensionComparison<Smplx>());
+    Fltr f(complex.begin(), complex.end(), cmp);
 
     Timer persistence_timer; persistence_timer.start();
     Persistence p(f);

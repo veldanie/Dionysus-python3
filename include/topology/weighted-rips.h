@@ -8,6 +8,33 @@
 #include <boost/iterator/counting_iterator.hpp>
 
 /**
+ * WeightedRipsSimplex class
+ * 
+ * This class sits as an invisible layer between the Simplex datatype passed
+ * to WeightedRips and the class itself. The need for this layer is the need
+ * to store the ``value'' (max inter-vertex distance) of each simplex in the
+ * Weighted Rips complex--something that the user of the class does not need
+ * to be aware of.
+ */
+
+template<class Simplex_, class DistanceType_>
+class WeightedRipsSimplex : public Simplex_
+{
+    public:
+        typedef          typename Simplex_::Vertex                 Vertex;
+        typedef          typename Simplex_::VertexContainer        VertexContainer;
+        typedef          DistanceType_                             DistanceType;
+
+        WeightedRipsSimplex(Simplex_ s) : Simplex_(s)  { }
+
+        void             setSimplexValue(const DistanceType &sv) { simplexValue = sv; }
+        DistanceType     getSimplexValue() const       { return    simplexValue;      }
+
+    protected:
+        DistanceType     simplexValue;
+};
+
+/**
  * WeightedRips class
  *
  * Class providing basic operations to work with Rips complexes. It implements Bron-Kerbosch algorithm, 
@@ -18,7 +45,7 @@
  *               the distance between them. There should be methods begin() and end() 
  *               for iterating over IndexTypes as well as a method size().
  */
-template<class Distances_, class Simplex_ = Simplex<typename Distances_::IndexType, typename Distances_::DistanceType> >
+template<class Distances_, class Simplex_ = Simplex<typename Distances_::IndexType> >
 class WeightedRips : public Rips<Distances_, Simplex_>
 {
     public:
@@ -28,7 +55,7 @@ class WeightedRips : public Rips<Distances_, Simplex_>
         typedef             typename Distances::IndexType                   IndexType;
         typedef             typename Distances::DistanceType                DistanceType;
 
-        typedef             Simplex_                                        Simplex;
+        typedef             WeightedRipsSimplex<Simplex_, DistanceType>     Simplex;
         typedef             typename Simplex::Vertex                        Vertex;             // should be the same as IndexType
         typedef             typename Simplex::VertexContainer               VertexContainer;
 
@@ -68,8 +95,8 @@ class DistanceDataStackingFunctor
 		void operator()(const Simplex_ &s) const
 		{
 			Simplex_         s_new(s);
-			s_new.data()   = rips.distance(s_new, s_new);
-			original_functor(s_new);
+			s_new.setSimplexValue (rips.distance(s_new, s_new));
+			original_functor      (s_new);
 		}
 
 	private:
@@ -79,23 +106,23 @@ class DistanceDataStackingFunctor
 
 template<class Distances_, class Simplex_>
 template<class Functor>
-void WeightedRips<Distances_,Simplex_>::generate(Dimension k, DistanceType max, const Functor &f) const
+void WeightedRips<Distances_, Simplex_>::generate(Dimension k, DistanceType max, const Functor &f) const
 {
-	Rips<Distances_,Simplex_>::generate(k, max, DistanceDataStackingFunctor<WeightedRips<Distances_,Simplex_>,Functor>(*this, f));
+	Rips<Distances_,Simplex_>::generate(k, max, DistanceDataStackingFunctor<WeightedRips<Distances_, Simplex_>,Functor>(*this, f));
 }
 
 template<class Distances_, class Simplex_>
-class WeightedRips<Distances_, Simplex_>::Evaluator: public Rips<Distances_, Simplex_>::Evaluator
+class WeightedRips<Distances_, Simplex_>::Evaluator: public Rips<Distances_,Simplex_>::Evaluator
 {
     public:
                             Evaluator(const Distances& distances): 
                                 Rips<Distances_, Simplex_>::Evaluator(distances)                       {}
 
-        DistanceType       operator()(const Simplex& s) const { return s.data(); }
+        DistanceType       operator()(const Simplex& s) const { return s.getSimplexValue(); }
 };
 
 template<class Distances_, class Simplex_>
-class WeightedRips<Distances_, Simplex_>::Comparison: public Rips<Distances_, Simplex_>::Comparison
+class WeightedRips<Distances_, Simplex_>::Comparison: public Rips<Distances_,Simplex_>::Comparison
 {
     public:
                             Comparison(const Distances& distances):
@@ -105,7 +132,7 @@ class WeightedRips<Distances_, Simplex_>::Comparison: public Rips<Distances_, Si
         { 
                             if (s1.dimension() != s2.dimension())
                                 return s1.dimension() < s2.dimension();
-                            return s1.data() < s2.data();
+                            return s1.getSimplexValue() < s2.getSimplexValue();
         }
 };
 

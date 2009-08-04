@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     
     Timer rips_timer; rips_timer.start();
     rips.generate(skeleton, max_distance, make_push_back_functor(v));
-    std::sort(v.begin(), v.end(), DataDimensionComparison<Smplx>());
+    std::sort(v.begin(), v.end(), cmp);
     rips_timer.stop();
     std::cout << "Simplex vector generated, size: " << v.size() << std::endl;
 

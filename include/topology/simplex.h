@@ -127,12 +127,12 @@ class Simplex
         struct DataEvaluator;
         struct DimensionExtractor;
     
-    private:
+    protected:
         VertexContainer&        vertices()                                          { return vdpair_.first(); }
 
         VerticesDataPair        vdpair_;
 
-    private:
+    protected:
         /* Serialization */
         friend class boost::serialization::access;
         
