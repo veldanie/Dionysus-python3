@@ -17,6 +17,7 @@ The following classes are available in the module:
     simplex.rst
     filtration.rst
     static-persistence.rst
+    cohomology-persistence.rst
     alphashapes.rst
     rips.rst
     zigzag-persistence.rst

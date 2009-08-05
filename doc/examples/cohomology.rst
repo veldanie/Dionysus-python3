@@ -85,3 +85,45 @@ Python by `Jeffery Kline`_) included with Dionysus, and used in
 .. _CVXOPT:                                 http://abel.ee.ucla.edu/cvxopt/
 .. _`Stanford MATLAB implementation`:       http://www.stanford.edu/group/SOL/software/lsqr.html
 .. _`Jeffery Kline`:                        http://pages.cs.wisc.edu/~kline/
+
+
+.. _rips-pairwise-cohomology:
+
+Python cohomology computation
+-----------------------------
+
+:sfile:`examples/cohomology/rips-pairwise-cohomology.py` gives an example of the
+same computation performed in Python (but with the output in a different format).
+
+After the simplicial complex is computed in a list `simplices`, and the list is
+sorted with respect to the Rips filtration order, the simplices are inserted
+into the :class:`CohomologyPersistence` one by one::
+
+    # list simplices is created
+
+    ch = CohomologyPersistence(prime)
+    complex = {}
+
+    for s in simplices:
+        i,d = ch.add([complex[sb] for sb in s.boundary], (s.dimension(), s.data))
+        complex[s] = i
+        if d: 
+            dimension, birth = d
+            print dimension, birth, s.data
+        # else birth
+
+Above dictionary `complex` maintains the map of simplices to indices returned by
+:meth:`CohomologyPersistence.add`.  The pair `(dimension, data)` is used as the
+birth value. Here `data` is the value associated with the simplex in the Rips
+filtration. The pair is returned back if a death occurs, and is printed on the
+standard output. After the for loop finishes, one may output infinite
+persistence classes with the following for loop::
+
+    for ccl in ch:
+        dimension, birth = ccl.birth
+        if dimension >= skeleton: continue
+        print dimension, birth, 'inf'         # dimension, simplex data = birth
+    
+Naturally one may iterate over `ccl` which is of type :class:`Cocycle` and
+extract more information. For example, this is necessary to get the coefficients
+that serve as the input for :sfile:`examples/cohomology/cocycle.py`.

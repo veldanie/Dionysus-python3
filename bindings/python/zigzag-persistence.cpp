@@ -67,12 +67,10 @@ unsigned                            si_order(T& si)
 
 void export_zigzag_persistence()
 {
-    python_optional<dp::BirthID>();   
-
-    bp::class_<dp::ZZPersistence::SimplexIndex>("SimplexIndex")
+    bp::class_<dp::ZZPersistence::SimplexIndex>("ZZSimplexIndex")
         .def("order",           &si_order<dp::ZZPersistence::SimplexIndex>);
     
-    bp::class_<dp::IZZPersistence::SimplexIndex>("ISimplexIndex")
+    bp::class_<dp::IZZPersistence::SimplexIndex>("IZZSimplexIndex")
         .def("order",           &si_order<dp::IZZPersistence::SimplexIndex>);
 
     bp::class_<dp::ZZPersistence>("ZigzagPersistence")

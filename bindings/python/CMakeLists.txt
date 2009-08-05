@@ -11,8 +11,11 @@ set                         (sources
                                                 chain.cpp
                                                 static-persistence.cpp
                                                 simplex.cpp
+                                                birthid.cpp
                                                 zigzag-persistence.cpp
+                                                cohomology-persistence.cpp
                                                 rips.cpp
+                                                distances.cpp
                             )
 set                         (bindings_libraries ${libraries})
 
@@ -26,6 +29,7 @@ if                          (CGAL_FOUND)
     link_libraries          (${CGAL_LIBRARY})                                            
 else                            (CGAL_FOUND)
     message(STATUS "CGAL not found, alphashape bindings will not be built")
+    add_definitions         (-DNO_CGAL)
 endif                       (CGAL_FOUND)
 
 add_library                 (_dionysus SHARED   ${sources})

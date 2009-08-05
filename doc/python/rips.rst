@@ -60,9 +60,11 @@ For example, the following class represents 10 points on an integer lattice::
         def __call__(self, x, y):
             return math.fabs(y-x)
 
-The bindings provide a pure Python class :class:`PairwiseDistances` to deal with
-explicit points in a Euclidean space. It is defined in
-:sfile:`bindings/python/dionysus/distances.py`::
+The bindings expose a C++ class as a Python class :class:`PairwiseDistances` to deal with
+explicit points in a Euclidean space. In pure Python it could be defined as
+follows (in fact it used to be a pure Python class, and one may still find it in 
+:sfile:`bindings/python/dionysus/distances.py`; its performance is much slower
+than its pure C++ analog)::
 
     class PairwiseDistances:
         def __init__(self, points, norm = l2):
@@ -83,6 +85,9 @@ the future::
 
     distances = PairwiseDistances(points)
     distances = ExplicitDistances(distances)
+
+With :class:`PairwiseDistances` being a C++ class, and
+:class:`ExplicitDistances` being pure Python, the speead-up seems minor.
 
 
 Example

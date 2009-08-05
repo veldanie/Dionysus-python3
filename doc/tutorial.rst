@@ -70,7 +70,7 @@ way, required by :class:`StaticPersistence` (and its derivatives), is to set up
 the entire filtration at once, compute its persistence in one operation, and
 then examine the pairings. The second way is to feed simplices one by one in an
 *online* manner and manually keep track of the pairs that are created.
-:class:`ZigzagPersistence` and `CohomologyPersistence` |cpp-only| accept their
+:class:`ZigzagPersistence` and :class:`CohomologyPersistence` accept their
 input this way,
 
 
@@ -123,7 +123,10 @@ Online
 ^^^^^^
 
 Class :class:`ZigzagPersistence` accepts additions and removals of the simplices
-one by one, and returns an internal representation of the simplices. When one
+one by one, and returns an internal representation of the simplices.
+(:class:`CohomologyPersistence` works in the same way, but accepts only
+additions of the simplices.) 
+When one
 adds a simplex via :meth:`ZigzagPersistence.add`, one must provide its boundary
 in this internal representation together with a *birth value* which
 :class:`ZigzagPersistence` will store in case a class is born as a result of the
@@ -161,7 +164,9 @@ all births being assigned the same value), there are two helper functions:
 :func:`add_simplices` and :func:`remove_simplices`.
 
 See the :ref:`bindings reference <python-bindings>` for more details, and
-:ref:`triangle-zigzag-example` for an example.
+:ref:`triangle-zigzag-example` for an example of :class:`ZigzagPersistence`.
+See :ref:`rips-pairwise-cohomology` for an example of
+:class:`CohomologyPersistence`.
 
 
 .. _speed-up-suggestions:
@@ -172,7 +177,9 @@ Speed-up suggestions
 Currently, when the choice comes between efficiency and flexibility, the Python
 bindings err on the side of flexibility. There is hope that in the future the
 choice won't really be necessary. Meanwhile, one can use a few techniques that
-speed up computation at the expense of memory:
+speed up computation at the expense of memory. Note, however, that since the
+recent switch of :class:`PairwiseDistances` to C++ rather than pure Python, it
+is not clear whether these deliver a substantial speed-up:
 
 * To avoid (possibly expensive) computation of distances during Rips complex
   generation, store :class:`ExplicitDistances` (see :ref:`distances`)::

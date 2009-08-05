@@ -6,25 +6,7 @@ from    lsqr            import lsqr
 from    sys             import argv, exit
 import  os.path
 
-def smooth(boundary_filename, cocycle_filename, vertexmap_filename):
-    boundary_list = []
-    with open(boundary_filename) as fp:
-        for line in fp.xreadlines():
-            if line.startswith('#'): continue
-            boundary_list.append(map(int, line.split()))
-
-    cocycle_list = []
-    with open(cocycle_filename) as fp:
-        for line in fp.xreadlines():
-            if line.startswith('#'): continue
-            cocycle_list.append(map(int, line.split()))
-
-    vertices = []
-    with open(vertexmap_filename) as fp:
-        for line in fp.xreadlines():
-            if line.startswith('#'): continue
-            vertices.append(map(int, line.split())[1])
-
+def smooth(boundary_list, cocycle_list, vertexmap_list):
     dimension = max((max(d[1], d[2]) for d in boundary_list))
     dimension += 1
 
@@ -69,6 +51,15 @@ def smooth(boundary_filename, cocycle_filename, vertexmap_filename):
     return values
 
 
+def read_list_file(filename):
+    list = []
+    with open(filename) as fp:
+        for line in fp.xreadlines():
+            if line.startswith('#'): continue
+            list.append(map(int, line.split()))
+    return list
+
+
 if __name__ == '__main__':
     if len(argv) < 4:
         print "Usage: %s BOUNDARY COCYCLE VERTEXMAP" % argv[0]
@@ -77,7 +68,12 @@ if __name__ == '__main__':
     boundary_filename = argv[1]
     cocycle_filename = argv[2]
     vertexmap_filename = argv[3]
-    values = smooth(boundary_filename, cocycle_filename, vertexmap_filename)
+
+    boundary_list = read_list_file(boundary_filename)
+    cocycle_list = read_list_file(cocycle_filename)
+    vertexmap_list = read_list_file(vertexmap_filename)
+
+    values = smooth(boundary_list, cocycle_list, vertexmap_list)
 
     outfn = os.path.splitext(cocycle_filename)[0] + '.val'
     with open(outfn, 'w') as f:

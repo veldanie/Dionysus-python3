@@ -68,7 +68,7 @@ std::ostream&       operator<<(std::ostream& out, const BirthInfo& bi)
 { out << "(d=" << bi.dimension << ") " << bi.index; if (bi.un) out << " U " << (bi.index + 1); return out; }
 
 // Forward declarations of auxilliary functions
-void        report_death(std::ostream& out, const BirthInfo& birth, const BirthInfo& death);
+void        report_death(std::ostream& out, const BirthInfo& birth, const BirthInfo& death, unsigned skeleton_dimension);
 void        make_boundary(const Smplx& s, Complex& c, const Zigzag& zz, Boundary& b);
 void        process_command_line_options(int           argc,
                                          char*         argv[],
@@ -78,9 +78,9 @@ void        process_command_line_options(int           argc,
                                          std::string&  subsample_filename,
                                          std::string&  outfilename);
 void        add_simplex(const Smplx& s, const BirthInfo& birth, const BirthInfo& death, 
-                        Complex& complex, Zigzag& zz, std::ostream& out, Timer& add);
+                        Complex& complex, Zigzag& zz, std::ostream& out, Timer& add, unsigned skeleton_dimension);
 void        remove_simplex(const Smplx& s, const BirthInfo& birth, const BirthInfo& death, 
-                           Complex& complex, Zigzag& zz, std::ostream& out, Timer& remove);
+                           Complex& complex, Zigzag& zz, std::ostream& out, Timer& remove, unsigned skeleton_dimension);
 
 int main(int argc, char* argv[])
 {
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
         for (SimplexVector::const_iterator cur = subcomplex.begin(); cur != subcomplex.end(); ++cur)
         {
             add_simplex(*cur, BirthInfo(cur->dimension(), i, true), BirthInfo(cur->dimension() - 1, i), 
-                        complex, zz, out, add);
+                        complex, zz, out, add, skeleton_dimension);
 
             // Record cofaces with all other vertices outside of the subcomplex
             coface.start();
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
         // Add simplices that cut across VR(K_i) and VR(K_{i+1})
         for (SimplexVector::const_iterator cur = across.begin(); cur != across.end(); ++cur)
             add_simplex(*cur, BirthInfo(cur->dimension(), i, true), BirthInfo(cur->dimension() - 1, i), 
-                        complex, zz, out, add);
+                        complex, zz, out, add, skeleton_dimension);
         rInfo("  Cross simplices added");
 
 
@@ -213,12 +213,12 @@ int main(int argc, char* argv[])
 
         for (SimplexVector::const_reverse_iterator cur = across.rbegin(); cur != across.rend(); ++cur)
             remove_simplex(*cur, BirthInfo(cur->dimension() - 1, i+1), BirthInfo(cur->dimension(), i, true),
-                           complex, zz, out, remove);
+                           complex, zz, out, remove, skeleton_dimension);
         rInfo("  Cross simplices removed");
 
         for (SimplexVector::const_reverse_iterator cur = subcomplex.rbegin(); cur != subcomplex.rend(); ++cur)
             remove_simplex(*cur, BirthInfo(cur->dimension() - 1, i+1), BirthInfo(cur->dimension(), i, true),
-                           complex, zz, out, remove);
+                           complex, zz, out, remove, skeleton_dimension);
         rInfo("  Subcomplex simplices removed");
         
         Dimension betti_1 = 0;
@@ -249,14 +249,14 @@ void        make_boundary(const Smplx& s, Complex& c, const Zigzag& zz, Boundary
     }
 }
 
-void        report_death(std::ostream& out, const BirthInfo& birth, const BirthInfo& death)
+void        report_death(std::ostream& out, const BirthInfo& birth, const BirthInfo& death, unsigned skeleton_dimension)
 {
-    if (death > birth)
+    if (birth.dimension < skeleton_dimension && death > birth)
         out << birth << " --- " << death << std::endl;
 }
 
 void        add_simplex(const Smplx& s, const BirthInfo& birth, const BirthInfo& death, 
-                        Complex& complex, Zigzag& zz, std::ostream& out, Timer& add)
+                        Complex& complex, Zigzag& zz, std::ostream& out, Timer& add, unsigned skeleton_dimension)
 {
     rDebug("Adding simplex: %s", tostring(s).c_str());
 
@@ -264,13 +264,13 @@ void        add_simplex(const Smplx& s, const BirthInfo& birth, const BirthInfo&
     make_boundary(s, complex, zz, b);
     add.start();
     boost::tie(idx, d)  = zz.add(b, birth);
-    if (d) report_death(out, *d, death);
+    if (d) report_death(out, *d, death, skeleton_dimension);
     add.stop();
     complex.insert(std::make_pair(s, idx));
 }
 
 void        remove_simplex(const Smplx& s, const BirthInfo& birth, const BirthInfo& death, 
-                           Complex& complex, Zigzag& zz, std::ostream& out, Timer& remove)
+                           Complex& complex, Zigzag& zz, std::ostream& out, Timer& remove, unsigned skeleton_dimension)
 {
     rDebug("Removing simplex: %s", tostring(s).c_str());
 
@@ -278,7 +278,7 @@ void        remove_simplex(const Smplx& s, const BirthInfo& birth, const BirthIn
     remove.start();
     Death d = zz.remove(si->second, birth);
     remove.stop();
-    if (d) report_death(out, *d, death);
+    if (d) report_death(out, *d, death, skeleton_dimension);
     complex.erase(si);
 }
 

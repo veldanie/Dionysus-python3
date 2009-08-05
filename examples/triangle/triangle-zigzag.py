@@ -30,6 +30,6 @@ for s in sorted(complex.keys(), data_cmp):
 for s in sorted(complex.keys(), reverse = True):
     print "%d: Removing %s" % (b, s)
     d = zz.remove(complex[s], b)
-    complex[s] = None
+    del complex[s]
     if d:   print "Interval (%d, %d)" % (d, b-1)
     b += 1

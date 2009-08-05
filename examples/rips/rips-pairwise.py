@@ -6,49 +6,52 @@ from    dionysus    import Rips, PairwiseDistances, StaticPersistence, Filtratio
 from    sys         import argv, exit
 import  time
 
+def main(filename, skeleton, max):
+    points = [p for p in points_file(filename)]
+    distances = PairwiseDistances(points)
+    # distances = ExplicitDistances(distances)           # speeds up generation of the Rips complex at the expense of memory usage
+    rips = Rips(distances)
+    print time.asctime(), "Rips initialized"
 
-if len(argv) < 4:
-    print "Usage: %s POINTS SKELETON MAX" % argv[0]
-    exit()
+    simplices = []
+    rips.generate(skeleton, max, simplices.append)
+    print time.asctime(), "Generated complex: %d simplices" % len(simplices)
 
-filename = argv[1]
-skeleton = int(argv[2])
-max = float(argv[3])
+    # While this step is unnecessary (Filtration below can be passed rips.cmp), 
+    # it greatly speeds up the running times
+    for s in simplices: s.data = rips.eval(s)
+    print time.asctime(), simplices[0], '...', simplices[-1]
 
-points = [p for p in points_file(filename)]
-distances = PairwiseDistances(points)
-distances = ExplicitDistances(distances)           # speeds up generation of the Rips complex at the expense of memory usage
-rips = Rips(distances)
-print time.asctime(), "Rips initialized"
+    f = Filtration(simplices, data_dim_cmp)             # could be rips.cmp if s.data for s in simplices is not set
+    print time.asctime(), "Set up filtration"
 
-simplices = []
-rips.generate(skeleton, max, simplices.append)
-print time.asctime(), "Generated complex: %d simplices" % len(simplices)
+    p = StaticPersistence(f)
+    print time.asctime(), "Initialized StaticPersistence"
 
-# While this step is unnecessary (Filtration below can be passed rips.cmp), 
-# it greatly speeds up the running times
-for s in simplices: s.data = rips.eval(s)
-print time.asctime(), simplices[0], '...', simplices[-1]
+    p.pair_simplices()
+    print time.asctime(), "Simplices paired"
 
-f = Filtration(simplices, data_dim_cmp)             # could be rips.cmp if s.data for s in simplices is not set
-print time.asctime(), "Set up filtration"
+    print "Outputting persistence diagram"
+    for i in p:
+        if i.sign():
+            b = simplices[f[p(i)]]
 
-p = StaticPersistence(f)
-print time.asctime(), "Initialized StaticPersistence"
+            if b.dimension() >= skeleton: continue
 
-p.pair_simplices()
-print time.asctime(), "Simplices paired"
+            if i == i.pair:
+                print b.dimension(), b.data, "inf"
+                continue
 
-print "Outputting persistence diagram"
-for i in p:
-    if i.sign():
-        b = simplices[f[p(i)]]
+            d = simplices[f[p(i.pair)]]
+            print b.dimension(), b.data, d.data
 
-        if b.dimension() >= skeleton: continue
+if __name__ == '__main__':
+    if len(argv) < 4:
+        print "Usage: %s POINTS SKELETON MAX" % argv[0]
+        exit()
 
-        if i == i.pair:
-            print b.dimension(), b.data, "inf"
-            continue
+    filename = argv[1]
+    skeleton = int(argv[2])
+    max = float(argv[3])
 
-        d = simplices[f[p(i.pair)]]
-        print b.dimension(), b.data, d.data
+    main(filename, skeleton, max)

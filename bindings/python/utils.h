@@ -7,6 +7,39 @@ namespace bp = boost::python;
 namespace dionysus {
 namespace python   {
 
+// Random access iterator into python's list (using integer indices)
+template<class Value>
+class ListRandomAccessIterator:
+    public boost::iterator_adaptor<ListRandomAccessIterator<Value>,         // Derived
+                                   boost::counting_iterator<unsigned>,      // Base
+                                   Value,                                   // Value
+                                   boost::use_default,
+                                   Value>
+{
+    public:
+        typedef                 ListRandomAccessIterator                                        Self;
+        typedef                 boost::iterator_adaptor<ListRandomAccessIterator,           
+                                                        boost::counting_iterator<unsigned>,     
+                                                        Value,
+                                                        boost::use_default,
+                                                        Value>                                  Parent;
+                    
+                                ListRandomAccessIterator()                                      {}
+
+                                ListRandomAccessIterator(bp::list l, unsigned i):
+                                    Parent(i), l_(l)                                            {}
+
+    private:
+        friend class boost::iterator_core_access;
+        friend class FiltrationPythonIterator;
+
+        typename Parent::reference       
+                                dereference() const                                             { return bp::object(l_[*(this->base())]); }
+
+        bp::list                l_;
+};
+
+// Adaptor of a Pyhon object to act as a C++-style comparison functor
 struct PythonCmp
 {
     template<class T>
@@ -14,7 +47,7 @@ struct PythonCmp
 
                     PythonCmp(bp::object cmp): cmp_(cmp)    {}
 
-    bp::object cmp_;
+    bp::object      cmp_;
 };
 
 } } // namespace dionysus::python
