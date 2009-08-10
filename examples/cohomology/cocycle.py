@@ -6,7 +6,8 @@ from    lsqr            import lsqr
 from    sys             import argv, exit
 import  os.path
 
-def smooth(boundary_list, cocycle_list, vertexmap_list):
+def smooth(boundary_list, cocycle_list, vertices):
+    vertices = [v[1] for v in vertices]
     dimension = max((max(d[1], d[2]) for d in boundary_list))
     dimension += 1
 
