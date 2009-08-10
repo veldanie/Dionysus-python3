@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from    dionysus        import Simplex, CohomologyPersistence, points_file, PairwiseDistances, ExplicitDistances, Rips
+from    dionysus        import Simplex, CohomologyPersistence, points_file, PairwiseDistances, ExplicitDistances, Rips, data_dim_cmp
 from    sys             import argv, exit
 import  time
 
@@ -41,7 +41,7 @@ def main(filename, skeleton, max, prime = 11):
         print dimension, birth, 'inf'         # dimension, simplex data = birth
         print "# Cocycle at (dim=%d, birth=%f)" % ccl.birth
         for e in ccl:
-            print "#  ", e.si.order(), normalized(e.coefficient, prime)
+            print "#  ", e.si.order, normalized(e.coefficient, prime)
 
 def normalized(coefficient, prime):
     if coefficient > prime/2:
