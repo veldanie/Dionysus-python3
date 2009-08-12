@@ -27,10 +27,10 @@ def create_subsamples(points_fn, subsamples_fn, points_list):
     for c in count:
         counts.append(' '.join(map(str, xrange(cur, cur+c))) + '\n')
         cur += c
-        counts.append(' '.join(map(str, xrange(cur-c, cur+c))) + '\n')
+        # counts.append(' '.join(map(str, xrange(cur-c, cur+c))) + '\n')
     
     with open(subsamples_fn, 'w') as f:
-        f.writelines(counts[:-1])
+        f.writelines(counts)
 
 
 if __name__ == '__main__':
@@ -38,7 +38,7 @@ if __name__ == '__main__':
         print "Usage: %s POINTS SUBSAMPLES POINTS1 [POINTS2 [POINTS3 [...]]]" % argv[0]
         print
         print "Creates a file POINTS with the union of POINTS* and SUBSAMPLES which lists"
-        print "the indices of the points and their pairwise unions, one per line"
+        print "the indices of the points one per line"
         exit()
 
     points_fn = argv[1]

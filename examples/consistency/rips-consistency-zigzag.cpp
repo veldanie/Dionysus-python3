@@ -121,6 +121,8 @@ int main(int argc, char* argv[])
         while (line_in >> sample)
             subsamples.back().push_back(sample);
     }
+    AssertMsg(subsamples.front().size() == 0, "The first subsample should be empty");
+    AssertMsg(subsamples.back().size() == 0, "The last subsample should be empty");     // it's a convenient artifact of the stream processing above
     
     std::cout << "Subsample size:" << std::endl;
     for (unsigned i = 0; i < subsamples.size(); ++i)
@@ -141,7 +143,7 @@ int main(int argc, char* argv[])
     SimplexVector       subcomplex, across;
     
     rInfo("Commencing computation");
-    boost::progress_display show_progress(subsamples.size());
+    boost::progress_display show_progress(subsamples.size() - 1);
     for (unsigned i = 0; i < subsamples.size() - 1; ++i)
     {
         // Take union of subsamples i and i+1
