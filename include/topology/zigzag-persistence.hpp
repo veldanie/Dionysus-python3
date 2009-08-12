@@ -414,7 +414,7 @@ show_all()
 template<class BID, class SD>
 bool
 ZigzagPersistence<BID,SD>::
-check_consistency(SimplexIndex s_skip, ZIndex z_skip, BIndex b_skip)
+check_consistency(SimplexIndex, ZIndex, BIndex)
 {
 #ifdef ZIGZAG_CONSISTENCY
     #warning "Checking consistency in ZigzagPersistence"
@@ -684,7 +684,7 @@ new_simplex(ZigzagPersistence& zz)
 template<class BID, class SD>
 typename ZigzagPersistence<BID,SD>::ZIndex
 ZigzagPersistence<BID,SD>::ZigzagVisitor::
-new_z_in_add(ZigzagPersistence& zz, const ZColumn& z, const BRow& u)
+new_z_in_add(ZigzagPersistence& zz, const ZColumn&, const BRow&)
 {
     int order                   = zz.z_list.empty() ? 0 : boost::prior(zz.z_list.end())->order + 1;
     zz.z_list.push_back(ZNode(order, zz.b_list.end()));
@@ -694,7 +694,7 @@ new_z_in_add(ZigzagPersistence& zz, const ZColumn& z, const BRow& u)
 template<class BID, class SD>
 typename ZigzagPersistence<BID,SD>::BIndex
 ZigzagPersistence<BID,SD>::ZigzagVisitor::
-select_j_in_remove(ZigzagPersistence& zz, const CRow& c_row)
+select_j_in_remove(ZigzagPersistence&, const CRow& c_row)
 {
     return c_row.front();
 }
@@ -712,7 +712,7 @@ new_z_in_remove(ZigzagPersistence& zz)
 template<class BID, class SD>
 typename ZigzagPersistence<BID,SD>::Death
 ZigzagPersistence<BID,SD>::ZigzagVisitor::
-death(ZigzagPersistence& zz, ZIndex dying_z)
+death(ZigzagPersistence&, ZIndex dying_z)
 {
     return Death(dying_z->birth);
 }

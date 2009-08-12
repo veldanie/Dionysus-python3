@@ -127,7 +127,7 @@ class ZigzagPersistence
 
             ZIndex                      new_z_in_remove(ZigzagPersistence& zz);
 
-            void                        erasing_z(ZigzagPersistence& zz, ZIndex j)      {}
+            void                        erasing_z(ZigzagPersistence&, ZIndex)           {}
 
             Death                       death(ZigzagPersistence& zz, ZIndex dying_z);
         };

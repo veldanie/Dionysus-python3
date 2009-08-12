@@ -188,16 +188,17 @@ class SizeStorage<vector<T> >
         typedef         vector<T>                                                           Container;
         typedef         SizeStorage<Container>                                              Self;
 
-                        SizeStorage(size_t size = 0)                                        {}
+                        SizeStorage()                                                       {}
+                        SizeStorage(size_t)                                                 {}
 
-        Self&           operator+=(size_t inc)                                              { return *this; }
-        Self&           operator-=(size_t dec)                                              { return *this; }
+        Self&           operator+=(size_t)                                                  { return *this; }
+        Self&           operator-=(size_t)                                                  { return *this; }
         Self&           operator++()                                                        { return *this; }
         Self            operator++(int)                                                     { return *this; }
         Self&           operator--()                                                        { return *this; }
         Self            operator--(int)                                                     { return *this; }
         size_t          size(const Container& c) const                                      { return c.size(); }
-        void            swap(SizeStorage& other)                                            {}
+        void            swap(SizeStorage&)                                                  {}
 
         void            clear()                                                             {}
 };
@@ -209,16 +210,17 @@ class SizeStorage<deque<T> >
         typedef         deque<T>                                                            Container;
         typedef         SizeStorage<Container>                                              Self;
 
-                        SizeStorage(size_t size = 0)                                        {}
+                        SizeStorage()                                                       {}
+                        SizeStorage(size_t)                                                 {}
 
-        Self&           operator+=(size_t inc)                                              { return *this; }
-        Self&           operator-=(size_t dec)                                              { return *this; }
+        Self&           operator+=(size_t)                                                  { return *this; }
+        Self&           operator-=(size_t)                                                  { return *this; }
         Self&           operator++()                                                        { return *this; }
         Self            operator++(int)                                                     { return *this; }
         Self&           operator--()                                                        { return *this; }
         Self            operator--(int)                                                     { return *this; }
         size_t          size(const Container& c) const                                      { return c.size(); }
-        void            swap(SizeStorage& other)                                            {}
+        void            swap(SizeStorage&)                                                  {}
 
         void            clear()                                                             {}
 };
