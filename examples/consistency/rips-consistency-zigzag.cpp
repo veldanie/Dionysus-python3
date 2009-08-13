@@ -59,6 +59,8 @@ struct      BirthInfo
     
     bool            operator<(const BirthInfo& other) const         { if (index == other.index) return (!un && other.un); else return index < other.index; }
     bool            operator>(const BirthInfo& other) const         { return other.operator<(*this); }
+    bool            operator>=(const BirthInfo& other) const        { return !operator<(other); }
+    bool            operator<=(const BirthInfo& other) const        { return !operator>(other); }
 
     Dimension       dimension;
     unsigned        index;
@@ -253,7 +255,7 @@ void        make_boundary(const Smplx& s, Complex& c, const Zigzag& zz, Boundary
 
 void        report_death(std::ostream& out, const BirthInfo& birth, const BirthInfo& death, unsigned skeleton_dimension)
 {
-    if (birth.dimension < skeleton_dimension && death > birth)
+    if (birth.dimension < skeleton_dimension && death >= birth)
         out << birth << " --- " << death << std::endl;
 }
 
