@@ -136,7 +136,7 @@ bron_kerbosch(VertexContainer&                          current,
         functor(s);
     }
 
-    if (current.size() == max_dim + 1)
+    if (current.size() == static_cast<size_t>(max_dim) + 1) 
         return;
 
     rLog(rlRipsDebug,       "Traversing %d vertices", candidates.end() - boost::next(excluded));
