@@ -7,7 +7,6 @@ from    sys             import argv, exit
 import  os.path
 
 def smooth(boundary_list, cocycle_list, vertices):
-    vertices = [v[1] for v in vertices]
     dimension = max((max(d[1], d[2]) for d in boundary_list))
     dimension += 1
 
@@ -47,8 +46,8 @@ def smooth(boundary_list, cocycle_list, vertices):
         print "Expected a harmonic cocycle:", sum((D*v)**2), sum((D.T*v)**2) 
 
     values = [None]*len(vertices)
-    for i in xrange(len(vertices)):
-        values[vertices[i]] = solution[0][i]
+    for i,v in vertices:
+        values[v] = solution[0][i]
     return values
 
 
