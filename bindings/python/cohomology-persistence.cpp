@@ -29,6 +29,17 @@ bp::tuple                                   chp_add(dp::CohomPersistence& chp, b
     return bp::make_tuple(i,d);
 }
 
+
+bp::tuple                                   chp_add_store(dp::CohomPersistence& chp, bp::object bdry, dp::BirthID birth, bool store)
+{
+    dp::CohomPersistence::SimplexIndex      i;
+    dp::CohomPersistence::Death             d;
+    boost::tie(i,d)                                 = chp.add(bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(bdry),
+                                                              bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(),
+                                                              birth, store); 
+    return bp::make_tuple(i,d);
+}
+
 dp::CohomPersistence::ZColumn::const_iterator     
 cocycle_zcolumn_begin(dp::CohomPersistence::Cocycle& ccl)                   
 { return ccl.zcolumn.begin(); }
@@ -60,6 +71,7 @@ void export_cohomology_persistence()
     bp::class_<dp::CohomPersistence>("CohomologyPersistence")
         .def("__init__",        bp::make_constructor(&init_from_prime))
         .def("add",             &chp_add)
+        .def("add",             &chp_add_store)
         
         .def("__iter__",        bp::range(&dp::CohomPersistence::begin, &dp::CohomPersistence::end))
     ;

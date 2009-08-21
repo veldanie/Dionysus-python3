@@ -11,12 +11,17 @@ The :ref:`rips-pairwise-cohomology` illustrates the use of :class:`CohomologyPer
         this point on all the computation will be performed with coefficients
         coming from :math:`\mathbb{Z}/prime \mathbb{Z}`.
 
-    .. method:: add(boundary, birth)
+    .. method:: add(boundary, birth, [store = True])
         
         Adds a simplex with the given `boundary` to the complex, i.e. 
         :math:`K_{i+1} = K_i \cup \sigma` and `boundary` = :math:`\partial \sigma`.
         If a new class is born as a result of the addition, `birth` is stored with 
-        it for future reference.
+        it for future reference. 
+        
+        If `store` is ``False`` and a class is born, it will not be stored in
+        :class:`CohomologyPersistence`. This is useful to not waste space on the
+        classes of the dimension equal to the maximum-dimensional simplices of
+        the complex since such classes will never die.
 
         :returns: a pair (`i`, `d`). The first element is the index `i`. 
                   It is the internal representation of the newly added simplex,
