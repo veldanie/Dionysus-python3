@@ -24,7 +24,7 @@ def SymOrtho(a,b):
         c=0.
         s=b/ab
         r=ab
-    elif ab>aa:
+    elif ab>=aa:
         sb=1
         if b<0: sb=-1
         tau=a/b
