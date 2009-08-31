@@ -17,7 +17,7 @@ implementations of the following algorithms:
 
 * Persistent homology computation [ELZ02]_ [ZC05]_
 * Vineyards [CEM06]_    |cpp-only|
-* Persistent cohomology computation (described in [dSVJ09]_)    |cpp-only|
+* Persistent cohomology computation (described in [dSVJ09]_)
 * Zigzag persistent homology [CdSM09]_
 * :ref:`examples` provide useful functionality in and of themselves:
   
@@ -39,6 +39,8 @@ the low-level C++ functionality as well as high-level auxilliary routines. Their
 simplicity, elegance, and interactivity of Python. Since they mimick the C++
 functionality, their documentation may be a helpful resource for the latter.
 
+:ref:`Download <download>` the software, or read a :ref:`tutorial` to
+get acquainted with its structure.
 
 .. include::    substitutions.aux
 

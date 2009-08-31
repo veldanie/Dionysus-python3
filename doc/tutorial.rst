@@ -33,7 +33,7 @@ with all the :class:`simplices <Simplex>` of the Delaunay triangulation. Each on
 smallest value of the squared distance function on the dual Voronoi cell) and
 whether the simplex is attached or not (i.e. whether its dual cell does not or
 does contain a critical point of the distance function). See :ref:`alphashapes`
-for more details.
+for more details, and :ref:`alpha-shape-example` for a full example.
 
 As a result, if one wanted only those simplices whose alpha shape value did not
 exceed 10, one could obtain them as follows::
