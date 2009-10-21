@@ -37,10 +37,18 @@ Dionysus requires the following software:
   :Boost_:              C++ utilities (version :math:`\geq` 1.36; including Boost.Python used to create
                         Python bindings)
 
-There also seems to be a dependence on the version of GCC, although I don't
-entirely understand it. GCC :math:`\geq` 4.3 definitely works, but some versions
-below that seem not to. There were some major changes in 4.3, so it's not
-entirely surprising, but I don't understand all the subtleties.
+.. warning::
+
+    There also seems to be a dependence on the version of GCC, although I don't
+    entirely understand it. GCC 4.3 and above definitely work, but some versions
+    below that seem not to.
+
+    One particular catch is that the default compiler on many current Mac OS X
+    is GCC 4.0 that has a well-known bug making Dionysus unusable. Fortunately
+    the problem is easy to solve by using GCC 4.2 that is often available on a
+    Mac under the name ``gcc-4.2``.
+
+    One can check the compiler version with ``g++ --version`` command.
 
 Optional dependencies:
 
@@ -69,6 +77,11 @@ create a directory ``build``. Inside that directory run ``cmake`` and ``make``::
   cd build
   cmake ..
   make
+
+.. tip::
+
+   To use GCC 4.2 on a Mac one can try ``CXX=g++-4.2 cmake ..`` instead of
+   ``cmake ..``.
 
 Instead of ``cmake``, one can run ``ccmake`` for a curses interface. The
 following configuration options are available. One can set them either through

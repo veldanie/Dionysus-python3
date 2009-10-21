@@ -141,7 +141,7 @@ addition. The following code adds all the ``simplices`` to a zigzag::
     complex = {}
     zz = ZigzagPersistence()
     for s in simplices:
-        i,d = zz.add([complex[sb] for sb in s.boundary, (s.dimension(), s.data))
+        i,d = zz.add([complex[sb] for sb in s.boundary], (s.dimension(), s.data))
         complex[s] = i
         if d is not None:                   # we have a death
             dimension, birth = d            # we previously stored the (dimension, data) pair
