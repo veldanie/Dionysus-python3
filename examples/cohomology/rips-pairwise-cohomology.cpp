@@ -13,6 +13,7 @@
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/program_options.hpp>
+#include <boost/progress.hpp>
 
 #include "wrappers.h"
 
@@ -88,6 +89,7 @@ int main(int argc, char* argv[])
     Timer persistence_timer; persistence_timer.start();
     ZpField                 zp(prime);
     Persistence             p(zp);
+    boost::progress_display show_progress(v.size());
     for (unsigned j = 0; j < index_in_v.size(); ++j)
     {
         SimplexVector::const_iterator cur = v.begin() + index_in_v[j];
@@ -108,6 +110,7 @@ int main(int argc, char* argv[])
             AssertMsg(d->get<0>() == cur->dimension() - 1, "Dimensions must match");
             diagram_out << (cur->dimension() - 1) << " " << d->get<1>() << " " << size(*cur) << std::endl;
         }
+        ++show_progress;
     }
     // output infinte persistence pairs 
     for (Persistence::CocycleIndex cur = p.begin(); cur != p.end(); ++cur)

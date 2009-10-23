@@ -53,6 +53,7 @@ Dionysus requires the following software:
 Optional dependencies:
 
   :CGAL_:               for alpha shapes    (version :math:`\geq` 3.4)
+  :CVXOPT_:             for :ref:`circle-valued parametrization <cohomology-parametrization>` using LSQR
   :rlog_:               used for logging only (not needed by default)
 
 ..  :dsrpdb_:             for reading PDB files
@@ -62,6 +63,7 @@ Optional dependencies:
 .. _CMake:          http://www.cmake.org
 .. _Boost:          http://www.boost.org
 .. _CGAL:           http://www.cgal.org
+.. _CVXOPT:         http://abel.ee.ucla.edu/cvxopt/  
 .. _rlog:           http://www.arg0.net/rlog
 .. _dsrpdb:         http://www.salilab.org/~drussel/pdb/
 .. _SYNAPS:         http://www-sop.inria.fr/galaad/synaps/

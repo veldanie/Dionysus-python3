@@ -24,7 +24,7 @@ implementations of the following algorithms:
   * :ref:`Alpha shape construction <alpha-shape-example>` in 2D and 3D
   * :ref:`Rips complex construction <rips-example>`
   * Cech complex construction       |cpp-only|
-  * :ref:`Circle-valued parametrization using persistent cohomology <cohomology-parametrization>`
+  * :ref:`Circle-valued parametrization <cohomology-parametrization>`
 
 .. todo:: 
    Document more examples.
