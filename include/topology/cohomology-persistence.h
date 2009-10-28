@@ -36,7 +36,7 @@ class CohomologyPersistence
 
 
                             CohomologyPersistence(const Field& field = Field()):
-                                field_(field)                                           {}
+                                field_(field), image_begin_(cocycles_.end())            {}
 
 
         // An entry in a cocycle column
@@ -60,7 +60,7 @@ class CohomologyPersistence
         // return either a SimplexIndex or a Death
         // BI = BoundaryIterator; it should dereference to a SimplexIndex
         template<class BI>
-        IndexDeathPair      add(BI begin, BI end, BirthInfo b, bool store = true, const SimplexData& sd = SimplexData());
+        IndexDeathPair      add(BI begin, BI end, BirthInfo b, bool store = true, const SimplexData& sd = SimplexData(), bool image = true);
 
         void                show_cocycles() const;
         CocycleIndex        begin()                                                     { return cocycles_.begin(); }
@@ -72,6 +72,7 @@ class CohomologyPersistence
     private:
         Simplices           simplices_;
         Cocycles            cocycles_;
+        CocycleIndex        image_begin_;
         Field               field_;
 };
         
@@ -117,7 +118,7 @@ struct CohomologyPersistence<BirthInfo_, SimplexData_, Field_>::Cocycle
 
     ZColumn         zcolumn;
     BirthInfo       birth;
-    unsigned        order;
+    signed          order;
 
     bool            operator<(const Cocycle& other) const                       { return order > other.order; }
     bool            operator==(const Cocycle& other) const                      { return order == other.order; }

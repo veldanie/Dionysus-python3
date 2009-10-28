@@ -1,6 +1,7 @@
 #include <boost/utility.hpp>
 #include <queue>
 #include <vector>
+#include <limits>
 
 #include <utilities/log.h>
 #include <utilities/indirect.h>
@@ -20,7 +21,7 @@ template<class BirthInfo, class SimplexData, class Field>
 template<class BI>
 typename CohomologyPersistence<BirthInfo, SimplexData, Field>::IndexDeathPair
 CohomologyPersistence<BirthInfo, SimplexData, Field>::
-add(BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd)
+add(BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd, bool image)
 {
     // Create simplex representation
     simplices_.push_back(SHead(sd, simplices_.empty() ? 0 : (simplices_.back().order + 1)));
@@ -73,21 +74,40 @@ add(BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd)
     // Birth
     if (candidates.empty())
     {
+        // rLog(rlCohomology, "  Birth occurred");
         if (!store)
         {
             simplices_.pop_back();
             return std::make_pair(simplices_.begin(), Death());         // TODO: shouldn't return front
         }
         
-        unsigned order = cocycles_.empty() ? 0 : cocycles_.front().order + 1;
-        cocycles_.push_front(Cocycle(birth, order));
+        signed order = 0;
+        if (image)
+            if (image_begin_ == cocycles_.end())
+                order = std::numeric_limits<signed>::min();
+            else
+                order = image_begin_->order + 1;
+        else
+            if (!cocycles_.empty() && cocycles_.front().order >= 0)     // we have something outside the image
+                order = cocycles_.front().order + 1;
+
+        CocycleIndex nw;
+        if (image)
+        {
+            image_begin_ = cocycles_.insert(image_begin_, Cocycle(birth, order));
+            nw = image_begin_;
+        } else
+        {
+            cocycles_.push_front(Cocycle(birth, order));
+            nw = cocycles_.begin();
+        }
         
-        rLog(rlCohomology,  "Birth: %d", cocycles_.front().order);
+        rLog(rlCohomology,  "Birth: %d", nw->order);
 
         // set up the cocycle
-        ZColumn& cocycle = cocycles_.front().zcolumn;
-        cocycle.push_back(SNode(si, field_.id(), cocycles_.begin()));
-        si->row.push_back(cocycles_.front().zcolumn.front());
+        ZColumn& cocycle = nw->zcolumn;
+        cocycle.push_back(SNode(si, field_.id(), nw));
+        si->row.push_back(cocycle.front());
         rLog(rlCohomology,  "  Cocyle: %d", si->order);
 
         return std::make_pair(si, Death());
@@ -105,6 +125,12 @@ add(BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd)
 
     CocycleCoefficientPair& z   = candidates.front();
     Death d                     = z.first->birth;
+    rLog(rlCohomology, "  Order: %d", z.first->order);
+    if (z.first->order >= 0)    // if death outside image
+        d = Death();            // no death occurs outside the image
+    else
+        if (z.first == image_begin_)
+            ++image_begin_;
 
     // add z to everything else in candidates
     for (typename Candidates::iterator cur  = boost::next(candidates.begin()); 

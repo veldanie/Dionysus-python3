@@ -11,7 +11,7 @@ The :ref:`rips-pairwise-cohomology` illustrates the use of :class:`CohomologyPer
         this point on all the computation will be performed with coefficients
         coming from :math:`\mathbb{Z}/prime \mathbb{Z}`.
 
-    .. method:: add(boundary, birth, [store = True])
+    .. method:: add(boundary, birth, [store = True, [image = True]])
         
         Adds a simplex with the given `boundary` to the complex, i.e. 
         :math:`K_{i+1} = K_i \cup \sigma` and `boundary` = :math:`\partial \sigma`.
@@ -22,6 +22,13 @@ The :ref:`rips-pairwise-cohomology` illustrates the use of :class:`CohomologyPer
         :class:`CohomologyPersistence`. This is useful to not waste space on the
         classes of the dimension equal to the maximum-dimensional simplices of
         the complex since such classes will never die.
+
+        The `image` parameter allows one to work with a case of a space 
+        :math:`L \subseteq K` where the filtration of :math:`K` induces a
+        filtration of :math:`L`. In this case, one may want to compute **image
+        persistence** (i.e. the persistence of the sequences of the images given
+        by the inclusion of :math:`L` in :math:`K`). `image` indicates whether
+        the simplex added belongs to :math:`L` or not.
 
         :returns: a pair (`i`, `d`). The first element is the index `i`. 
                   It is the internal representation of the newly added simplex,
