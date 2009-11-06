@@ -61,9 +61,13 @@ class CohomologyPersistence
         // BI = BoundaryIterator; it should dereference to a SimplexIndex
         template<class BI>
         IndexDeathPair      add(BI begin, BI end, BirthInfo b, bool store = true, const SimplexData& sd = SimplexData(), bool image = true);
+        
+        // if sign needs to be specified explicitly, provide (parallel) coefficient_iter
+        template<class BI, class CI>
+        IndexDeathPair      add(CI coefficient_iter, BI begin, BI end, BirthInfo b, bool store = true, const SimplexData& sd = SimplexData(), bool image = true);
 
         void                show_cocycles() const;
-        CocycleIndex        begin()                                                     { return cocycles_.begin(); }
+        CocycleIndex        begin()                                                     { return image_begin_; }
         CocycleIndex        end()                                                       { return cocycles_.end(); }
 
     private:

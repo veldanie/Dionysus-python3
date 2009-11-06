@@ -6,6 +6,14 @@
 #include <utilities/log.h>
 #include <utilities/indirect.h>
 
+#include <boost/iterator/transform_iterator.hpp>
+#include <boost/iterator/counting_iterator.hpp>
+#include <boost/foreach.hpp>
+
+#include <boost/lambda/lambda.hpp>
+#include <boost/lambda/bind.hpp>
+namespace bl = boost::lambda;
+
 #ifdef LOGGING
 static rlog::RLogChannel* rlCohomology =                DEF_CHANNEL("topology/cohomology",        rlog::Log_Debug);
 #endif
@@ -16,12 +24,34 @@ class CohomologyPersistence<BirthInfo, SimplexData, Field>::CompareSNode
     public:
         bool        operator()(const SNode& s1, const SNode& s2) const                  { return s1.si->order < s2.si->order; }
 };
+    
+
+struct Alternator
+{
+    typedef         int         result_type;
+    int             operator()(int x) const                                             { return (x % 2)*2 - 1; }
+};
+    
 
 template<class BirthInfo, class SimplexData, class Field>
 template<class BI>
 typename CohomologyPersistence<BirthInfo, SimplexData, Field>::IndexDeathPair
 CohomologyPersistence<BirthInfo, SimplexData, Field>::
 add(BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd, bool image)
+{
+    // Set coefficient to be an iterator over (-1)^i
+    
+    return add(boost::make_transform_iterator(boost::make_counting_iterator(1), Alternator()),
+               begin, end, 
+               birth, store, sd, image);
+}
+
+
+template<class BirthInfo, class SimplexData, class Field>
+template<class BI, class CI>
+typename CohomologyPersistence<BirthInfo, SimplexData, Field>::IndexDeathPair
+CohomologyPersistence<BirthInfo, SimplexData, Field>::
+add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd, bool image)
 {
     // Create simplex representation
     simplices_.push_back(SHead(sd, simplices_.empty() ? 0 : (simplices_.back().order + 1)));
@@ -31,14 +61,15 @@ add(BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd, bool i
     typedef         std::list<CocycleCoefficientPair>           Candidates;
     Candidates      candidates, candidates_bulk;
     rLog(rlCohomology, "Boundary");
-    bool sign = true;       // TODO: this is very crude, fix later
+
     for (BI cur = begin; cur != end; ++cur)
     {
-        rLog(rlCohomology, "  %d %d", (*cur)->order, sign);
-        for (typename ZRow::const_iterator zcur = (*cur)->row.begin(); zcur != (*cur)->row.end(); ++zcur)
-            candidates_bulk.push_back(std::make_pair(zcur->ci, 
-                                                     (sign ? zcur->coefficient : field_.neg(zcur->coefficient))));
-        sign = !sign;
+        FieldElement coefficient = field_.init(*coefficient_iter++);
+        SimplexIndex cursi = *cur;
+
+        rLog(rlCohomology, "  %d %d", cursi->order, sign);
+        BOOST_FOREACH(const SNode& zcur, std::make_pair(cursi->row.begin(), cursi->row.end()))
+            candidates_bulk.push_back(std::make_pair(zcur.ci, field_.mul(coefficient, zcur.coefficient)));
     }
 
     candidates_bulk.sort(make_first_comparison(make_indirect_comparison(std::less<Cocycle>())));
@@ -78,7 +109,7 @@ add(BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd, bool i
         if (!store)
         {
             simplices_.pop_back();
-            return std::make_pair(simplices_.begin(), Death());         // TODO: shouldn't return front
+            return std::make_pair(simplices_.end(), Death());
         }
         
         signed order = 0;

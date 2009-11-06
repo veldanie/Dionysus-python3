@@ -2,6 +2,7 @@
 
 #include <boost/python.hpp>
 #include <boost/python/stl_iterator.hpp>
+#include <boost/python/overloads.hpp>
 #include <boost/shared_ptr.hpp>
 namespace bp = boost::python;
 
@@ -19,36 +20,33 @@ boost::shared_ptr<dp::CohomPersistence>     init_from_prime(unsigned p = 11)
     return chp;
 }
 
-bp::tuple                                   chp_add(dp::CohomPersistence& chp, bp::object bdry, dp::BirthID birth)
+
+bp::tuple                                   chp_add(dp::CohomPersistence& chp, 
+                                                    bp::object bdry, 
+                                                    dp::BirthID birth, 
+                                                    bool store, 
+                                                    bool image, 
+                                                    bp::object coefficients)
 {
     dp::CohomPersistence::SimplexIndex      i;
     dp::CohomPersistence::Death             d;
-    boost::tie(i,d)                                 = chp.add(bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(bdry),
-                                                              bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(),
-                                                              birth); 
+
+    if (coefficients)
+    {
+        boost::tie(i,d)                         = chp.add(bp::stl_input_iterator<int>(coefficients),
+                                                          bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(bdry),
+                                                          bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(),
+                                                          birth, store, dp::CohomPersistence::SimplexData(), image); 
+    } else
+    {
+        boost::tie(i,d)                         = chp.add(bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(bdry),
+                                                          bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(),
+                                                          birth, store, dp::CohomPersistence::SimplexData(), image); 
+    }
+
     return bp::make_tuple(i,d);
 }
 
-
-bp::tuple                                   chp_add_store(dp::CohomPersistence& chp, bp::object bdry, dp::BirthID birth, bool store)
-{
-    dp::CohomPersistence::SimplexIndex      i;
-    dp::CohomPersistence::Death             d;
-    boost::tie(i,d)                                 = chp.add(bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(bdry),
-                                                              bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(),
-                                                              birth, store); 
-    return bp::make_tuple(i,d);
-}
-
-bp::tuple                                   chp_add_store_image(dp::CohomPersistence& chp, bp::object bdry, dp::BirthID birth, bool store, bool image)
-{
-    dp::CohomPersistence::SimplexIndex      i;
-    dp::CohomPersistence::Death             d;
-    boost::tie(i,d)                                 = chp.add(bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(bdry),
-                                                              bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(),
-                                                              birth, store, dp::CohomPersistence::SimplexData(), image); 
-    return bp::make_tuple(i,d);
-}
 
 dp::CohomPersistence::ZColumn::const_iterator     
 cocycle_zcolumn_begin(dp::CohomPersistence::Cocycle& ccl)                   
@@ -67,6 +65,8 @@ unsigned                            si_order(T& si)
 }
 
 
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(add_overloads, add, 2, 4)
+
 void export_cohomology_persistence()
 {
     bp::class_<dp::CohomPersistence::SimplexIndex>("CHSimplexIndex")
@@ -80,9 +80,7 @@ void export_cohomology_persistence()
 
     bp::class_<dp::CohomPersistence>("CohomologyPersistence")
         .def("__init__",        bp::make_constructor(&init_from_prime))
-        .def("add",             &chp_add)
-        .def("add",             &chp_add_store)
-        .def("add",             &chp_add_store_image)
+        .def("add",             &chp_add, (bp::arg("bdry"), bp::arg("birth"), bp::arg("store")=true, bp::arg("image")=true, bp::arg("coefficients")=false))
         
         .def("__iter__",        bp::range(&dp::CohomPersistence::begin, &dp::CohomPersistence::end))
     ;

@@ -11,7 +11,7 @@ The :ref:`rips-pairwise-cohomology` illustrates the use of :class:`CohomologyPer
         this point on all the computation will be performed with coefficients
         coming from :math:`\mathbb{Z}/prime \mathbb{Z}`.
 
-    .. method:: add(boundary, birth, [store = True, [image = True]])
+    .. method:: add(boundary, birth, [store = True], [image = True], [coefficients = []])
         
         Adds a simplex with the given `boundary` to the complex, i.e. 
         :math:`K_{i+1} = K_i \cup \sigma` and `boundary` = :math:`\partial \sigma`.
@@ -29,6 +29,10 @@ The :ref:`rips-pairwise-cohomology` illustrates the use of :class:`CohomologyPer
         persistence** (i.e. the persistence of the sequences of the images given
         by the inclusion of :math:`L` in :math:`K`). `image` indicates whether
         the simplex added belongs to :math:`L` or not.
+
+        If given, `coefficients` is a list parallel to `boundary` that provides
+        coefficients for the corresponding boundary elements. If empty, it is
+        assumed to be :math:`(-1)^i`.
 
         :returns: a pair (`i`, `d`). The first element is the index `i`. 
                   It is the internal representation of the newly added simplex,

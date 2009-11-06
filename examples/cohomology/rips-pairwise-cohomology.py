@@ -19,7 +19,7 @@ def main(filename, skeleton, max, prime = 11):
     # While this step is unnecessary (Filtration below can be passed rips.cmp), 
     # it greatly speeds up the running times
     for s in simplices: s.data = rips.eval(s)
-    print time.asctime(), simplices[0], '...', simplices[-1]
+    print '#', time.asctime(), simplices[0], '...', simplices[-1]
 
     simplices.sort(data_dim_cmp)
     print '#', time.asctime(), "Simplices sorted"
@@ -28,7 +28,7 @@ def main(filename, skeleton, max, prime = 11):
     complex = {}
 
     for s in simplices:
-        i,d = ch.add([complex[sb] for sb in s.boundary], (s.dimension(), s.data))
+        i,d = ch.add([complex[sb] for sb in s.boundary], (s.dimension(), s.data), store = (s.dimension() < skeleton))
         complex[s] = i
         if d: 
             dimension, birth = d
