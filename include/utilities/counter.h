@@ -15,6 +15,7 @@
     #define     CountNumBy(x,y,z)
     #define     SetFrequency(x, freq)
     #define     SetTrigger(x, y)
+    #define     Print(x)
 #else // COUNTERS
     #define     GetCounter(path)            get_counter(path)
     #define     Count(x)                    do { x->count++; if ((x->count % x->frequency == 0)) x->trigger->print(); } while (0)
@@ -23,6 +24,7 @@
     #define     CountNumBy(x,y,z)           do { x->subcount[y] += z; } while (0)
     #define     SetFrequency(x, freq)       do { x->frequency = freq; } while (0)
     #define     SetTrigger(x, y)            do { x->trigger = y; } while(0)
+    #define     Print(x)                    do { x->trigger->print(); } while(0)
 
 
 #include <map>

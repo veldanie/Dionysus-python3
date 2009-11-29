@@ -7,6 +7,8 @@
 
 #include <utilities/types.h>
 
+#include <boost/progress.hpp>
+
 
 template<class Data_, class ChainTraits_, class ContainerTraits_, class Element_ = use_default> 
 struct PairCycleData: public Data_
@@ -80,7 +82,7 @@ class StaticPersistence
         
         // Function: pair_simplices()                                        
         // Compute persistence of the filtration
-        void                            pair_simplices()                                        { pair_simplices<PairVisitor>(begin(), end()); }
+        void                            pair_simplices()                                        { pair_simplices<PairVisitor>(begin(), end(), PairVisitor(size())); }
 
         // Functions: Accessors
         //   begin() -              returns OrderIndex of the first element
@@ -101,6 +103,7 @@ class StaticPersistence
         // Acts as an archetype and if necessary a base class for visitors passed to <pair_simplices(bg, end, visitor)>.
         struct                          PairVisitor
         {
+                                        PairVisitor(unsigned size): show_progress(size)         {}
             // Function: init(i)
             // Called after OrderElement pointed to by `i` has been initialized 
             // (its cycle is set to be its boundary, and pair is set to self, i.e. `i`)
@@ -114,7 +117,10 @@ class StaticPersistence
 
             // Function: finished(j)
             // Called after the processing of `j` is finished.
-            void                        finished(OrderIndex j) const                            {}
+            void                        finished(OrderIndex j) const                            { ++show_progress; }
+
+            mutable boost::progress_display     
+                                        show_progress;
         };
 
         const Order&                    order() const                                           { return order_; }

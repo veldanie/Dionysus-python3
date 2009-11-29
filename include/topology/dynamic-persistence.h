@@ -4,8 +4,6 @@
 #include "static-persistence.h"
 #include <utilities/types.h>
 
-#include <boost/progress.hpp>
-
 #ifdef COUNTERS
 static Counter*  cTrailLength =             GetCounter("persistence/pair/traillength");     // the size of matrix U in RU decomposition
 static Counter*  cChainLength =             GetCounter("persistence/pair/chainlength");     // the size of matrix V in R=DV decomposition
@@ -274,17 +272,14 @@ class DynamicPersistenceChains:
         {
             // TODO: this is specialized for std::vector
                                         PairingChainsVisitor(OrderIndex bg, ConsistencyComparison ccmp, unsigned size): 
-                                            bg_(bg), ccmp_(ccmp), show_progress(size)   {}
+                                            Parent::PairVisitor(size), bg_(bg), ccmp_(ccmp)     {}
 
             void                        init(OrderIndex i) const                        { i->consistency = i - bg_; i->chain.append(i, ccmp_); }
             void                        update(OrderIndex j, OrderIndex i) const        { j->chain.add(i->pair->chain, ccmp_); }
-            void                        finished(OrderIndex i) const                    { CountBy(cChainLength, i->chain.size()); ++show_progress; }
+            void                        finished(OrderIndex i) const                    { Parent::PairVisitor::finished(i); CountBy(cChainLength, i->chain.size()); }
 
             OrderIndex                  bg_;
             ConsistencyComparison       ccmp_;
-
-            mutable boost::progress_display     
-                                        show_progress;
         };
 
         ConsistencyComparison           ccmp_;

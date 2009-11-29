@@ -8,6 +8,11 @@
 #include <utilities/property-maps.h>
 #include <utilities/timer.h>
 #include <utilities/log.h>
+#include <utilities/counter.h>
+#include <utilities/memory.h>
+
+#include <sys/resource.h>
+#include <malloc.h>
 
 #include <string>
 
@@ -90,6 +95,19 @@ int main(int argc, char* argv[])
     ZpField                 zp(prime);
     Persistence             p(zp);
     boost::progress_display show_progress(v.size());
+    
+    #ifdef COUNTERS
+    Counter::CounterType    max_element_count = 0;
+    unsigned                max_memory = 0;
+    long                    max_rss = 0;
+    long                    max_ixrss = 0;
+    long                    max_idrss = 0;
+    long                    max_isrss = 0;
+
+    int                     max_uordblks = 0;
+    int                     max_fordblks = 0;
+    #endif
+
     for (unsigned j = 0; j < index_in_v.size(); ++j)
     {
         SimplexVector::const_iterator cur = v.begin() + index_in_v[j];
@@ -111,6 +129,22 @@ int main(int argc, char* argv[])
             diagram_out << (cur->dimension() - 1) << " " << d->get<1>() << " " << size(*cur) << std::endl;
         }
         ++show_progress;
+        
+        #ifdef COUNTERS
+        max_element_count = std::max(max_element_count, cCohomologyElementCount->count);
+        // max_memory = std::max(max_memory, report_memory());
+
+        // struct rusage usage;
+        // getrusage(RUSAGE_SELF, &usage);
+        // max_rss = std::max(max_rss, usage.ru_maxrss);
+        // max_ixrss = std::max(max_ixrss, usage.ru_ixrss);
+        // max_idrss = std::max(max_idrss, usage.ru_idrss);
+        // max_isrss = std::max(max_isrss, usage.ru_isrss);
+
+        // struct mallinfo info = mallinfo();
+        // max_uordblks = std::max(max_uordblks, info.uordblks);
+        // max_fordblks = std::max(max_fordblks, info.fordblks);
+        #endif
     }
     // output infinte persistence pairs 
     for (Persistence::CocycleIndex cur = p.begin(); cur != p.end(); ++cur)
@@ -120,18 +154,28 @@ int main(int argc, char* argv[])
 
     // p.show_cocycles();
     // Output alive cocycles of dimension 1
-    unsigned i = 0;
-    for (Persistence::Cocycles::const_iterator cur = p.begin(); cur != p.end(); ++cur)
+    if (!cocycle_prefix.empty())
     {
-        if (cur->birth.get<0>() != 1) continue;
-        output_cocycle(cocycle_prefix, i, v, *cur, prime);
-        // std::cout << "Cocycle of dimension: " << cur->birth.get<0>() << " born at " << cur->birth.get<1>() << std::endl;
-        ++i;
+        unsigned i = 0;
+        for (Persistence::Cocycles::const_iterator cur = p.begin(); cur != p.end(); ++cur)
+        {
+            if (cur->birth.get<0>() != 1) continue;
+            output_cocycle(cocycle_prefix, i, v, *cur, prime);
+            // std::cout << "Cocycle of dimension: " << cur->birth.get<0>() << " born at " << cur->birth.get<1>() << std::endl;
+            ++i;
+        }
     }
     total_timer.stop();
     rips_timer.check("Rips timer");
     persistence_timer.check("Persistence timer");
     total_timer.check("Total timer");
+
+    #ifdef COUNTERS
+    std::cout << "Max element count: " << max_element_count << std::endl;
+    // std::cout << "Max memory use: " << max_memory << " kB" << std::endl;
+    // std::cout << "Max RSS: " << max_rss << " " << max_ixrss << " " << max_idrss << " " << max_isrss << std::endl;
+    // std::cout << "Max Blks: " << max_uordblks << " " << max_fordblks << std::endl;
+    #endif
 }
 
 void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance, ZpField::Element& prime, std::string& boundary_name, std::string& cocycle_prefix, std::string& vertices_name, std::string& diagram_name)

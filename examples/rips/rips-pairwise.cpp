@@ -23,19 +23,21 @@ typedef         Rips<PairDistances>                                     Generato
 typedef         Generator::Simplex                                      Smplx;
 typedef         std::vector<Smplx>                                      SimplexVector;
 typedef         Filtration<SimplexVector, unsigned>                     Fltr;
-//typedef         StaticPersistence<>                                     Persistence;
-typedef         DynamicPersistenceChains<>                              Persistence;
+typedef         StaticPersistence<>                                     Persistence;
+// typedef         DynamicPersistenceChains<>                              Persistence;
 typedef         PersistenceDiagram<>                                    PDgm;
 
-void            program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance);
+void            program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance, std::string& diagram_name);
 
 int main(int argc, char* argv[])
 {
     Dimension               skeleton;
     DistanceType            max_distance;
-    std::string             infilename;
+    std::string             infilename, diagram_name;
 
-    program_options(argc, argv, infilename, skeleton, max_distance);
+    program_options(argc, argv, infilename, skeleton, max_distance, diagram_name);
+    std::ofstream           diagram_out(diagram_name.c_str());
+    std::cout << "Diagram:         " << diagram_name << std::endl;
 
     PointContainer          points;
     read_points(infilename, points);
@@ -48,7 +50,7 @@ int main(int argc, char* argv[])
     // Generate 2-skeleton of the Rips complex for epsilon = 50
     rips.generate(skeleton, max_distance, make_push_back_functor(complex));
     std::sort(complex.begin(), complex.end(), Smplx::VertexComparison());       // unnecessary
-    std::cout << "# Generated complex of size: " << complex.size() << std::endl;
+    std::cout << "Generated complex of size: " << complex.size() << std::endl;
 
     // Generate filtration with respect to distance and compute its persistence
     Fltr f(complex.begin(), complex.end(), Generator::Comparison(distances));
@@ -73,7 +75,7 @@ int main(int argc, char* argv[])
             // if (b.dimension() != 1) continue;
             // std::cout << "Pair: (" << size(b) << ", " << size(d) << ")" << std::endl;
             if (b.dimension() >= skeleton) continue;
-            std::cout << b.dimension() << " " << size(b) << " " << size(d) << std::endl;
+            diagram_out << b.dimension() << " " << size(b) << " " << size(d) << std::endl;
         } else if (cur->pair == cur)    // positive could be unpaired
         {
             const Smplx& b = f.simplex(f.begin() + (cur - p.begin()));
@@ -82,7 +84,7 @@ int main(int argc, char* argv[])
             // std::cout << "Unpaired birth: " << size(b) << std::endl;
             // cycle = cur->chain;
             if (b.dimension() >= skeleton) continue;
-            std::cout << b.dimension() << " " << size(b) << " inf" << std::endl;
+            diagram_out << b.dimension() << " " << size(b) << " inf" << std::endl;
         }
 
         // Iterate over the cycle
@@ -100,7 +102,7 @@ int main(int argc, char* argv[])
     persistence_timer.check("# Persistence timer");
 }
 
-void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance)
+void        program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance, std::string& diagram_name)
 {
     namespace po = boost::program_options;
 
@@ -112,7 +114,13 @@ void        program_options(int argc, char* argv[], std::string& infilename, Dim
     visible.add_options()
         ("help,h",                                                                                  "produce help message")
         ("skeleton-dimsnion,s", po::value<Dimension>(&skeleton)->default_value(2),                  "Dimension of the Rips complex we want to compute")
-        ("max-distance,m",      po::value<DistanceType>(&max_distance)->default_value(Infinity),    "Maximum value for the Rips complex construction");
+        ("max-distance,m",      po::value<DistanceType>(&max_distance)->default_value(Infinity),    "Maximum value for the Rips complex construction")
+        ("diagram,d",           po::value<std::string>(&diagram_name),                              "Filename where to output the persistence diagram");
+#if LOGGING
+    std::vector<std::string>    log_channels;
+    visible.add_options()
+        ("log,l",               po::value< std::vector<std::string> >(&log_channels),           "log channels to turn on (info, debug, etc)");
+#endif
 
     po::positional_options_description pos;
     pos.add("input-file", 1);
@@ -123,6 +131,11 @@ void        program_options(int argc, char* argv[], std::string& infilename, Dim
     po::store(po::command_line_parser(argc, argv).
                   options(all).positional(pos).run(), vm);
     po::notify(vm);
+
+#if LOGGING
+    for (std::vector<std::string>::const_iterator cur = log_channels.begin(); cur != log_channels.end(); ++cur)
+        stderrLog.subscribeTo( RLOG_CHANNEL(cur->c_str()) );
+#endif
 
     if (vm.count("help") || !vm.count("input-file"))
     { 

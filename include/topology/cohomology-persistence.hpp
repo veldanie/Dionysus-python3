@@ -5,6 +5,7 @@
 
 #include <utilities/log.h>
 #include <utilities/indirect.h>
+#include <utilities/counter.h>
 
 #include <boost/iterator/transform_iterator.hpp>
 #include <boost/iterator/counting_iterator.hpp>
@@ -17,6 +18,12 @@ namespace bl = boost::lambda;
 #ifdef LOGGING
 static rlog::RLogChannel* rlCohomology =                DEF_CHANNEL("topology/cohomology",        rlog::Log_Debug);
 #endif
+
+#ifdef COUNTERS
+static Counter*  cCohomologyAddBasic =                  GetCounter("cohomology/add/basic");
+static Counter*  cCohomologyAddComparison =             GetCounter("cohomology/add/comparison");
+static Counter*  cCohomologyElementCount =              GetCounter("cohomology/elements");
+#endif // COUNTERS
 
 template<class BirthInfo, class SimplexData, class Field>
 class CohomologyPersistence<BirthInfo, SimplexData, Field>::CompareSNode
@@ -67,7 +74,7 @@ add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const Si
         FieldElement coefficient = field_.init(*coefficient_iter++);
         SimplexIndex cursi = *cur;
 
-        rLog(rlCohomology, "  %d %d", cursi->order, sign);
+        rLog(rlCohomology, "  %d %d", cursi->order, coefficient);
         BOOST_FOREACH(const SNode& zcur, std::make_pair(cursi->row.begin(), cursi->row.end()))
             candidates_bulk.push_back(std::make_pair(zcur.ci, field_.mul(coefficient, zcur.coefficient)));
     }
@@ -140,6 +147,8 @@ add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const Si
         cocycle.push_back(SNode(si, field_.id(), nw));
         si->row.push_back(cocycle.front());
         rLog(rlCohomology,  "  Cocyle: %d", si->order);
+        
+        Count(cCohomologyElementCount);
 
         return std::make_pair(si, Death());
     }
@@ -166,11 +175,16 @@ add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const Si
     // add z to everything else in candidates
     for (typename Candidates::iterator cur  = boost::next(candidates.begin()); 
                                        cur != candidates.end(); ++cur)
+    {
+        CountBy(cCohomologyElementCount, -cur->first->zcolumn.size());
         add_cocycle(*cur, z);
+        CountBy(cCohomologyElementCount, cur->first->zcolumn.size());
+    }
 
     for (typename ZColumn::iterator cur = z.first->zcolumn.begin(); cur != z.first->zcolumn.end(); ++cur)
         cur->unlink();
     
+    CountBy(cCohomologyElementCount, -z.first->zcolumn.size());
     cocycles_.erase(candidates.front().first);
 
     return std::make_pair(si, d);
@@ -208,6 +222,8 @@ add_cocycle(CocycleCoefficientPair& to, CocycleCoefficientPair& from)
     while (tcur != to.first->zcolumn.end() && fcur != from.first->zcolumn.end())
     {
         rLog(rlCohomology, "  %d %d", tcur->si->order, fcur->si->order);
+        Count(cCohomologyAddComparison);
+        Count(cCohomologyAddBasic);
         if (cmp(*tcur, *fcur))
         {
             nw.push_back(*tcur);
@@ -230,11 +246,13 @@ add_cocycle(CocycleCoefficientPair& to, CocycleCoefficientPair& from)
     for (; tcur != to.first->zcolumn.end(); ++tcur)
     {
         rLog(rlCohomology, "  %d", tcur->si->order);
+        Count(cCohomologyAddBasic);
         nw.push_back(SNode(*tcur));
     }
     for (; fcur != from.first->zcolumn.end(); ++fcur)
     {
         rLog(rlCohomology, "  %d", fcur->si->order);
+        Count(cCohomologyAddBasic);
         nw.push_back(SNode(fcur->si, field_.mul(multiplier, fcur->coefficient), ci));
     }
 

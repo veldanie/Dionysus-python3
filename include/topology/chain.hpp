@@ -141,6 +141,8 @@ add(const Self& c, const ConsistencyCmp& cmp)
 
     CountingBackInserter<ChainRepresentation> bi(tmp);
     std::set_symmetric_difference(begin(), end(), c.begin(), c.end(), bi, cmp);
+
+    CountBy(cChainAddBasic, size() + c.size() - (size() + c.size() - tmp.size())/2);
     
     static_cast<ChainRepresentation*>(this)->swap(tmp);
     static_cast<Size*>(this)->swap(bi);   

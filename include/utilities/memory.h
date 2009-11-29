@@ -11,7 +11,7 @@
 
 static rlog::RLogChannel* rlMemory =                   DEF_CHANNEL("memory",    rlog::Log_Debug);
 
-void    report_memory()
+unsigned    report_memory()
 {
     pid_t pid = getpid();
     std::stringstream smaps_name;
@@ -30,11 +30,13 @@ void    report_memory()
         }
     }
     rLog(rlMemory, "Private memory usage: %d kB", memory);
+    
+    return memory;
 }
 
 #else
 
-void report_memory() {}
+unsigned report_memory() { return 0; }
 
 #endif // LOGGING
 

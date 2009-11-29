@@ -10,6 +10,7 @@ target_link_libraries           (compare-diagrams               ${libraries})
 if                              (CGAL_FOUND)
     set                         (targets                        alphashapes3d
                                                                 alphashapes2d
+                                                                alphashapes3d-cohomology
                                                                 #alpharadius
                                 )
     add_definitions             (${CGAL_CXX_FLAGS_INIT})

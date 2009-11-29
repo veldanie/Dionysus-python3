@@ -30,8 +30,8 @@ int main(int argc, char** argv)
     //stdoutLog.subscribeTo( RLOG_CHANNEL("topology/chain") );
 #endif
 
-    SetFrequency(GetCounter("persistence/pair"), 10000);
-    SetTrigger(GetCounter("persistence/pair"), GetCounter(""));
+    // SetFrequency(GetCounter("persistence/pair"), 10000);
+    // SetTrigger(GetCounter("persistence/pair"), GetCounter(""));
 
     std::string     infilename, outfilename;
 
