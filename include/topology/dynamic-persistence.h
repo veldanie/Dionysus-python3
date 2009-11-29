@@ -135,11 +135,12 @@ class DynamicPersistenceTrails:
         struct PairingTrailsVisitor: public Parent::PairVisitor 
         {
             // TODO: this is specialized for std::vector
-                                        PairingTrailsVisitor(OrderIndex bg, ConsistencyComparison ccmp): 
-                                            bg_(bg), ccmp_(ccmp)                        {}
+                                        PairingTrailsVisitor(OrderIndex bg, ConsistencyComparison ccmp, unsigned size): 
+                                            Parent::PairVisitor(size), bg_(bg), ccmp_(ccmp)     {}
 
             void                        init(OrderIndex i) const                        { i->consistency = i - bg_; i->trail.append(i, ccmp_); Count(cTrailLength); }
             void                        update(OrderIndex j, OrderIndex i) const        { i->pair->trail.append(j, ccmp_); Count(cTrailLength); }
+            void                        finished(OrderIndex i) const                    { Parent::PairVisitor::finished(i); }
 
             OrderIndex                  bg_;
             ConsistencyComparison       ccmp_;
