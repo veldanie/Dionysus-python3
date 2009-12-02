@@ -1,4 +1,5 @@
 #include <utilities/log.h>
+#include <utilities/timer.h>
 
 #include "alphashapes3d.h"
 #include <topology/filtration.h>
@@ -82,8 +83,11 @@ int main(int argc, char** argv)
     Persistence p(af);
     rInfo("Persistence initializaed");
 
+    Timer persistence_timer; persistence_timer.start();
     p.pair_simplices();
+    persistence_timer.stop();
     rInfo("Simplices paired");
+    persistence_timer.check("Persistence timer");
 
     std::map<Dimension, PDgm> dgms;
     init_diagrams(dgms, p.begin(), p.end(), 
