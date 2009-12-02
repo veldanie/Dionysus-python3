@@ -4,6 +4,8 @@
 #include <boost/utility.hpp>
 #include <utilities/property-maps.h>
 
+#include <boost/foreach.hpp>
+
 #ifdef LOGGING
 static rlog::RLogChannel* rlPersistence =                   DEF_CHANNEL("topology/persistence", rlog::Log_Debug);
 #endif // LOGGING
@@ -54,6 +56,14 @@ pair_simplices(OrderIndex bg, OrderIndex end, const Visitor& visitor)
         OrderElement& oe = *j;
         typename OrderElement::Cycle& z = oe.cycle;
         rLog(rlPersistence, "  has boundary: %s", z.tostring(outmap).c_str());
+
+        // Sparsify the cycle by removing the negative elements (TODO: make parameter based)
+        typename OrderElement::Cycle zz;
+        BOOST_FOREACH(OrderIndex i, z)
+            if (i->sign())           // positive
+                zz.push_back(i);
+        z.swap(zz);
+        // --------------------------
         
         CountNum(cPersistencePairBoundaries, oe.cycle.size());
         Count(cPersistencePair);
