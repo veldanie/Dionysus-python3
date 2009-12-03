@@ -40,7 +40,7 @@ template<class D, class CT, class Cmp, class OT, class E>
 template<class Visitor>
 void 
 StaticPersistence<D, CT, Cmp, OT, E>::
-pair_simplices(OrderIndex bg, OrderIndex end, const Visitor& visitor)
+pair_simplices(OrderIndex bg, OrderIndex end, bool store_negative, const Visitor& visitor)
 {
 #if LOGGING
     typename ContainerTraits::OutputMap outmap(order_);
@@ -57,12 +57,15 @@ pair_simplices(OrderIndex bg, OrderIndex end, const Visitor& visitor)
         typename OrderElement::Cycle& z = oe.cycle;
         rLog(rlPersistence, "  has boundary: %s", z.tostring(outmap).c_str());
 
-        // Sparsify the cycle by removing the negative elements (TODO: make parameter based)
-        typename OrderElement::Cycle zz;
-        BOOST_FOREACH(OrderIndex i, z)
-            if (i->sign())           // positive
-                zz.push_back(i);
-        z.swap(zz);
+        // Sparsify the cycle by removing the negative elements
+        if (!store_negative)
+        {
+            typename OrderElement::Cycle zz;
+            BOOST_FOREACH(OrderIndex i, z)
+                if (i->sign())           // positive
+                    zz.push_back(i);
+            z.swap(zz);
+        }
         // --------------------------
         
         CountNum(cPersistencePairBoundaries, oe.cycle.size());

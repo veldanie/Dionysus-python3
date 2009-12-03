@@ -82,7 +82,7 @@ class StaticPersistence
         
         // Function: pair_simplices()                                        
         // Compute persistence of the filtration
-        void                            pair_simplices()                                        { pair_simplices<PairVisitor>(begin(), end(), PairVisitor(size())); }
+        void                            pair_simplices()                                        { pair_simplices<PairVisitor>(begin(), end(), false, PairVisitor(size())); }
 
         // Functions: Accessors
         //   begin() -              returns OrderIndex of the first element
@@ -97,7 +97,7 @@ class StaticPersistence
         // Function: pair_simplices(bg, end)
         // Compute persistence of the simplices in filtration between bg and end
         template<class Visitor>
-        void                            pair_simplices(OrderIndex bg, OrderIndex end, const Visitor& visitor = Visitor());
+        void                            pair_simplices(OrderIndex bg, OrderIndex end, bool store_negative = false, const Visitor& visitor = Visitor());
 
         // Struct: PairVisitor
         // Acts as an archetype and if necessary a base class for visitors passed to <pair_simplices(bg, end, visitor)>.
