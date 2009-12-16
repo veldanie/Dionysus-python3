@@ -9,7 +9,7 @@
 #include <fstream>
 
 
-typedef Filtration<AlphaSimplex2DVector>        AlphaFiltration;
+typedef Filtration<AlphaSimplex2D>              AlphaFiltration;
 typedef StaticPersistence<>                     Persistence;
 typedef PersistenceDiagram<>                    PDgm;
 
@@ -41,12 +41,12 @@ int main(int argc, char** argv)
     }
     rInfo("Delaunay triangulation computed");
    
-    AlphaSimplex2DVector complex;
-    fill_complex(Dt, complex);
-    rInfo("Simplices: %i", complex.size());
+    AlphaFiltration af;
+    fill_complex(Dt, af);
+    rInfo("Simplices: %i", af.size());
 
     // Create the alpha-shape filtration
-    AlphaFiltration af(complex.begin(), complex.end(), AlphaSimplex2D::AlphaOrder());
+    af.sort(AlphaSimplex2D::AlphaOrder());
     rInfo("Filtration initialized");
 
     Persistence p(af);
@@ -55,12 +55,11 @@ int main(int argc, char** argv)
     p.pair_simplices();
     rInfo("Simplices paired");
 
-    std::map<Dimension, PDgm> dgms;
+    Persistence::SimplexMap<AlphaFiltration>    m       = p.make_simplex_map(af);
+    std::map<Dimension, PDgm>                   dgms;
     init_diagrams(dgms, p.begin(), p.end(), 
-                  evaluate_through_map(OffsetMap<Persistence::OrderIndex, AlphaFiltration::Index>(p.begin(), af.begin()), 
-                                       evaluate_through_filtration(af, AlphaSimplex2D::AlphaValueEvaluator())), 
-                  evaluate_through_map(OffsetMap<Persistence::OrderIndex, AlphaFiltration::Index>(p.begin(), af.begin()), 
-                                       evaluate_through_filtration(af, AlphaSimplex2D::DimensionExtractor())));
+                  evaluate_through_map(m, AlphaSimplex2D::AlphaValueEvaluator()),
+                  evaluate_through_map(m, AlphaSimplex2D::DimensionExtractor()));
 
 #if 1
     std::cout << 0 << std::endl << dgms[0] << std::endl;

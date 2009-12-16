@@ -10,7 +10,7 @@
 
 typedef         Simplex<AvidaOrganismDetail::IDType, double>        Smplx;
 typedef         std::vector<Smplx>                                  Complex;
-typedef         Filtration<Complex>                                 Fltr;
+typedef         Filtration<Smplx>                                   Fltr;
 typedef         StaticPersistence<>                                 Persistence;
 
 int main(int argc, char** argv)
@@ -55,7 +55,6 @@ int main(int argc, char** argv)
             simplices.back().add(organisms[j].id());
         }
     }
-    std::sort(simplices.begin(), simplices.end(), Smplx::VertexComparison());
     rInfo("Average distance: %f", float(avg_distance)/
                                   ((organisms.size()*organisms.size() - organisms.size())/2));
 
@@ -67,14 +66,14 @@ int main(int argc, char** argv)
     typedef std::vector<RealType> DeathVector;
     DeathVector deaths;
     Smplx::DataEvaluator    eval;
-    OffsetMap<Persistence::OrderIndex, Fltr::Index> m(p.begin(), f.begin());
-    for (Persistence::OrderIndex i = p.begin(); i != p.end(); ++i)
+    Persistence::SimplexMap<Fltr>   m = p.make_simplex_map(f);
+    for (Persistence::iterator i = p.begin(); i != p.end(); ++i)
     {
-        if (i == i->pair) continue;
+        if (i->unpaired()) continue;
         if (i->sign())
         {
-            const Smplx& s = f.simplex(m[i]);
-            const Smplx& t = f.simplex(m[i->pair]);
+            const Smplx& s = m[i];
+            const Smplx& t = m[i->pair];
             AssertMsg(s.dimension() == 0, "Expecting only 0-dimensional diagram");
             AssertMsg(eval(s) == 0,       "Expecting only 0 birth values in 0-D diagram ");
             deaths.push_back(eval(t));

@@ -79,6 +79,7 @@ class ChainWrapper: public Container_,
         /// @{
         void                                    remove(iterator i)                              { ChainRepresentation::erase(i); Size::operator--(); }
         void                                    remove(const_reference x)                       { remove(std::find(begin(), end(), x)); }
+        bool                                    remove_if_contains(const_reference x);
 
         template<class ConsistencyComparison>
         void                                    append(const_reference x, const ConsistencyComparison& cmp);
@@ -95,7 +96,7 @@ class ChainWrapper: public Container_,
         const_reference                         top(const OrderComparison& cmp) const;          ///< First element in cmp order
 
         boost::optional<const_iterator>         contains(const_reference x) const;              ///< tests whether chain contains x
-        boost::optional<iterator>               contains(reference x);                          ///< tests whether chain contains x
+        boost::optional<iterator>               contains(const_reference x);                    ///< tests whether chain contains x
         /// @}
     
         /// \name Debugging

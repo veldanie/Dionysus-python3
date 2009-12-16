@@ -101,16 +101,30 @@ ChainWrapper<C>::
 contains(const_reference x) const
 {
     const_iterator res = std::find(begin(), end(), x);
-    return make_optional(res != end(), res);
+    return boost::make_optional(res != end(), res);
 }
 
 template<class C>
 boost::optional<typename ChainWrapper<C>::iterator>
 ChainWrapper<C>::
-contains(reference x)
+contains(const_reference x)
 {
     iterator res = std::find(begin(), end(), x);
     return boost::make_optional(res != end(), res);
+}
+
+template<class C>
+bool
+ChainWrapper<C>::
+remove_if_contains(const_reference x)
+{
+    boost::optional<iterator> i = contains(x);
+    if (i)
+    {
+        remove(*i);
+        return true;
+    } else
+        return false;
 }
 
 template<class C>

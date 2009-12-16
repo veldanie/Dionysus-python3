@@ -74,7 +74,8 @@ class AlphaSimplex2D: public Simplex<Vertex_handle>
 
 typedef             std::vector<AlphaSimplex2D>                             AlphaSimplex2DVector;
 void                fill_simplex_set(const Delaunay2D& Dt, AlphaSimplex2D::SimplexSet& simplices);
-void                fill_complex(const Delaunay2D& Dt,     AlphaSimplex2DVector& alpha_order);
+template<class Filtration>
+void                fill_complex(const Delaunay2D& Dt,     Filtration& filtration);
 
 std::ostream&       operator<<(std::ostream& out, const AlphaSimplex2D& s)  { return s.operator<<(out); }
 

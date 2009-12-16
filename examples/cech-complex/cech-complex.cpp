@@ -15,8 +15,7 @@
 typedef         std::vector<Point>                                      PointContainer;
 typedef         unsigned int                                            PointIndex;
 typedef         Simplex<PointIndex, double>                             Smplx;
-typedef         std::vector<Smplx>                                      SimplexVector;
-typedef         Filtration<SimplexVector>                               CechFiltration;
+typedef         Filtration<Smplx>                                       CechFiltration;
 typedef         StaticPersistence<>                                     Persistence;
 //typedef         DynamicPersistenceTrails<>                              Persistence;
 typedef         PersistenceDiagram<>            PDgm;
@@ -30,7 +29,7 @@ int choose(int n, int k)
     return numerator/denominator;
 }
 
-void add_simplices(SimplexVector& sv, int d, const PointContainer& points)
+void add_simplices(CechFiltration& sv, int d, const PointContainer& points)
 {
     PointIndex indices[d+1];
     for (int i = 0; i < d+1; ++i) 
@@ -97,21 +96,18 @@ int main(int argc, char** argv)
     rInfo("Points read: %d", points.size());
    
     // Compute simplices with their Cech values
-    SimplexVector    sv;
     int num_simplices = 0;
     for (int i = 0; i <= homology_d + 1; ++i)
         num_simplices += choose(points.size(), i+1);
-    sv.reserve(num_simplices);
     rInfo("Reserved SimplexVector of size: %d", num_simplices);
 
+    CechFiltration cf;
     for (int i = 0; i <= homology_d + 1; ++i)
-        add_simplices(sv, i, points);
-    rInfo("Size of SimplexVector: %d", sv.size());
-        
-    std::sort(sv.begin(), sv.end(), Smplx::VertexComparison());
+        add_simplices(cf, i, points);
+    rInfo("Size of SimplexVector: %d", cf.size());
 
-    // Set up the filtration
-    CechFiltration cf(sv.begin(), sv.end(), DataDimensionComparison<Smplx>());
+    // Sort the filtration
+    cf.sort(DataDimensionComparison<Smplx>());
     rInfo("Filtration initialized");
 
     // Compute persistence
@@ -120,12 +116,11 @@ int main(int argc, char** argv)
     p.pair_simplices();
     rInfo("Simplices paired");
 
+    Persistence::SimplexMap<CechFiltration>     m = p.make_simplex_map(cf);
     std::map<Dimension, PDgm> dgms;
     init_diagrams(dgms, p.begin(), p.end(), 
-                  evaluate_through_map(OffsetMap<Persistence::OrderIndex, CechFiltration::Index>(p.begin(), cf.begin()), 
-                                       evaluate_through_filtration(cf, Smplx::DataEvaluator())), 
-                  evaluate_through_map(OffsetMap<Persistence::OrderIndex, CechFiltration::Index>(p.begin(), cf.begin()), 
-                                       evaluate_through_filtration(cf, Smplx::DimensionExtractor())));
+                  evaluate_through_map(m, Smplx::DataEvaluator()), 
+                  evaluate_through_map(m,  Smplx::DimensionExtractor()));
 
     for (int i = 0; i <= homology_d; ++i)
     {

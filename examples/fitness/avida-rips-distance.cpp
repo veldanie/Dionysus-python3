@@ -13,9 +13,8 @@
 typedef         ExplicitDistances<AvidaPopulationDetail>            ExplicitDist;
 typedef         Rips<ExplicitDist>                                  RipsGen;
 typedef         RipsGen::Simplex                                    Smplx;
-typedef         std::vector<Smplx>                                  Complex;
 
-typedef         Filtration<Complex, unsigned>                       Fltr;
+typedef         Filtration<Smplx>                                   Fltr;
 typedef         StaticPersistence<>                                 Persistence;
 
 int main(int argc, char** argv)
@@ -51,12 +50,11 @@ int main(int argc, char** argv)
    */
 
     rInfo("Starting to generate rips complex");
-    Complex c;
-    rips.generate(1, rips.max_distance()/2, make_push_back_functor(c));
-    std::sort(c.begin(), c.end(), Smplx::VertexComparison());
+    Fltr f;
+    rips.generate(1, rips.max_distance()/2, make_push_back_functor(f));
     
     rInfo("Generated Rips complex, filling filtration");
-    Fltr f(c.begin(), c.end(), RipsGen::Comparison(rips.distances()));
+    f.sort(RipsGen::Comparison(rips.distances()));
 
     Persistence p(f);
     p.pair_simplices();
@@ -64,14 +62,14 @@ int main(int argc, char** argv)
     std::cout << "Outputting histogram of death values" << std::endl;
     typedef std::vector<RealType> DeathVector;
     DeathVector deaths;
-    OffsetMap<Persistence::OrderIndex, Fltr::Index> m(p.begin(), f.begin());
-    for (Persistence::OrderIndex i = p.begin(); i != p.end(); ++i)
+    Persistence::SimplexMap<Fltr>   m = p.make_simplex_map(f);
+    for (Persistence::iterator i = p.begin(); i != p.end(); ++i)
     {
-        if (i == i->pair) continue;
+        if (i->unpaired()) continue;
         if (i->sign())
         {
-            const Smplx& s = f.simplex(m[i]);
-            const Smplx& t = f.simplex(m[i->pair]);
+            const Smplx& s = m[i];
+            const Smplx& t = m[i->pair];
             AssertMsg(s.dimension() == 0, "Expecting only 0-dimensional diagram");
             AssertMsg(evaluator(s) == 0, "Expecting only 0 birth values in 0-D diagram ");
             deaths.push_back(evaluator(t));

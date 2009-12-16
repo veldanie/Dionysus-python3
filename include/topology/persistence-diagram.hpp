@@ -58,10 +58,10 @@ template<class Point, class Iterator, class Evaluator, class Visitor>
 boost::optional<Point>
 make_point(Iterator i, const Evaluator& evaluator, const Visitor& visitor)
 {
-    RealType x = evaluator(i);
+    RealType x = evaluator(&*i);
     RealType y = Infinity;
-    if (i->pair != i)
-        y = evaluator(i->pair);
+    if (&*(i->pair) != &*i)
+        y = evaluator(&*(i->pair));
     
     Point p(x,y);
     visitor.point(i, p);
@@ -98,7 +98,7 @@ void    init_diagrams(Diagrams& diagrams,
         {
             boost::optional<typename PDiagram::Point> p = make_point<typename PDiagram::Point>(cur, evaluator, visitor);
             if (p)
-                diagrams[dimension(cur)].push_back(*p);
+                diagrams[dimension(&*cur)].push_back(*p);
         }
 }
 

@@ -21,9 +21,8 @@ typedef         PairDistances::IndexType                                Vertex;
 
 typedef         Rips<PairDistances>                                     Generator;
 typedef         Generator::Simplex                                      Smplx;
-typedef         std::vector<Smplx>                                      SimplexVector;
-typedef         Filtration<SimplexVector, unsigned>                     Fltr;
-//typedef         StaticPersistence<>                                     Persistence;
+typedef         Filtration<Smplx>                                       Fltr;
+// typedef         StaticPersistence<>                                     Persistence;
 typedef         DynamicPersistenceChains<>                              Persistence;
 typedef         PersistenceDiagram<>                                    PDgm;
 
@@ -43,44 +42,45 @@ int main(int argc, char* argv[])
     PairDistances           distances(points);
     Generator               rips(distances);
     Generator::Evaluator    size(distances);
-    SimplexVector           complex;
+    Fltr                    f;
     
     // Generate 2-skeleton of the Rips complex for epsilon = 50
-    rips.generate(skeleton, max_distance, make_push_back_functor(complex));
-    std::sort(complex.begin(), complex.end(), Smplx::VertexComparison());       // unnecessary
-    std::cout << "# Generated complex of size: " << complex.size() << std::endl;
+    rips.generate(skeleton, max_distance, make_push_back_functor(f));
+    std::cout << "# Generated complex of size: " << f.size() << std::endl;
 
     // Generate filtration with respect to distance and compute its persistence
-    Fltr f(complex.begin(), complex.end(), Generator::Comparison(distances));
+    f.sort(Generator::Comparison(distances));
 
     Timer persistence_timer; persistence_timer.start();
     Persistence p(f);
     p.pair_simplices();
     persistence_timer.stop();
 
+#if 1
     // Output cycles
-    for (Persistence::OrderIndex cur = p.begin(); cur != p.end(); ++cur)
+    Persistence::SimplexMap<Fltr>   m = p.make_simplex_map(f);
+    for (Persistence::iterator cur = p.begin(); cur != p.end(); ++cur)
     {
-        Persistence::Cycle& cycle = cur->cycle;
+        const Persistence::Cycle& cycle = cur->cycle;
 
         if (!cur->sign())        // only negative simplices have non-empty cycles
         {
             Persistence::OrderIndex birth = cur->pair;      // the cycle that cur killed was born when we added birth (another simplex)
 
-            const Smplx& b = f.simplex(f.begin() + (birth - p.begin()));        // eventually this will be encapsulated behind an interface
-            const Smplx& d = f.simplex(f.begin() + (cur   - p.begin()));
+            const Smplx& b = m[birth];
+            const Smplx& d = m[cur];
             
             // if (b.dimension() != 1) continue;
             // std::cout << "Pair: (" << size(b) << ", " << size(d) << ")" << std::endl;
             if (b.dimension() >= skeleton) continue;
             std::cout << b.dimension() << " " << size(b) << " " << size(d) << std::endl;
-        } else if (cur->pair == cur)    // positive could be unpaired
+        } else if (cur->unpaired())    // positive could be unpaired
         {
-            const Smplx& b = f.simplex(f.begin() + (cur - p.begin()));
+            const Smplx& b = m[cur];
             // if (b.dimension() != 1) continue;
             
             // std::cout << "Unpaired birth: " << size(b) << std::endl;
-            // cycle = cur->chain;
+            // cycle = cur->chain;      // TODO
             if (b.dimension() >= skeleton) continue;
             std::cout << b.dimension() << " " << size(b) << " inf" << std::endl;
         }
@@ -89,13 +89,14 @@ int main(int argc, char* argv[])
         // for (Persistence::Cycle::const_iterator si =  cycle.begin();
         //                                                          si != cycle.end();     ++si)
         // {
-        //     const Smplx& s = f.simplex(f.begin() + (*si - p.begin()));
+        //     const Smplx& s = m[*si];
         //     //std::cout << s.dimension() << std::endl;
         //     const Smplx::VertexContainer& vertices = s.vertices();          // std::vector<Vertex> where Vertex = Distances::IndexType
         //     AssertMsg(vertices.size() == s.dimension() + 1, "dimension of a simplex is one less than the number of its vertices");
         //     std::cout << vertices[0] << " " << vertices[1] << std::endl;
         // }
     }
+#endif
     
     persistence_timer.check("# Persistence timer");
 }

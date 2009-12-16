@@ -1,4 +1,5 @@
 #include <utilities/log.h>
+#include <boost/foreach.hpp>
 
 AlphaSimplex2D::	    
 AlphaSimplex2D(const Delaunay2D::Vertex& v): alpha_(0), attached_(false)
@@ -104,16 +105,14 @@ void fill_simplex_set(const Delaunay2D& Dt, AlphaSimplex2D::SimplexSet& simplice
 	rInfo("Vertices inserted");
 }
 
-void fill_complex(const Delaunay2D& Dt, AlphaSimplex2DVector& alpha_order)
+template<class Filtration>
+void fill_complex(const Delaunay2D& Dt, Filtration& filtration)
 {
 	// Compute all simplices with their alpha values and attachment information
+    // TODO: this can be optimized; the new Filtration can act as a SimplexSet
 	AlphaSimplex2D::SimplexSet simplices;
     fill_simplex_set(Dt, simplices);
-    
-	// Sort simplices by their alpha values
-	alpha_order.resize(simplices.size());
-	std::copy(simplices.begin(), simplices.end(), alpha_order.begin());
-	// std::sort(alpha_order.begin(), alpha_order.end(), AlphaSimplex2D::AlphaOrder());
-	std::sort(alpha_order.begin(), alpha_order.end(), AlphaSimplex2D::VertexComparison());
+    BOOST_FOREACH(const AlphaSimplex2D& s, simplices)
+        filtration.push_back(s);
 }
 

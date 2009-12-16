@@ -2,7 +2,7 @@
 
 #include "topology/simplex.h"
 #include "topology/filtration.h"
-//#include "topology/static-persistence.h"
+#include "topology/static-persistence.h"
 #include "topology/dynamic-persistence.h"
 #include "topology/persistence-diagram.h"
 #include <utilities/indirect.h>
@@ -19,15 +19,34 @@
 #include <boost/serialization/vector.hpp>
 #endif
 
-typedef         unsigned                        Vertex;
-typedef         Simplex<Vertex, double>         Smplx;
-typedef         std::vector<Smplx>              Complex;
-typedef         Filtration<Complex, unsigned>   Fltr;
-//typedef         StaticPersistence<>             Persistence;
-typedef         DynamicPersistenceTrails<>      Persistence;
-typedef         PersistenceDiagram<>            PDgm;
+typedef         unsigned                                            Vertex;
+typedef         Simplex<Vertex, double>                             Smplx;
+typedef         Filtration<Smplx>                                   Fltr;
+// typedef         StaticPersistence<>                                 Persistence;
+typedef         DynamicPersistenceTrails<>                          Persistence;
+typedef         PersistenceDiagram<>                                PDgm;
+typedef         OffsetBeginMap<Persistence, Fltr, 
+                               Persistence::iterator, 
+                               Fltr::Index>                         PersistenceFiltrationMap;
+typedef         OffsetBeginMap<Fltr, Persistence,
+                               Fltr::Index, 
+                               Persistence::iterator>               FiltrationPersistenceMap;
 
-void fillTriangleSimplices(Complex& c)
+// Transposes elements of the filtration together with the 
+struct FiltrationTranspositionVisitor: public Persistence::TranspositionVisitor
+{
+    typedef     Persistence::iterator                               iterator;
+
+                FiltrationTranspositionVisitor(const Persistence& p,
+                                               Fltr& f):
+                    p_(p), f_(f)                                    {}                                               
+    void        transpose(iterator i)                               { f_.transpose(f_.begin() + (i - p_.begin())); }
+
+    const Persistence&  p_;
+    Fltr&               f_;
+};
+
+void fillTriangleSimplices(Fltr& c)
 {
     typedef std::vector<Vertex> VertexVector;
     VertexVector vertices(4);
@@ -43,8 +62,6 @@ void fillTriangleSimplices(Complex& c)
     c.push_back(Smplx(bg + 1, bg + 3, 2.9));               // BC
     c.push_back(Smplx(bg + 2, end,    3.5));               // CA
     c.push_back(Smplx(bg,     bg + 3, 5));                 // ABC
-
-    std::sort(c.begin(), c.end(), Smplx::VertexComparison());
 }
 
 int main(int argc, char** argv)
@@ -57,28 +74,28 @@ int main(int argc, char** argv)
     //stdoutLog.subscribeTo(RLOG_CHANNEL("topology/vineyard"));
 #endif
 
-    Complex c;
-    fillTriangleSimplices(c);
+    Fltr f;
+    fillTriangleSimplices(f);
     std::cout << "Simplices filled" << std::endl;
-    for (Complex::const_iterator cur = c.begin(); cur != c.end(); ++cur)
+    for (Fltr::Index cur = f.begin(); cur != f.end(); ++cur)
         std::cout << "  " << *cur << std::endl;
 
-#if 1           // testing serialization of Complex (really Simplex)
+#if 1           // testing serialization of the Filtration (really Simplex)
   {  
     std::ofstream ofs("complex");
     boost::archive::text_oarchive oa(ofs);
-    oa << c;
-    c.clear();
+    oa << f;
+    f.clear();
   }  
 
   {
     std::ifstream ifs("complex");
     boost::archive::text_iarchive ia(ifs);
-    ia >> c;
+    ia >> f;
   }  
 #endif
 
-    Fltr f(c.begin(), c.end(), Smplx::DataComparison());
+    f.sort(Smplx::DataComparison());
     std::cout << "Filtration initialized" << std::endl;
     std::cout << f << std::endl;
 
@@ -88,36 +105,36 @@ int main(int argc, char** argv)
     p.pair_simplices();
     std::cout << "Simplices paired" << std::endl;
 
+    Persistence::SimplexMap<Fltr>   m = p.make_simplex_map(f);
     std::map<Dimension, PDgm> dgms;
     init_diagrams(dgms, p.begin(), p.end(), 
-                  evaluate_through_map(make_offset_map(p.begin(), f.begin()), 
-                                       evaluate_through_filtration(f, Smplx::DataEvaluator())), 
-                  evaluate_through_map(make_offset_map(p.begin(), f.begin()), 
-                                       evaluate_through_filtration(f, Smplx::DimensionExtractor())));
+                  evaluate_through_map(m, Smplx::DataEvaluator()),
+                  evaluate_through_map(m, Smplx::DimensionExtractor()));
 
     std::cout << 0 << std::endl << dgms[0] << std::endl;
     std::cout << 1 << std::endl << dgms[1] << std::endl;
 
-    // Transpositions
-    p.transpose(p.begin());         // transposition case 1.2 special
+    PersistenceFiltrationMap                                    pfmap(p, f);
+    DimensionFunctor<PersistenceFiltrationMap, Fltr>            dim(pfmap, f);
 
-#if 0
+    // Transpositions
+    FiltrationPersistenceMap        fpmap(f, p);
+    FiltrationTranspositionVisitor  visitor(p, f);
     Smplx A;  A.add(0);
     std::cout << A << std::endl;
-    std::cout << *tf.get_index(A) << std::endl;
-    std::cout << "Transposing A: " << tf.transpose(tf.get_index(A)) << std::endl;
-    std::cout << tf;
+    std::cout << "Transposing A: " << p.transpose(fpmap[f.find(A)], dim, visitor) << std::endl;     // 1.2 unpaired
 
     Smplx BC; BC.add(1); BC.add(2);
     Smplx AB; AB.add(0); AB.add(1);
     std::cout << BC << std::endl;
-    std::cout << *tf.get_index(BC) << std::endl;
-    tf.transpose(tf.get_index(BC));
-    std::cout << tf;
+    std::cout << p.transpose(fpmap[f.find(BC)], dim, visitor) << std::endl;         // 3.1
+    // p.transpose(fpmap[f.find(BC)], dim, visitor);
     std::cout << AB << std::endl;
-    std::cout << *tf.get_index(AB) << std::endl;
-    tf.transpose(tf.get_index(AB));
-    std::cout << tf;
-#endif
+    std::cout << p.transpose(fpmap[f.find(AB)], dim, visitor) << std::endl;         // 2.1
+    // p.transpose(fpmap[f.find(AB)], dim, visitor);
+
+    std::cout << p.transpose(p.begin(), dim, visitor) << std::endl;         // transposition case 1.2 special
+    std::cout << p.transpose(boost::next(p.begin()), dim, visitor) << std::endl;
+    std::cout << p.transpose(boost::next(p.begin(),3), dim, visitor) << std::endl;
 }
 

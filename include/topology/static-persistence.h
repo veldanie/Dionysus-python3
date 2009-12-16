@@ -5,18 +5,21 @@
 #include "cycles.h"
 #include "filtration.h"
 
+#include <boost/ref.hpp>
+#include <boost/lambda/lambda.hpp>
+namespace bl = boost::lambda;
+
 #include <utilities/types.h>
 
 
-template<class Data_, class ChainTraits_, class ContainerTraits_, class Element_ = use_default> 
+// Element_ should derive from PairCycleData
+template<class Data_, class ChainTraits_, class Element_ = use_default>
 struct PairCycleData: public Data_
 {
     typedef     Data_                                                                   Data;
     typedef     typename if_default<Element_, PairCycleData>::type                      Element;
-    typedef     PairCycleData<Data, ChainTraits_, ContainerTraits_, Element>            Self;
 
-    typedef     typename ContainerTraits_::template rebind<Element>::other              ContainerTraits;
-    typedef     typename ContainerTraits::Index                                         Index;
+    typedef     const Element*                                                          Index;
     typedef     typename ChainTraits_::template rebind<Index>::other                    ChainTraits;
     typedef     typename ChainTraits::Chain                                             Chain;
     typedef     Chain                                                                   Cycle;
@@ -26,6 +29,10 @@ struct PairCycleData: public Data_
                 {}
     
     bool        sign() const                                                            { return cycle.empty(); }
+    bool        unpaired() const                                                        { return pair == this; }
+    
+    void        swap_cycle(Cycle& z)                                                    { cycle.swap(z); }
+    void        set_pair(Index i)                                                       { pair = i; }
 
     Index       pair;
     Cycle       cycle;
@@ -44,9 +51,10 @@ struct PairCycleData: public Data_
  */
 template<class Data_ =              Empty<>,
          class ChainTraits_ =       VectorChains<>,
-         class Comparison_ =        GreaterComparison<>,
-         class ContainerTraits_ =   VectorContainer<>,
-         class Element_ =           PairCycleData<Data_, ChainTraits_, ContainerTraits_> >
+         class ContainerTraits_ =   OrderContainer<>,
+         class Element_ =           PairCycleData<Data_, ChainTraits_>,
+         class Comparison_ =        ElementComparison<typename ContainerTraits_::template rebind<Element_>::other::Container,
+                                                      std::greater<typename ContainerTraits_::template rebind<Element_>::other::Container::iterator> > >
 class StaticPersistence
 {
     public:
@@ -59,15 +67,16 @@ class StaticPersistence
                                                     template rebind<Element>::other             ContainerTraits;
         typedef                         typename ContainerTraits::Container                     Container;
         typedef                         Container                                               Order;
-        typedef                         typename ContainerTraits::Index                         OrderIndex;
-        typedef                         typename ContainerTraits::Element                       OrderElement;
+        typedef                         typename Element::Index                                 OrderIndex;
+        typedef                         Element                                                 OrderElement;
+        typedef                         typename Order::iterator                                iterator;
+
         typedef                         typename ChainTraits_::
                                                     template rebind<OrderIndex>::other          ChainTraits;
         typedef                         typename ChainTraits::Chain                             Chain;
         typedef                         Chain                                                   Cycle;
         
-        typedef                         typename Comparison_::
-                                                    template rebind<OrderIndex>::other          OrderComparison;
+        typedef                         Comparison_                                             OrderComparison;
 
         /* Constructor: StaticPersistence()
          * TODO: write a description
@@ -75,8 +84,7 @@ class StaticPersistence
          * Template parameters:
          *   Filtration -           filtration of the complex whose persistence we are computing
          */
-        template<class Filtration>      StaticPersistence(const Filtration& f, 
-                                                          const OrderComparison& ocmp = OrderComparison());
+        template<class Filtration>      StaticPersistence(const Filtration& f);
         
         // Function: pair_simplices()                                        
         // Compute persistence of the filtration
@@ -86,16 +94,35 @@ class StaticPersistence
         //   begin() -              returns OrderIndex of the first element
         //   end() -                returns OrderIndex of one past the last element
         //   size() -               number of elements in the StaticPersistence
-        OrderIndex                      begin()                                                 { return order_.begin(); }
-        OrderIndex                      end()                                                   { return order_.end(); }
+        iterator                        begin() const                                           { return order_.begin(); }
+        iterator                        end() const                                             { return order_.end(); }
+        iterator                        iterator_to(OrderIndex i) const                         { return order_.iterator_to(*i); }
+        OrderIndex                      index(iterator i) const                                 { return &*i; }
         size_t                          size() const                                            { return order_.size(); }
         const OrderComparison&          order_comparison() const                                { return ocmp_; }
+
+        // A map to extract simplices
+        template<class Filtration>      class SimplexMap;
+        template<class Filtration>
+        SimplexMap<Filtration>          make_simplex_map(const Filtration& filtration) const    { return SimplexMap<Filtration>(*this, filtration); }
+
+        class                           OrderModifier
+        {
+            public:
+                                        OrderModifier(Order& order): order_(order)              {}
+                template<class Functor> 
+                void                    operator()(iterator i, const Functor& f)                { order_.modify(i, f); }
+
+            private:
+                Order&                  order_;
+        };
+        OrderModifier                   modifier()                                              { return OrderModifier(order()); }
 
     protected:
         // Function: pair_simplices(bg, end)
         // Compute persistence of the simplices in filtration between bg and end
         template<class Visitor>
-        void                            pair_simplices(OrderIndex bg, OrderIndex end, const Visitor& visitor = Visitor());
+        void                            pair_simplices(iterator bg, iterator end, const Visitor& visitor = Visitor());
 
         // Struct: PairVisitor
         // Acts as an archetype and if necessary a base class for visitors passed to <pair_simplices(bg, end, visitor)>.
@@ -104,20 +131,27 @@ class StaticPersistence
             // Function: init(i)
             // Called after OrderElement pointed to by `i` has been initialized 
             // (its cycle is set to be its boundary, and pair is set to self, i.e. `i`)
-            void                        init(OrderIndex i) const                                {}
+            void                        init(iterator i) const                                  {}
             
             // Function: update(j, i)
             // Called after the cycle of `i` has been added to the cycle of `j`, 
             // this allows the derived class to perform the necessary updates 
             // (e.g., add `i`'s chain to `j`'s chain)
-            void                        update(OrderIndex j, OrderIndex i) const                {}
+            void                        update(iterator j, iterator i) const                    {}
 
             // Function: finished(j)
             // Called after the processing of `j` is finished.
-            void                        finished(OrderIndex j) const                            {}
+            void                        finished(iterator j) const                              {}
         };
 
         const Order&                    order() const                                           { return order_; }
+        Order&                          order()                                                 { return order_; }
+
+        void                            set_pair(iterator i,    iterator j)                     { set_pair(i, &*j); }
+        void                            set_pair(iterator i,    OrderIndex j)                   { order_.modify(i, boost::bind(&OrderElement::set_pair, bl::_1, j)); }                  // i->set_pair(j)
+        void                            set_pair(OrderIndex i,  iterator j)                     { set_pair(iterator_to(i), &*j); }
+        void                            set_pair(OrderIndex i,  OrderIndex j)                   { set_pair(iterator_to(i), j); }
+        void                            swap_cycle(iterator i,  Cycle& z)                       { order_.modify(i, boost::bind(&OrderElement::swap_cycle, bl::_1, boost::ref(z))); }    // i->swap_cycle(z)
 
     private:
         Order                           order_;

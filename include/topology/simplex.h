@@ -95,7 +95,7 @@ class Simplex
         
         /// \name Vertex manipulation
         /// @{
-        //bool                    contains(const Vertex& v) const;
+        bool                    contains(const Vertex& v) const;
         bool                    contains(const Self& s) const;
         void                    add(const Vertex& v);
         template<class Iterator>

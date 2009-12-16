@@ -10,8 +10,7 @@
 #include <boost/program_options.hpp>
 
 typedef         Simplex<unsigned, unsigned>     Smplx;
-typedef         std::vector<Smplx>              Complex;
-typedef         Filtration<Complex>             Fltr;
+typedef         Filtration<Smplx>               Fltr;
 typedef         StaticPersistence<>             Persistence;
 typedef         PersistenceDiagram<>            PDgm;
 
@@ -48,8 +47,7 @@ int main(int argc, char** argv)
     }
 
 
-    Complex c;
-
+    Fltr f;
     std::ifstream in(infilename.c_str());
     unsigned int i = 0;
     std::string s;
@@ -66,21 +64,19 @@ int main(int argc, char** argv)
             linestream >> vertex;
         }
         std::cout << simplex << std::endl;
-        c.push_back(simplex);
+        f.push_back(simplex);
         std::getline(in, s);
     }
     
-    std::sort(c.begin(), c.end(), Smplx::VertexComparison());
-    Fltr f(c.begin(), c.end(), Smplx::DataComparison());
+    f.sort(Smplx::DataComparison());
     Persistence pers(f);
     pers.pair_simplices();
 
+    Persistence::SimplexMap<Fltr>   m = pers.make_simplex_map(f);
     std::map<Dimension, PDgm> dgms;
     init_diagrams(dgms, pers.begin(), pers.end(), 
-                  evaluate_through_map(OffsetMap<Persistence::OrderIndex, Fltr::Index>(pers.begin(), f.begin()), 
-                                       evaluate_through_filtration(f, Smplx::DataEvaluator())), 
-                  evaluate_through_map(OffsetMap<Persistence::OrderIndex, Fltr::Index>(pers.begin(), f.begin()), 
-                                       evaluate_through_filtration(f, Smplx::DimensionExtractor())));
+                  evaluate_through_map(m, Smplx::DataEvaluator()), 
+                  evaluate_through_map(m, Smplx::DimensionExtractor()));
 
     std::cout << 0 << std::endl << dgms[0] << std::endl;
     std::cout << 1 << std::endl << dgms[1] << std::endl;
