@@ -32,7 +32,7 @@ class Grid2D
 {
     public:
         typedef                 RealType                                        ValueType;
-        typedef                 ValueType                                       value_type;
+        typedef                 ValueType                                       result_type;
         
         typedef                 unsigned int                                    CoordinateIndex;
         typedef                 boost::counting_iterator<CoordinateIndex>       iterator;

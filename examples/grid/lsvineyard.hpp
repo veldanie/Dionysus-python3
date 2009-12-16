@@ -32,9 +32,11 @@ LSVineyard(VertexIterator begin, VertexIterator end,
     rLog(rlLSVineyardDebug, "Simplices paired");
 
     vertices_.sort(KineticVertexComparison(vcmp_));     // sort vertices w.r.t. vcmp_
-    std::cout << "Vertex order:" << std::endl;
+#if LOGGING    
+    rLog(rlLSVineyardDebug, "Vertex order:");
     for (VertexIndex cur = vertices_.begin(); cur != vertices_.end(); ++cur)
-        std::cout << "  " << cur->vertex() << std::endl;
+        rLog(rlLSVineyardDebug, "  %d", cur->vertex());
+#endif
 
     // Initialize simplex_index() and attachment
     VertexIndex vi = boost::prior(vertices_.begin());
@@ -85,6 +87,7 @@ compute_vineyard(const VertexEvaluator& veval, bool explicit_events)
     {
         VertexValue val0 = veval_(cur->vertex());
         VertexValue val1 = veval(cur->vertex());
+        rLog(rlLSVineyardDebug, "Vertex %d: %f -> %f", cur->vertex(), val0, val1);
         F x = cf(F::NT(val0), F::NT(val1 - val0));          // x = val0 + (val1 - val0)*t = (1-t)*val0 + t*val1
         Point p(x);
         cur->set_kinetic_key(apt->insert(p));

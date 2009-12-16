@@ -17,4 +17,8 @@ if                              (CGAL_FOUND)
         add_executable			(${t} ${t}.cpp)
         target_link_libraries	(${t} ${libraries} ${CGAL_LIBRARY} ${dsrpdb_LIBRARY})
     endforeach 					(t ${targets})
+    
+    # Extra special for program_options
+    add_executable			(pl-vineyard pl-vineyard.cpp)
+    target_link_libraries   (pl-vineyard ${libraries} ${CGAL_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 endif                           (CGAL_FOUND)

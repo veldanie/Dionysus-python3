@@ -52,6 +52,7 @@ class Vineyard
         void                            set_evaluator(Evaluator* eval)                  { evaluator = eval; }
 
         void                            save_edges(const std::string& filename, bool skip_infinite = false) const;
+        void                            save_vines(const std::string& filename, bool skip_infinite = false) const;
 
     private:
         template<class Iter>

@@ -30,7 +30,7 @@ class LSVineyard
 
         typedef                     Vertex_                                             Vertex;
         typedef                     VertexEvaluator_                                    VertexEvaluator;
-        typedef                     typename VertexEvaluator::value_type                VertexValue;
+        typedef                     typename VertexEvaluator::result_type               VertexValue;
         
         typedef                     Simplex_                                            Simplex;
         typedef                     Filtration_                                         LSFiltration;
@@ -171,7 +171,7 @@ operator<<(std::ostream& out, const typename LSVineyard<V,VE,S,C>::VertexIndex& 
 { return out << vi->vertex(); }
         
 template<class V, class VE, class S, class C>
-class LSVineyard<V,VE,S,C>::KineticVertexComparison
+class LSVineyard<V,VE,S,C>::KineticVertexComparison: public std::binary_function<const KineticVertexType&, const KineticVertexType&, bool>
 {
     public:
                                 KineticVertexComparison(const VertexComparison& vcmp):
@@ -204,7 +204,7 @@ class LSVineyard<V,VE,S,C>::TranspositionVisitor: public Persistence::Transposit
 };
 
 template<class V, class VE, class S, class C>
-class LSVineyard<V,VE,S,C>::Evaluator
+class LSVineyard<V,VE,S,C>::Evaluator: public std::unary_function<Index, RealType>
 {
     public:
         virtual RealType        time() const                                                =0;
@@ -229,7 +229,7 @@ class LSVineyard<V,VE,S,C>::SortVisitor: public CGAL::Kinetic::Sort_visitor_base
 };
 
 template<class V, class VE, class S, class C>
-class LSVineyard<V,VE,S,C>::DimensionFromIterator: std::unary_function<Dimension, iterator>
+class LSVineyard<V,VE,S,C>::DimensionFromIterator: std::unary_function<iterator, Dimension>
 {
     public:
                                 DimensionFromIterator(const PFMap& pfmap): pfmap_(pfmap)    {}

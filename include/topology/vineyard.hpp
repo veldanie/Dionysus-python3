@@ -119,6 +119,33 @@ save_edges(const std::string& filename, bool skip_infinite) const
     }
 }
 
+template<class I, class It, class E>
+void            
+Vineyard<I,It,E>::
+save_vines(const std::string& filename, bool skip_infinite) const
+{
+    for (unsigned int i = 0; i < vines_vector.size(); ++i)
+    {
+        std::ostringstream os; os << i;
+        std::string fn = filename + os.str() + ".vin";
+        std::ofstream out(fn.c_str());
+        for (typename VineList::const_iterator vi = vines_vector[i]->begin(); vi != vines_vector[i]->end(); ++vi)
+        {
+            for (typename Vine::const_iterator ki = vi->begin(); ki != vi->end(); ki++)
+            {
+                if (skip_infinite && ki->is_infinite())
+                {
+                    std::cerr << "Warning: skipping an infinite knee in save_edges() in dimension " << i << std::endl;
+                    continue;
+                }
+                out << ki->birth << ' ' << ki->death << ' ' << ki->time << " ";
+            }
+            out << std::endl;
+        }
+        out.close();
+    }
+}
+
 /// Records a knee for the given simplex
 template<class I, class It, class E>
 template<class Iter>
