@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "lsvineyard.h"
+#include <topology/lsvineyard.h>
 
 #include <boost/program_options.hpp>
 #include <boost/iterator/counting_iterator.hpp>

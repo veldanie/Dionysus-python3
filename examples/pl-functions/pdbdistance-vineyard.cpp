@@ -2,7 +2,7 @@
 #include "utilities/log.h"
 
 #include "pdbdistance.h"
-#include "lsvineyard.h"
+#include <topology/lsvineyard.h>
 
 #include <fstream>
 #include <string>

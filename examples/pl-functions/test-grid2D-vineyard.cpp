@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include "grid2D.h"
-#include "lsvineyard.h"
+#include <topology/lsvineyard.h>
 
 int main(int argc, char** argv)
 {

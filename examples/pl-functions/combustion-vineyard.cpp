@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #include "grid2D.h"
-#include "lsvineyard.h"
+#include <topology/lsvineyard.h>
 
 const int xsize = 600;
 const int ysize = 600;
