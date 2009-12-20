@@ -1,15 +1,17 @@
 // Wrap includes into namespaces to avoid nameclashes
 #include "../../examples/alphashapes/alphashapes3d.h" 
 
+#include <boost/shared_ptr.hpp>
 #include <boost/python.hpp>
 #include <boost/python/stl_iterator.hpp>
 namespace bp = boost::python;
 
+#include "utils.h"
 #include "simplex.h"                // defines SimplexVD, Vertex, and Data
 namespace dp = dionysus::python;
 
 
-void fill_alpha3D_complex(bp::object points, bp::list complex)
+void fill_alpha3D_complex(bp::object points, bp::object complex)
 {
     typedef     std::map<AlphaSimplex3D::Vertex, unsigned>      ASPointMap;
 
@@ -29,14 +31,14 @@ void fill_alpha3D_complex(bp::object points, bp::list complex)
 
     for (AlphaSimplex3D::SimplexSet::const_iterator cur = simplices.begin(); cur != simplices.end(); ++cur)
     {
+        
         dp::SimplexVD s;
         for (AlphaSimplex3D::VertexContainer::const_iterator vcur  = cur->vertices().begin(); 
                                                              vcur != cur->vertices().end(); ++vcur)
             s.add(point_map[*vcur]);
-
-        complex.append(s);
-        complex[-1].attr("data") = cur->value();
-        complex[-1].attr("attached") = cur->attached();
+        
+        s.data() = bp::object(std::make_pair(cur->value(), !cur->attached()));      // regular/critical rather than attached
+        complex.attr("append")(s);
     }
 }
 

@@ -1,44 +1,51 @@
 #include <topology/filtration.h>
-#include <boost/iterator.hpp>
-#include "simplex.h"
-#include <iostream>
 
 #include <boost/python.hpp>
+#include <boost/iterator.hpp>
+#include <boost/python/return_internal_reference.hpp>
 namespace bp = boost::python;
 
 
-#include "filtration.h"      // defines ListFiltration, ListTraits
+#include "simplex.h"
+#include "filtration.h"      // defines PythonFiltration
 #include "utils.h"           // defines PythonCmp
 namespace dp = dionysus::python;
 
-boost::shared_ptr<dp::ListFiltration>  init_from_list(bp::list lst, bp::object cmp)
+boost::shared_ptr<dp::PythonFiltration>     init_from_iterator(bp::object iter, bp::object cmp)
 {
-    boost::shared_ptr<dp::ListFiltration>  p(new dp::ListFiltration(dp::ListTraits::begin(lst),
-                                                                    dp::ListTraits::end(lst),
-                                                                    dp::PythonCmp(cmp)));
+    typedef     dp::PythonFiltration::Simplex   Smplx;
+    boost::shared_ptr<dp::PythonFiltration>     p(new dp::PythonFiltration(bp::stl_input_iterator<Smplx>(iter), 
+                                                                           bp::stl_input_iterator<Smplx>(),
+                                                                           dp::PythonCmp(cmp)));
     return p;
 }
 
-dp::FiltrationPythonIterator
-lf_begin(const dp::ListFiltration& lf)
-{ return lf.begin(); }
+void                                        filtration_sort(dp::PythonFiltration& f, bp::object cmp)
+{ f.sort(dp::PythonCmp(cmp)); }
 
-dp::FiltrationPythonIterator
-lf_end(const dp::ListFiltration& lf)
-{ return lf.end(); }
+const dp::PythonFiltration::Simplex&        f_getitem(const dp::PythonFiltration& f, int i)
+{ 
+    if (i >= 0)
+        return f.simplex(f.begin() + i); 
+    else
+        return f.simplex(f.end() + i);
+}
 
-unsigned
-lf_getitem(const dp::ListFiltration& lf, unsigned i)       
-{ return *(lf_begin(lf) + i); }
+unsigned                                    f_call(const dp::PythonFiltration& f, const dp::PythonFiltration::Simplex& s)
+{ return f.find(s) - f.begin(); }
 
 
 void export_filtration()
 {
-    bp::class_<dp::ListFiltration>("Filtration", bp::no_init)
-        .def("__init__",        bp::make_constructor(&init_from_list))
+    bp::class_<dp::PythonFiltration>("Filtration")
+        .def("__init__",        bp::make_constructor(&init_from_iterator))
 
-        .def("__getitem__",     &lf_getitem)
-        .def("__iter__",        bp::range(&lf_begin, &lf_end))
-        .def("__len__",         &dp::ListFiltration::size)
+        .def("append",          &dp::PythonFiltration::push_back)
+        .def("sort",            &filtration_sort)
+
+        .def("__getitem__",     &f_getitem,      bp::return_internal_reference<1>())
+        .def("__call__",        &f_call)
+        .def("__iter__",        bp::range<bp::return_internal_reference<1> >(&dp::PythonFiltration::begin, &dp::PythonFiltration::end))
+        .def("__len__",         &dp::PythonFiltration::size)
     ;
 }

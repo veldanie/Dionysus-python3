@@ -22,23 +22,24 @@ Complexes
 If the points are in :math:`\mathbb{R}^2` or :math:`\mathbb{R}^3`, one can
 construct an alphashape filtration::
 
-    simplices = []
+    simplices = Filtration()
     fill_alpha2D_complex(points, simplices)     # for 2D, or
     fill_alpha3D_complex(points, simplices)     # for 3D
 
 
-Functions :ref:`fill_alpha*_complex <alphashapes>` fill the ``simplices`` list
-with all the :class:`simplices <Simplex>` of the Delaunay triangulation. Each one has attributes
-``data`` and ``attached`` set to its respective value in the alpha shape (the
-smallest value of the squared distance function on the dual Voronoi cell) and
-whether the simplex is attached or not (i.e. whether its dual cell does not or
-does contain a critical point of the distance function). See :ref:`alphashapes`
-for more details, and :ref:`alpha-shape-example` for a full example.
+Functions :ref:`fill_alpha*_complex <alphashapes>` fill the ``simplices``
+with all the :class:`simplices <Simplex>` of the Delaunay triangulation. 
+Each one has its attribute ``data`` set to a pair: the
+smallest value of the squared distance function on the dual Voronoi cell and
+whether the simplex is critical or not (i.e. whether its dual cell does or
+does not contain a critical point of the distance function).
+See :ref:`alphashapes` for more details, and :ref:`alpha-shape-example` for a
+full example.
 
 As a result, if one wanted only those simplices whose alpha shape value did not
 exceed 10, one could obtain them as follows::
 
-    simplices10 = [s for s in simplices if s.data <= 10]
+    simplices10 = [s for s in simplices if s.data[0] <= 10]
 
 If the point set lies in higher dimensions, one may construct a Rips complex on
 it. This complex requires only pairwise distances, which makes it very
@@ -78,44 +79,42 @@ Offline
 ^^^^^^^
 
 For the first approach, i.e. to use :class:`StaticPersistence`, one must put the
-simplices into lexicographic ordering (sort them with respect to
-:func:`vertex_cmp`), and construct a filtration with respect to some ordering
+sort the filtration with respect to some ordering
 (for example, :func:`data_dim_cmp` for alpha shapes or :meth:`Rips.cmp` for the
 Rips complex)::
 
-    simplices.sort(vertex_cmp)
-    f = Filtration(simplices, data_dim_cmp)     # for the alpha shapes
-    f = Filtration(simplices, rips.cmp)         # for the rips complex
+    simplices.sort(data_dim_cmp)     # for the alpha shapes
+    simplices.sort(rips.cmp)         # for the rips complex
 
 Creating an instance of :class:`StaticPersistence` initialized with the
 filtration really initializes a boundary matrix. The subsequent call to
 :meth:`~StaticPersistence.pair_simplices` reduces the matrix to compute the
 persistence of the filtration::
 
-    p = StaticPersistence(f)
+    p = StaticPersistence(simplices)
     p.pair_simplices()
 
 Once the simplices are paired, one may examine the pairings by iterating over
-the instance of :class:`StaticPersistence`::
+the instance of :class:`StaticPersistence`. We can use an auxilliary map ``smap`` 
+to remap the persistence indices into the actual simplices::
 
+    smap = p.make_simplex_map(simplices)
     for i in p:
         if i.sign():
-            birth = simplices[f[p(i)]]
-            if i == i.pair:
+            birth = smap[i]
+            if i.unpaired():
                 print birth.dimension(), birth.data, "inf"
                 continue
             
-            death = simplices[f[p(i.pair)]]
+            death = smap[i.pair()]
             print birth.dimension(), birth.data, death.data
 
 The iterator ``i`` over the instance ``p`` of :class:`StaticPersistence` is of type
 :class:`SPNode`, and represents individual simplices taken in the filtration
-order. It knows about its own :meth:`~SPNode.sign` and :attr:`~SPNode.pair`
-(``i.pair == i`` if the simplex is unpaired).  Calling ``p`` with the iterator
-``i`` (``p(i)``) gives its integer index in the filtration, which can then be
-used with the instance ``f`` of :class:`Filtration` to get the integer index in
-the lexicographically sorted list `simplices`: ``simplices[f[p(i)]]``.  The
-previous code snippet prints out the persistence diagrams of the given
+order. It knows about its own :meth:`~SPNode.sign` and :meth:`~SPNode.pair` as well as
+whether it is :math:`~SPNode.unpaired`. :meth:`StaticPersistence.make_simplex_map` creates 
+a map that we use to get the actual simplices: ``smap[i]`` and ``smap[i.pair()]``.
+The previous code snippet prints out the persistence diagrams of the given
 filtration.
 
 
@@ -190,14 +189,14 @@ is not clear whether these deliver a substantial speed-up:
 * To avoid the computation of simplex sizes in the Rips complex during the
   initialization of a :class:`Filtration`, store them explicitly in
   :attr:`Simplex.data` attribute (this is not done by default to save memory);
-  then use :func:`data_dim_cmp` in the initialization of the
+  then use :func:`data_dim_cmp` when sorting the
   :class:`Filtration`::
 
         rips = Rips(distances)
-        simplices = []
+        simplices = Filtration()
         rips.generate(..., simplices.append)
         for s in simplices: s.data = rips.eval(s)
-        f = Filtration(simplices, data_dim_cmp)
+        simplices.sort(data_dim_cmp)
 
 
 

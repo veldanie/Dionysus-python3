@@ -9,7 +9,7 @@ namespace bp = boost::python;
 namespace dp = dionysus::python;
 
 
-void fill_alpha2D_complex(bp::object points, bp::list complex)
+void fill_alpha2D_complex(bp::object points, bp::object complex)
 {
     typedef     std::map<AlphaSimplex2D::Vertex, unsigned>      ASPointMap;
 
@@ -32,10 +32,9 @@ void fill_alpha2D_complex(bp::object points, bp::list complex)
         for (AlphaSimplex2D::VertexContainer::const_iterator vcur  = cur->vertices().begin(); 
                                                              vcur != cur->vertices().end(); ++vcur)
             s.add(point_map[*vcur]);
-
-        complex.append(s);
-        complex[-1].attr("data") = cur->value();
-        complex[-1].attr("attached") = cur->attached();
+        
+        s.data() = bp::object(std::make_pair(cur->value(), !cur->attached()));      // regular/critical rather than attached
+        complex.attr("append")(s);
     }
 }
 

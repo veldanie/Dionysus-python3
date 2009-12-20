@@ -12,16 +12,15 @@ if len(argv) < 2:
     exit()
 
 points = [p for p in points_file(argv[1])]
-simplices = []
+f = Filtration()
 if   len(points[0]) == 2:           # 2D
-    fill_alpha2D_complex(points, simplices)
+    fill_alpha2D_complex(points, f)
 elif len(points[1]) == 3:           # 3D
-    fill_alpha3D_complex(points, simplices)
+    fill_alpha3D_complex(points, f)
 
-simplices.sort(vertex_cmp)                      # Must ensure lexicographic ordering
-print "Total number of simplices:", len(simplices)
+print "Total number of simplices:", len(f)
 
-f = Filtration(simplices, data_dim_cmp)
+f.sort(data_dim_cmp)
 print "Filtration initialized"
 
 p = StaticPersistence(f)
@@ -31,12 +30,13 @@ p.pair_simplices()
 print "Simplices paired"
 
 print "Outputting persistence diagram"
+smap = p.make_simplex_map(f)
 for i in p:
     if i.sign():
-        b = simplices[f[p(i)]]
-        if i == i.pair:
-            print b.dimension(), sqrt(b.data), "inf"
+        b = smap[i]
+        if i.unpaired():
+            print b.dimension(), sqrt(b.data[0]), "inf"
             continue
 
-        d = simplices[f[p(i.pair)]]
-        print b.dimension(), sqrt(b.data), sqrt(d.data)
+        d = smap[i.pair()]
+        print b.dimension(), sqrt(b.data[0]), sqrt(d.data[0])

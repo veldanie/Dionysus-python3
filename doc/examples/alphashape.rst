@@ -13,17 +13,18 @@ death) per line.
    :language: python
 
 After the points are read into the list ``points``, the functions
-:ref:`fill_alpha*_complex <alphashapes>` fill the list simplices with the
+:ref:`fill_alpha*_complex <alphashapes>` fill the :class:`Filtration` with the
 simplices of the Delaunay triangulation. Each one has its :attr:`~Simplex.data`
-attribute set to its alpha shape value (the minimum value of the squared
-distance function on its dual Voronoi cell).
+attribute set to the tuple consisting of its alpha shape value (the minimum value of the squared
+distance function on its dual Voronoi cell) and whether the simplex is regular
+or critical.
 
-The simplices are put into lexicographic order (required for
-:class:`Filtration`), and then a filtration is created that sorts simplices with
+The filtration then sorts the simplices with
 respect to their data and dimension (via :func:`data_dim_cmp`)::
 
-    simplices.sort(vertex_cmp)
-    f = Filtration(simplices, data_dim_cmp)
+    f = Filtration()
+    fill_alpha*_complex(points, f)
+    f.sort(data_dim_cmp)
 
 We initialize :class:`StaticPersistence`, and pair the simplices::
 
@@ -31,6 +32,5 @@ We initialize :class:`StaticPersistence`, and pair the simplices::
     p.pair_simplices()
     
 Iterating over the :class:`StaticPersistence`, we output the points of the
-persistence diagram (dimension, birth, death) in the last for loop. The ``i ==
-i.pair`` condition indicates that the positive simplex is unpaired (i.e. the
-class it creates survives till infinity).
+persistence diagram (dimension, birth, death) in the last for loop. If the
+simplex is unpaired (``i.unpaired()``), the class it creates survives till infinity.

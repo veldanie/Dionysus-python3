@@ -75,6 +75,7 @@ int main(int argc, char** argv)
     rInfo("Delaunay triangulation computed");
  
     // Set up the alpha shape filtration
+    typedef     std::vector<AlphaSimplex3D>     AlphaSimplex3DVector;
     AlphaSimplex3DVector complex;
     fill_complex(Dt, complex);
     rInfo("Simplices: %d", complex.size());

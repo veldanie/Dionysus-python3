@@ -77,9 +77,9 @@ class AlphaSimplex3D: public Simplex<Vertex_handle>
 		bool 						attached_;
 };
 
-typedef 			std::vector<AlphaSimplex3D>								AlphaSimplex3DVector;
 void 				fill_simplex_set(const Delaunay3D& Dt, AlphaSimplex3D::SimplexSet& simplices);
-void 				fill_complex(const Delaunay3D& Dt,     AlphaSimplex3DVector& alpha_order);
+template<class Filtration>
+void 				fill_complex(const Delaunay3D& Dt,     Filtration& filtration);
 
 std::ostream& 		operator<<(std::ostream& out, const AlphaSimplex3D& s)	{ return s.operator<<(out); }
 

@@ -27,7 +27,7 @@ for s in sorted(complex.keys(), data_cmp):
     b += 1
 
 # Remove all the simplices
-for s in sorted(complex.keys(), reverse = True):
+for s in sorted(complex.keys(), data_cmp, reverse = True):
     print "%d: Removing %s" % (b, s)
     d = zz.remove(complex[s], b)
     del complex[s]

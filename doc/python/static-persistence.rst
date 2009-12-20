@@ -18,11 +18,17 @@
 
         Given an SPNode in the internal representation, the method returns its
         integer offset from the beginning of the filtration. This is useful to
-        lookup the actual name of the simplex in the complex. For example, the
-        following snippet prints out all the unpaired simplices::
+        lookup the actual name of the simplex in the complex.
 
+    .. method:: make_simplex_map(filtration)
+
+        Creates an auxilliary :class:`PersistenceSimplexMap` used to lookup the actual
+        simplices from the persistence indices. For example, the following
+        snippet prints out all the unpaired simplices::
+
+            smap = persistence.make_simplex_map(filtration)
             for i in persistence:
-                if i == i.pair: print complex[filtration[persistence(i)]]
+                if i.unpaired(): print smap[i]
 
     .. method:: __iter__()
 
@@ -45,7 +51,7 @@
         Returns the sign of the simplex: `True` for positive, `False` for
         negative.
 
-    .. attribute:: pair
+    .. method:: pair()
 
         Simplex's pair. The pair is set to self if the siplex is unpaired.
 
@@ -56,12 +62,17 @@
         container of :class:`SPNode`. For example, one can print the basis for
         the (bounding) cycles::
 
+            smap = persistence.make_simplex_map(filtration)
             for i in persistence:
-                for ii in i.cycle(): print complex[filtration[persistence(ii)]]
+                for ii in i.cycle(): print smap[ii]
 
-    .. method:: __eq__(other)
+    .. method:: unpaired()
 
-        Returns true if the two nodes are the same. Useful for determining if
-        the node is unpaired (iff ``i == i.pair``), e.g::
+        Indicates whether the simplex is unpaired.
 
-            print len([i in persistence if i == i.pair])    # prints the number of unpaired simplices
+.. class:: PersistenceSimplexMap
+
+    .. method:: __getitem__(i)
+
+        Given a persistence index, i.e. an :class:`SPNode`, returns the
+        :class:`Simplex` it represents.

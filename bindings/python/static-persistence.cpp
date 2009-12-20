@@ -14,32 +14,28 @@ namespace dp = dionysus::python;
 /* SPersistence */
 boost::shared_ptr<dp::SPersistence>     init_from_filtration(bp::object f)
 {
-    dp::ListFiltration& lf = bp::extract<dp::ListFiltration&>(f);
-    boost::shared_ptr<dp::SPersistence> p(new dp::SPersistence(lf));
+    dp::PythonFiltration& sf = bp::extract<dp::PythonFiltration&>(f);
+    boost::shared_ptr<dp::SPersistence> p(new dp::SPersistence(sf));
     return p;
 }
 
-boost::counting_iterator<dp::SPersistenceIndex>     py_sp_begin(dp::SPersistence& sp)                   { return sp.begin(); }
-boost::counting_iterator<dp::SPersistenceIndex>     py_sp_end(dp::SPersistence& sp)                     { return sp.end(); }
-unsigned                                            distance(dp::SPersistence& sp, 
-                                                             const dp::SPersistenceIndex& i)            { return i - sp.begin(); }
+unsigned                                distance(dp::SPersistence& sp, 
+                                                 const dp::SPersistenceIndex& i)            { return sp.iterator_to(i) - sp.begin(); }
 
+/* SPNode */
+const dp::SPersistenceNode&             pair(const dp::SPersistenceNode& sn)                { return *sn.pair; }
 
-/* SPersistenceIndex */
-dp::SPersistenceIndex                               pair(const dp::SPersistenceIndex& i)                { return i->pair; }
-bool                                                sign(const dp::SPersistenceIndex& i)                { return i->sign(); }
-const dp::VChain&                                   cycle(const dp::SPersistenceIndex& i)               { return i->cycle; }
-bool                                                index_eq(const dp::SPersistenceIndex& i, 
-                                                             const dp::SPersistenceIndex& j)            { return i == j; }
-
+/* PersistenceSimplexMap */
+const dp::SimplexVD&                    psmap_getitem(const dp::PersistenceSimplexMap& psmap, 
+                                                      const dp::SPersistenceIndex& i)       { return psmap[i]; }
 
 void export_static_persistence()
 {
-    bp::class_<dp::SPersistenceIndex>("SPNode")
-        .add_property("pair",   &pair)
-        .def("sign",            &sign)
-        .def("cycle",           &cycle,         bp::return_internal_reference<1>())
-        .def("__eq__",          index_eq)
+    bp::class_<dp::SPersistenceNode>("SPNode", bp::no_init)
+        .def("pair",            &pair,                      bp::return_internal_reference<1>())
+        .add_property("cycle",  &dp::SPersistenceNode::cycle)
+        .def("sign",            &dp::SPersistenceNode::sign)
+        .def("unpaired",        &dp::SPersistenceNode::unpaired)
     ;
 
     bp::class_<dp::SPersistence>("StaticPersistence", bp::no_init)
@@ -47,8 +43,13 @@ void export_static_persistence()
         
         .def("pair_simplices",  (void (dp::SPersistence::*)())  &dp::SPersistence::pair_simplices)
         .def("__call__",        &distance)
+        .def("make_simplex_map",&dp::SPersistence::make_simplex_map<dp::PythonFiltration>)
 
-        .def("__iter__",        bp::range(&py_sp_begin, &py_sp_end))
+        .def("__iter__",        bp::range<bp::return_internal_reference<1> >(&dp::SPersistence::begin, &dp::SPersistence::end))
         .def("__len__",         &dp::SPersistence::size)
+    ;
+
+    bp::class_<dp::PersistenceSimplexMap>("PersistenceSimplexMap", bp::no_init)
+        .def("__getitem__",     &psmap_getitem,             bp::return_internal_reference<1>())
     ;
 }

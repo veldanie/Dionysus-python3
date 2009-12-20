@@ -21,13 +21,14 @@ template<class V, class T>
 typename Simplex<V,T>::VertexContainer::const_iterator
                                     vertices_end(const Simplex<V,T>& s)         { return s.vertices().end(); }
 
-// Constructor from iterator
+// Constructor from iterator        TODO: the default argument is not working yet
 template<class V, class T>
-boost::shared_ptr<Simplex<V,T> >    init_from_iterator(bp::object iter)                      
+boost::shared_ptr<Simplex<V,T> >    init_from_iterator(bp::object iter, bp::object d)
 { 
-    boost::shared_ptr<Simplex<V,T> > p(new Simplex<V,T>(bp::stl_input_iterator<V>(iter), bp::stl_input_iterator<V>()));
+    boost::shared_ptr<Simplex<V,T> > p(new Simplex<V,T>(bp::stl_input_iterator<V>(iter), bp::stl_input_iterator<V>(), d));
     return p;
 }
+
 
 // Simplex hash
 template<class V, class T>
@@ -42,6 +43,23 @@ size_t                              eq_simplex(const Simplex<V,T>& a, const Simp
     return vertex_comparison(a,b) == 0;
 }
 
+template<class S>
+bool                                contains(const S& s, const S& other)
+{ 
+    return s.contains(other);
+}
+
+template<class S>
+dp::Data                            get_data(const S& s)
+{
+    return s.data();
+}
+
+template<class S>
+void                                set_data(S& s, dp::Data d)
+{
+    s.data() = d;
+}
 
 /* Comparisons */
 // VertexComparison
@@ -59,9 +77,10 @@ void export_simplex()
 
         .def("add",                 &dp::SimplexVD::add)
         .add_property("boundary",   bp::range(&dp::SimplexVD::boundary_begin, &dp::SimplexVD::boundary_end))
-        .def("contains",            &dp::SimplexVD::contains)
+        .def("contains",            &contains<dp::SimplexVD>)
         .def("join",                (void (dp::SimplexVD::*)(const dp::SimplexVD&)) &dp::SimplexVD::join)
         .def("dimension",           &dp::SimplexVD::dimension)
+        .add_property("data",       &get_data<dp::SimplexVD>, &set_data<dp::SimplexVD>)
         
         .add_property("vertices",   bp::range(&vertices_begin<dp::Vertex, dp::Data>, &vertices_end<dp::Vertex, dp::Data>))
         .def(repr(bp::self))

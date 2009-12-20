@@ -22,48 +22,45 @@ static Counter*  cTranspositionCase4 =          GetCounter("persistence/transpos
 
 /* Trails */
 
-template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
 template<class Filtration>
-DynamicPersistenceTrails<D,CT,Cmp,OT,CI,CC,E>::
-DynamicPersistenceTrails(const Filtration& f, const OrderComparison& ocmp, const ConsistencyComparison& ccmp):
-    Parent(f, ocmp), ccmp_(ccmp)
+DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::
+DynamicPersistenceTrails(const Filtration& f):
+    Parent(f), ccmp_(order().get<consistency>())
 {}
         
-template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
 void
-DynamicPersistenceTrails<D,CT,Cmp,OT,CI,CC,E>::
+DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::
 pair_simplices()
 { 
-    Parent::pair_simplices(begin(), end(), true, PairingTrailsVisitor(begin(), ccmp_, size()));
+    Parent::pair_simplices(begin(), end(), true, PairingTrailsVisitor(order(), ccmp_, size()));
 }
 
-template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
-template<class Visitor>
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
+template<class DimensionFunctor, class Visitor>
 bool
-DynamicPersistenceTrails<D,CT,Cmp,OT,CI,CC,E>::
-transpose(OrderIndex i, const Visitor& visitor)
+DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::
+transpose(iterator i, const DimensionFunctor& dimension, Visitor visitor)
 {
 #if LOGGING
     typename Traits::OutputMap outmap(order());
 #endif
 
     Count(cTransposition);
-    typedef                 OrderIndex                                  Index;
     typedef                 typename Element::Trail::iterator           TrailIterator;
 
     visitor.transpose(i);
     
-    Index i_prev = i++;
+    iterator i_prev = i++;
 
-#if 0       // Persistence no longer has the notion of dimension
-    if (i_prev->dimension() != i->dimension())
+    if (dimension(i_prev) != dimension(i))
     {
         swap(i_prev, i);
         rLog(rlTranspositions, "Different dimension");
         Count(cTranspositionDiffDim);
         return false;
     }
-#endif
     
     bool si = i_prev->sign(), sii = i->sign();
     if (si && sii)
@@ -71,15 +68,15 @@ transpose(OrderIndex i, const Visitor& visitor)
         rLog(rlTranspositions, "Trail prev: %s", i_prev->trail.tostring(outmap).c_str());
 
         // Case 1
-        boost::optional<TrailIterator> i_in_i_prev = i_prev->trail.contains(i);
-        if (i_in_i_prev)
-        {
+        if (trail_remove_if_contains(i_prev, index(i)))
             rLog(rlTranspositions, "Case 1, U[i,i+1] = 1");
-            i_prev->trail.remove(*i_in_i_prev);
-        }
 
-        Index k = i_prev->pair;
-        Index l = i->pair;
+        iterator k = iterator_to(i_prev->pair);
+        iterator l = iterator_to(i->pair);
+        
+        // rLog(rlTranspositions, "(i_prev, k), (i, l): (%s, %s), (%s, %s)", 
+        //                         outmap(i_prev).c_str(), outmap(k).c_str(),
+        //                         outmap(i).c_str(),      outmap(l).c_str());
 
         // Explicit treatment of unpaired simplex
         if (l == i)
@@ -91,7 +88,7 @@ transpose(OrderIndex i, const Visitor& visitor)
             return false;
         } else if (k == i_prev)
         {
-            if (!(l->cycle.contains(i_prev)))
+            if (!(l->cycle.contains(index(i_prev))))
             {
                 // Case 1.2
                 swap(i_prev, i);
@@ -104,7 +101,7 @@ transpose(OrderIndex i, const Visitor& visitor)
                 // Case 1.2 --- special version (plain swap, but pairing switches)
                 swap(i_prev, i);
                 pairing_switch(i_prev, i);
-                visitor.switched(i_prev, Case12);
+                visitor.switched(i, Case12);
                 rLog(rlTranspositions, "Case 1.2 --- unpaired (pairing switch)");
                 rLog(rlTranspositions, outmap(i_prev).c_str());
                 Count(cTranspositionCase12s);
@@ -113,7 +110,7 @@ transpose(OrderIndex i, const Visitor& visitor)
         }
         
         rLog(rlTranspositions, "l cycle: %s", l->cycle.tostring(outmap).c_str());
-        if (!(l->cycle.contains(i_prev)))
+        if (!(l->cycle.contains(index(i_prev))))
         {
             // Case 1.2
             swap(i_prev, i);
@@ -123,12 +120,12 @@ transpose(OrderIndex i, const Visitor& visitor)
         } else
         {
             // Case 1.1
-            if (not2(ccmp_)(k,l))
+            if (std::not2(ccmp_)(index(k),index(l)))
             {
                 // Case 1.1.1
                 swap(i_prev, i);
-                l->cycle.add(k->cycle, ccmp_);        // Add column k to l
-                k->trail.add(l->trail, ccmp_);        // Add row l to k
+                cycle_add(l, k->cycle);               // Add column k to l
+                trail_add(k, l->trail);               // Add row l to k
                 rLog(rlTranspositions, "Case 1.1.1");
                 Count(cTranspositionCase111);
                 return false;
@@ -136,10 +133,10 @@ transpose(OrderIndex i, const Visitor& visitor)
             {
                 // Case 1.1.2
                 swap(i_prev, i);
-                k->cycle.add(l->cycle, ccmp_);        // Add column l to k
-                l->trail.add(k->trail, ccmp_);        // Add row k to l
+                cycle_add(k, l->cycle);               // Add column l to k
+                trail_add(l, k->trail);               // Add row k to l
                 pairing_switch(i_prev, i);
-                visitor.switched(i_prev, Case112);
+                visitor.switched(i, Case112);
                 rLog(rlTranspositions, "Case 1.1.2");
                 Count(cTranspositionCase112);
                 return true;
@@ -148,7 +145,7 @@ transpose(OrderIndex i, const Visitor& visitor)
     } else if (!si && !sii)
     {
         // Case 2
-        if (!(i_prev->trail.contains(i)))
+        if (!(i_prev->trail.contains(index(i))))
         {
             // Case 2.2
             swap(i_prev, i);
@@ -158,18 +155,18 @@ transpose(OrderIndex i, const Visitor& visitor)
         } else
         {
             // Case 2.1
-            Index low_i = i_prev->pair;
-            Index low_ii = i->pair;
-            i_prev->trail.add(i->trail, ccmp_);            // Add row i to i_prev
-            i->cycle.add(i_prev->cycle, ccmp_);            // Add column i_prev to i
+            iterator low_i =    iterator_to(i_prev->pair);
+            iterator low_ii =   iterator_to(i->pair);
+            trail_add(i_prev, i->trail);                   // Add row i to i_prev
+            cycle_add(i, i_prev->cycle);                   // Add column i_prev to i
             swap(i_prev, i);    
-            if (not2(ccmp_)(low_ii, low_i))
+            if (std::not2(ccmp_)(index(low_ii), index(low_i)))
             {
                 // Case 2.1.2
-                i_prev->cycle.add(i->cycle, ccmp_);        // Add column i to i_prev (after transposition)
-                i->trail.add(i_prev->trail, ccmp_);        // Add row i to i_prev
+                cycle_add(i_prev, i->cycle);               // Add column i to i_prev (after transposition)
+                trail_add(i, i_prev->trail);               // Add row i to i_prev
                 pairing_switch(i_prev, i);
-                visitor.switched(i_prev, Case212);
+                visitor.switched(i, Case212);
                 rLog(rlTranspositions, "Case 2.1.2");
                 Count(cTranspositionCase212);
                 return true;
@@ -183,7 +180,7 @@ transpose(OrderIndex i, const Visitor& visitor)
     } else if (!si && sii)
     {
         // Case 3
-        if (!(i_prev->trail.contains(i)))
+        if (!(i_prev->trail.contains(index(i))))
         {
             // Case 3.2
             swap(i_prev, i);
@@ -193,13 +190,13 @@ transpose(OrderIndex i, const Visitor& visitor)
         } else
         {
             // Case 3.1
-            i_prev->trail.add(i->trail, ccmp_);            // Add row i to i_prev
-            i->cycle.add(i_prev->cycle, ccmp_);            // Add column i_prev to i
+            trail_add(i_prev, i->trail);                   // Add row i to i_prev
+            cycle_add(i, i_prev->cycle);                   // Add column i_prev to i
             swap(i_prev, i);
-            i_prev->cycle.add(i->cycle, ccmp_);            // Add column i_prev to i (after transposition)
-            i->trail.add(i_prev->trail, ccmp_);            // Add row i to i_prev
+            cycle_add(i_prev, i->cycle);                   // Add column i_prev to i (after transposition)
+            trail_add(i, i_prev->trail);                   // Add row i to i_prev
             pairing_switch(i_prev, i);
-            visitor.switched(i_prev, Case31);
+            visitor.switched(i, Case31);
             rLog(rlTranspositions, "Case 3.1");
             Count(cTranspositionCase31);
             return true;
@@ -207,12 +204,8 @@ transpose(OrderIndex i, const Visitor& visitor)
     } else if (si && !sii)
     {
         // Case 4
-        boost::optional<TrailIterator> i_in_i_prev = i_prev->trail.contains(i);
-        if (i_in_i_prev)
-        {
+        if (trail_remove_if_contains(i_prev, index(i)))
             rLog(rlTranspositions, "Case 4, U[i,i+1] = 1");
-            i_prev->trail.remove(*i_in_i_prev);
-        }
         swap(i_prev, i);
         rLog(rlTranspositions, "Case 4");
         Count(cTranspositionCase4);
@@ -222,58 +215,69 @@ transpose(OrderIndex i, const Visitor& visitor)
     return false; // to avoid compiler complaints; we should never reach this point
 }
 
-template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
 void
-DynamicPersistenceTrails<D,CT,Cmp,OT,CI,CC,E>::
-swap(OrderIndex i, OrderIndex j)
+DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::
+swap(iterator i, iterator j)
 {
-    std::swap<Data>(*i, *j);
-    std::swap(i->pair, j->pair);
-
-    std::swap(i->cycle, j->cycle);          // TODO: double-check that the STL container specializations actually get invoked
-    std::swap(i->trail, j->trail);
+    order().relocate(i,j);
 }
 
-template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
 void
-DynamicPersistenceTrails<D,CT,Cmp,OT,CI,CC,E>::
-pairing_switch(OrderIndex i, OrderIndex j)
+DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::
+pairing_switch(iterator i, iterator j)
 {
     OrderIndex i_pair = i->pair;
     OrderIndex j_pair = j->pair;
 
-    if (i_pair == i)
-        j->pair = j;
+    // rLog(rlTranspositions, "  (%x %x %x) (%x %x %x)", &*i, i->pair, i->pair->pair, &*j, j->pair, j->pair->pair);
+    if (i_pair == index(i))
+        set_pair(j, j);
     else
     {
-        j->pair = i_pair;
-        i_pair->pair = j;
+        set_pair(j, i_pair);
+        set_pair(i_pair, j);
     }
 
-    if (j_pair == j)
-        i->pair = i;
+    if (j_pair == index(j))
+        set_pair(i, i);
     else
     {
-        i->pair = j_pair;
-        j_pair->pair = i;
+        set_pair(i, j_pair);
+        set_pair(j_pair, i);
     }
+    // rLog(rlTranspositions, "  (%x %x %x) (%x %x %x)", &*i, i->pair, i->pair->pair, &*j, j->pair, j->pair->pair);
 }
+
+// Helper classes
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
+struct DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::TrailRemover: 
+    public std::unary_function<Element&, void>
+{
+                                TrailRemover(OrderIndex i):
+                                    i_(i)                                       {}
+    
+    void                        operator()(Element& e)                          { result = e.trail.remove_if_contains(i_); }
+    
+    OrderIndex                  i_;
+    bool                        result;
+};
 
 
 /* Chains */
 
-template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
 template<class Filtration>
-DynamicPersistenceChains<D,CT,Cmp,OT,CI,CC,E>::
-DynamicPersistenceChains(const Filtration& f, const OrderComparison& ocmp, const ConsistencyComparison& ccmp):
-    Parent(f, ocmp), ccmp_(ccmp)
+DynamicPersistenceChains<D,CT,OT,E,Cmp,CCmp>::
+DynamicPersistenceChains(const Filtration& f):
+    Parent(f), ccmp_(order().get<consistency>())
 {}
         
-template<class D, class CT, class Cmp, class OT, class CI, class CC, class E>
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
 void
-DynamicPersistenceChains<D,CT,Cmp,OT,CI,CC,E>::
+DynamicPersistenceChains<D,CT,OT,E,Cmp,CCmp>::
 pair_simplices()
 { 
-    Parent::pair_simplices(begin(), end(), true, PairingChainsVisitor(begin(), ccmp_, size()));
+    Parent::pair_simplices(begin(), end(), true, PairingChainsVisitor(order(), ccmp_, size()));
 }
-

@@ -1,7 +1,7 @@
 #ifndef __PROPERTY_MAPS_H__
 #define __PROPERTY_MAPS_H__
 
-#include <boost/property_map.hpp>
+#include <boost/property_map/property_map.hpp>
 #include <boost/iterator/iterator_traits.hpp>
 #include <algorithm>
 #include "utilities/log.h"
@@ -106,6 +106,46 @@ make_offset_map(From_ bg_from, To_ bg_to)
 { return OffsetMap<From_, To_>(bg_from, bg_to); }
 
 
+template<class From_, class To_, class FromIndex_, class ToIndex_>
+struct OffsetBeginMap
+{
+    typedef             From_                                                   From;
+    typedef             To_                                                     To;
+    typedef             FromIndex_                                              key_type;
+    typedef             ToIndex_                                                value_type;
+
+                        OffsetBeginMap(const From& from, const To& to):
+                            from_(from), to_(to)                                {}
+                        
+    value_type          operator[](key_type i) const                            { return to_.begin() + (i - from_.begin()); }
+
+    const From&         from() const                                            { return from_; }
+    const To&           to() const                                              { return to_; }
+    
+    private:
+                  const From&                                                   from_;
+                  const To&                                                     to_;
+};
+
+
+/* ChainMap */
+template<class Map1, class Map2>
+class ChainMap
+{
+    public:
+        typedef         typename Map1::key_type                                 key_type;
+        typedef         typename Map2::value_type                               value_type;
+
+
+                        ChainMap(const Map1& m1, const Map2& m2): 
+                            m1_(m1), m2_(m2)                                    {}
+        value_type      operator[](const key_type& k) const                     { return m2_[m1_[k]]; }
+
+    private:
+        const Map1&     m1_;
+        const Map2&     m2_;
+};
+
 /* ThroughMap */
 template<class Functor_, class Map_>
 class ThroughMap
@@ -115,7 +155,7 @@ class ThroughMap
         typedef                 Functor_                                        Functor;
 
         typedef                 typename Functor::result_type                   result_type;
-        typedef                 typename Map::key_type                          first_argument_type;
+        typedef                 typename Map_::key_type                         first_argument_type;
 
                                 ThroughMap(const Map&       map,
                                            const Functor&   functor):

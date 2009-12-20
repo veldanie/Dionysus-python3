@@ -2,7 +2,7 @@
 #include "utilities/log.h"
 
 #include "pdbdistance.h"
-#include "grid2Dvineyard.h"
+#include "lsvineyard.h"
 
 #include <fstream>
 #include <string>
@@ -51,10 +51,20 @@ int main(int argc, char** argv)
 	// Compute initial filtration
 	int f = 0; int sf = 0;
 	std::ifstream in(frame_filename(infilename, f, sf++).c_str());
-	Grid2DVineyard v(new PDBDistanceGrid(in, cas_only));
+    PDBDistanceGrid ginit(in, cas_only);
 	in.close();
-	std::cout << "Filtration generated, size: " << v.filtration()->size() << std::endl;
-	v.compute_pairing();
+
+    typedef                     LSVineyard<Grid2D::CoordinateIndex, Grid2D>             Grid2DVineyard;
+    
+    Grid2DVineyard::LSFiltration        simplices;    
+    ginit.complex_generator(make_push_back_functor(simplices));
+    Grid2DVineyard::VertexComparison    vcmp(ginit);
+    Grid2DVineyard::SimplexComparison   scmp(vcmp);
+    simplices.sort(scmp);
+    std::cout << "Complex generated, size: " << simplices.size() << std::endl;
+
+    Grid2DVineyard              v(ginit.begin(), ginit.end(), simplices, ginit);
+	std::cout << "Filtration generated, size: " << v.filtration().size() << std::endl;
 	std::cout << "Pairing computed" << std::endl;
 
 	// Process frames computing the vineyard
@@ -63,13 +73,13 @@ int main(int argc, char** argv)
 		std::string fn = frame_filename(infilename, f, sf++);
 		std::cout << "Processing " << fn << std::endl;
 		in.open(fn.c_str());
-		v.compute_vineyard(new PDBDistanceGrid(in, cas_only));
+		v.compute_vineyard(PDBDistanceGrid(in, cas_only));
 		in.close();
 		if (sf == lastsubframe) { sf = 0; ++f; }
 	}
 	std::cout << "Vineyard computed" << std::endl;
 
-	v.vineyard()->save_edges(outfilename);
+	v.vineyard().save_edges(outfilename);
 
 #if 0
 	std::ofstream ofs(outfilename.c_str(), std::ios::binary);

@@ -4,42 +4,39 @@
 #include "static-persistence.h"
 #include <utilities/types.h>
 
+#include <boost/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+namespace bl = boost::lambda;
+
 #ifdef COUNTERS
 static Counter*  cTrailLength =             GetCounter("persistence/pair/traillength");     // the size of matrix U in RU decomposition
 static Counter*  cChainLength =             GetCounter("persistence/pair/chainlength");     // the size of matrix V in R=DV decomposition
 #endif // COUNTERS
 
-template<class Data_, class ChainTraits_, class ContainerTraits_, class ConsistencyIndex_>
-struct TrailData: public PairCycleData<Data_, ChainTraits_, ContainerTraits_, 
-                                       TrailData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_> >
+template<class Data_, class ChainTraits_>
+struct TrailData: public PairCycleData<Data_, ChainTraits_, TrailData<Data_, ChainTraits_> >
 {
     typedef     Data_                                                                   Data;
-    typedef     ConsistencyIndex_                                                       ConsistencyIndex;
 
-    typedef     PairCycleData<Data_, ChainTraits_, ContainerTraits_, TrailData>         Parent;
-    typedef     TrailData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_>     Self;
+    typedef     PairCycleData<Data_, ChainTraits_, TrailData>                           Parent;
+    typedef     TrailData<Data_, ChainTraits_>                                          Self;
 
-    // typedef     typename ContainerTraits_::template rebind<Self>::other                 ContainerTraits;
-    // typedef     typename ContainerTraits::Index                                         Index;
-    // typedef     typename ChainTraits_::template rebind<Index>::other                    ChainTraits;
-    // typedef     typename ChainTraits::Chain                                             Chain;
     typedef     typename Parent::Index                                                  Index;
+    typedef     typename Parent::Cycle                                                  Cycle;
     typedef     typename Parent::Chain                                                  Chain;
     typedef     Chain                                                                   Trail;
-    
-    template<class Comparison>
-    struct ConsistencyComparison: public std::binary_function<const Index&, const Index&, bool>
-    {
-                        ConsistencyComparison(const Comparison& cmp = Comparison()): 
-                            cmp_(cmp)                                                   {}
+ 
+    // Modifiers
+    template<class Cmp>
+    void        trail_append(Index i, const Cmp& cmp)                                   { trail.append(i, cmp); }
+    template<class Cmp>
+    void        trail_add(const Trail& t, const Cmp& cmp)                               { trail.add(t, cmp); }
 
-        bool            operator()(const Index& a, const Index& b) const                { return cmp_(a->consistency, b->consistency); }
+    template<class Cmp>
+    void        cycle_add(const Cycle& z, const Cmp& cmp)                               { cycle.add(z, cmp); }
 
-        Comparison      cmp_;
-    };
-
-    Trail                                                                       trail;
-    ConsistencyIndex                                                            consistency;
+    using       Parent::cycle;
+    Trail                                                                               trail;
 };
 
 /**
@@ -59,28 +56,31 @@ struct TrailData: public PairCycleData<Data_, ChainTraits_, ContainerTraits_,
 // position, or one could provide consistency that is references into the complex
 template<class Data_ =                  Empty<>, 
          class ChainTraits_ =           VectorChains<>,
-         class Comparison_ =            GreaterComparison<>,
-         class ContainerTraits_ =       VectorContainer<>,
-         class ConsistencyIndex_ =      size_t,
-         class ConsistencyComparison_ = std::less<ConsistencyIndex_>,
-         class Element_ =               TrailData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_> >
+         class ContainerTraits_ =       OrderConsistencyContainer<>,
+         class Element_ =               TrailData<Data_, ChainTraits_>,
+         class Comparison_ =            ElementComparison<typename ContainerTraits_::template rebind<Element_>::other::Container,
+                                                          std::greater<typename ContainerTraits_::template rebind<Element_>::other::Container::iterator> >,
+         class ConsistencyComparison_ = ElementComparison<typename ContainerTraits_::template rebind<Element_>::other::ConsistentContainer,
+                                                          std::greater<typename ContainerTraits_::template rebind<Element_>::other::ConsistentContainer::iterator> >
+        >
 class DynamicPersistenceTrails: 
-    public StaticPersistence<Data_, ChainTraits_, Comparison_, ContainerTraits_, Element_>
+    public StaticPersistence<Data_, ChainTraits_, ContainerTraits_, Element_, Comparison_>
 {
     public:
         typedef         Data_                                                           Data;
         typedef         Element_                                                        Element;
-        typedef         StaticPersistence<Data_, ChainTraits_, Comparison_,
-                                          ContainerTraits_, Element_>                   Parent;
+        typedef         StaticPersistence<Data_, ChainTraits_,
+                                          ContainerTraits_, Element_, Comparison_>      Parent;
  
         typedef         typename Parent::ContainerTraits                                Traits;
         typedef         typename Parent::Order                                          Order;
         typedef         typename Parent::OrderComparison                                OrderComparison;
         typedef         typename Parent::OrderIndex                                     OrderIndex;
-        typedef         ConsistencyIndex_                                               ConsistencyIndex;
-        typedef         ThreeOutcomeCompare<
-                            typename Element::
-                            template ConsistencyComparison<ConsistencyComparison_> >    ConsistencyComparison;
+        typedef         ConsistencyComparison_                                          ConsistencyComparison;
+        typedef         typename Parent::iterator                                       iterator;
+
+        typedef         typename Element::Trail                                         Trail;
+        typedef         typename Element::Cycle                                         Cycle;
 
         /**
          * Constructor: DynamicPersistenceTrails()
@@ -89,22 +89,23 @@ class DynamicPersistenceTrails:
          * Template parameters:
          *   Filtration -           filtration of the complex whose persistence we are computing
          */
-        template<class Filtration>      DynamicPersistenceTrails(const Filtration&              f, 
-                                                                 const OrderComparison&         ocmp =  OrderComparison(),
-                                                                 const ConsistencyComparison&   ccmp =  ConsistencyComparison());
+        template<class Filtration>      DynamicPersistenceTrails(const Filtration& f);
         
         void                            pair_simplices();
 
         // Function: transpose(i)
         // Tranpose i and the next element. 
         // Returns: true iff the pairing switched.
-        bool                            transpose(OrderIndex i)                         { return transpose(i, TranspositionVisitor()); }
+        template<class DimensionFunctor, class Visitor>
+        bool                            transpose(iterator i, const DimensionFunctor& dimension, Visitor visitor = Visitor());
         
-        template<class Visitor>
-        bool                            transpose(OrderIndex i, const Visitor& visitor = Visitor());
+        template<class DimensionFunctor>
+        bool                            transpose(iterator i, const DimensionFunctor& dimension)    { return transpose(i,dimension,TranspositionVisitor()); }
 
         using                           Parent::begin;
         using                           Parent::end;
+        using                           Parent::iterator_to;
+        using                           Parent::index;
         using                           Parent::size;
 
         // Struct: TranspositionVisitor
@@ -116,66 +117,72 @@ class DynamicPersistenceTrails:
             // This function is called before transposition is processed 
             // (at the very beginning of <transpose(i, visitor)>). It is meant to update any structures 
             // that may need to be updated, but perhaps it has other uses as well.
-            void                        transpose(OrderIndex i) const                   {}
+            void                        transpose(iterator i) const                     {}
 
             // Function: switched(i, type)
             // This function is called after the transposition if the switch in pairing has occured.
             // `i` is the index of the preceding simplex after the transposition. 
             // `type` indicates the <SwitchType>.
-            void                        switched(OrderIndex i, SwitchType type) const   {}
+            void                        switched(iterator i, SwitchType type) const     {}
         };
 
     protected:
         using                           Parent::order;
+        using                           Parent::set_pair;
+        using                           Parent::swap_cycle;
+
+        bool                            trail_remove_if_contains
+                                            (iterator i, OrderIndex j)                  { TrailRemover rm(j); order().modify(i, rm); return rm.result; }
+        void                            cycle_add(iterator i, const Cycle& z)           { order().modify(i, boost::bind(&Element::template cycle_add<ConsistencyComparison>, bl::_1, boost::ref(z), ccmp_)); }      // i->cycle_add(z, ccmp_)
+        void                            trail_add(iterator i, const Trail& t)           { order().modify(i, boost::bind(&Element::template trail_add<ConsistencyComparison>, bl::_1, boost::ref(t), ccmp_)); }      // i->trail_add(t, ccmp_)
 
     private:
-        void                            swap(OrderIndex i, OrderIndex j);
-        void                            pairing_switch(OrderIndex i, OrderIndex j);
+        void                            swap(iterator i, iterator j);
+        void                            pairing_switch(iterator i, iterator j);
 
         struct PairingTrailsVisitor: public Parent::PairVisitor 
         {
-            // TODO: this is specialized for std::vector
-                                        PairingTrailsVisitor(OrderIndex bg, ConsistencyComparison ccmp, unsigned size): 
-                                            Parent::PairVisitor(size), bg_(bg), ccmp_(ccmp)     {}
+                                        PairingTrailsVisitor(Order& order, ConsistencyComparison ccmp, unsigned size): 
+                                            Parent::PairVisitor(size), order_(order), ccmp_(ccmp)   {}
 
-            void                        init(OrderIndex i) const                        { i->consistency = i - bg_; i->trail.append(i, ccmp_); Count(cTrailLength); }
-            void                        update(OrderIndex j, OrderIndex i) const        { i->pair->trail.append(j, ccmp_); Count(cTrailLength); }
-            void                        finished(OrderIndex i) const                    { Parent::PairVisitor::finished(i); }
+            void                        init(iterator i) const                          { order_.modify(i,                                  boost::bind(&Element::template trail_append<ConsistencyComparison>, bl::_1, &*i, ccmp_)); Count(cTrailLength); }        // i->trail_append(&*i, ccmp)
+            void                        update(iterator j, iterator i) const            { order_.modify(order_.iterator_to(*(i->pair)),     boost::bind(&Element::template trail_append<ConsistencyComparison>, bl::_1, &*j, ccmp_)); Count(cTrailLength); }        // i->pair->trail_append(&*j, ccmp)
+            void                        finished(iterator i) const                      { Parent::PairVisitor::finished(i); }
 
-            OrderIndex                  bg_;
+            Order&                      order_;            
             ConsistencyComparison       ccmp_;
         };
+
+        struct TrailRemover;
 
         ConsistencyComparison           ccmp_;
 };
 
-template<class Data_, class ChainTraits_, class ContainerTraits_, class ConsistencyIndex_>
-struct ChainData: public PairCycleData<Data_, ChainTraits_, ContainerTraits_,
-                                       ChainData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_> >
+/* Chains */
+template<class Data_, class ChainTraits_>
+struct ChainData: public PairCycleData<Data_, ChainTraits_, ChainData<Data_, ChainTraits_> >
 {
     typedef     Data_                                                                   Data;
-    typedef     ConsistencyIndex_                                                       ConsistencyIndex;
 
-    typedef     PairCycleData<Data_, ChainTraits_, ContainerTraits_, ChainData>         Parent;
-    typedef     ChainData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_>     Self;
+    typedef     PairCycleData<Data_, ChainTraits_, ChainData>                           Parent;
+    typedef     ChainData<Data_, ChainTraits_>                                          Self;
 
     typedef     typename Parent::Index                                                  Index;
+    typedef     typename Parent::Cycle                                                  Cycle;
     typedef     typename Parent::Chain                                                  Chain;
     typedef     Chain                                                                   Trail;
     
-    template<class Comparison>
-    struct ConsistencyComparison: public std::binary_function<const Index&, const Index&, bool>
-    {
-                        ConsistencyComparison(const Comparison& cmp = Comparison()): 
-                            cmp_(cmp)                                                   {}
+    // Modifiers
+    template<class Cmp>
+    void        chain_append(Index i, const Cmp& cmp)                                   { chain.append(i, cmp); }
+    template<class Cmp>
+    void        chain_add(const Chain& c, const Cmp& cmp)                               { chain.add(c, cmp); }
 
-        bool            operator()(const Index& a, const Index& b) const                { return cmp_(a->consistency, b->consistency); }
+    template<class Cmp>
+    void        cycle_add(const Cycle& z, const Cmp& cmp)                               { cycle.add(z, cmp); }
 
-        Comparison      cmp_;
-    };
-
-    Chain                                                                       chain;
-    ConsistencyIndex                                                            consistency;
+    using       Parent::cycle;
+    Chain                                                                               chain;
 };
 
 /**
@@ -194,28 +201,31 @@ struct ChainData: public PairCycleData<Data_, ChainTraits_, ContainerTraits_,
  */
 template<class Data_ =                  Empty<>, 
          class ChainTraits_ =           VectorChains<>,
-         class Comparison_ =            GreaterComparison<>,
-         class ContainerTraits_ =       VectorContainer<>,
-         class ConsistencyIndex_ =      size_t,
-         class ConsistencyComparison_ = std::less<ConsistencyIndex_>,
-         class Element_ =               ChainData<Data_, ChainTraits_, ContainerTraits_, ConsistencyIndex_> >
+         class ContainerTraits_ =       OrderConsistencyContainer<>,
+         class Element_ =               ChainData<Data_, ChainTraits_>,
+         class Comparison_ =            ElementComparison<typename ContainerTraits_::template rebind<Element_>::other::Container,
+                                                          std::greater<typename ContainerTraits_::template rebind<Element_>::other::Container::iterator> >,
+         class ConsistencyComparison_ = ElementComparison<typename ContainerTraits_::template rebind<Element_>::other::ConsistentContainer,
+                                                          std::greater<typename ContainerTraits_::template rebind<Element_>::other::ConsistentContainer::iterator> >
+        >
 class DynamicPersistenceChains: 
-    public StaticPersistence<Data_, ChainTraits_, Comparison_, ContainerTraits_, Element_>
+    public StaticPersistence<Data_, ChainTraits_, ContainerTraits_, Element_, Comparison_>
 {
     public:
         typedef         Data_                                                           Data;
         typedef         Element_                                                        Element;
-        typedef         StaticPersistence<Data_, ChainTraits_, Comparison_,
-                                          ContainerTraits_, Element_>                   Parent;
+        typedef         StaticPersistence<Data_, ChainTraits_,
+                                          ContainerTraits_, Element_, Comparison_>      Parent;
  
         typedef         typename Parent::ContainerTraits                                Traits;
         typedef         typename Parent::Order                                          Order;
         typedef         typename Parent::OrderComparison                                OrderComparison;
         typedef         typename Parent::OrderIndex                                     OrderIndex;
-        typedef         ConsistencyIndex_                                               ConsistencyIndex;
-        typedef         ThreeOutcomeCompare<
-                            typename Element::
-                            template ConsistencyComparison<ConsistencyComparison_> >    ConsistencyComparison;
+        typedef         ConsistencyComparison_                                          ConsistencyComparison;
+        typedef         typename Parent::iterator                                       iterator;
+
+        typedef         typename Element::Chain                                         Chain;
+        typedef         typename Element::Cycle                                         Cycle;
 
         /**
          * Constructor: DynamicPersistenceChains()
@@ -224,9 +234,7 @@ class DynamicPersistenceChains:
          * Template parameters:
          *   Filtration -           filtration of the complex whose persistence we are computing
          */
-        template<class Filtration>      DynamicPersistenceChains(const Filtration&              f, 
-                                                                 const OrderComparison&         ocmp =  OrderComparison(),
-                                                                 const ConsistencyComparison&   ccmp =  ConsistencyComparison());
+        template<class Filtration>      DynamicPersistenceChains(const Filtration& f);
         
         void                            pair_simplices();
 
@@ -238,10 +246,12 @@ class DynamicPersistenceChains:
         
         // TODO: the main missing piece to be dynamic
         //template<class Visitor>
-        //bool                            transpose(OrderIndex i, const Visitor& visitor = Visitor());
-
+        //bool                            transpose(OrderIndex i, Visitor& visitor = Visitor());
+        
         using                           Parent::begin;
         using                           Parent::end;
+        using                           Parent::iterator_to;
+        using                           Parent::index;
         using                           Parent::size;
 
         // Struct: TranspositionVisitor
@@ -253,17 +263,22 @@ class DynamicPersistenceChains:
             // This function is called before transposition is processed 
             // (at the very beginning of <transpose(i, visitor)>). It is meant to update any structures 
             // that may need to be updated, but perhaps it has other uses as well.
-            void                        transpose(OrderIndex i) const                   {}
+            void                        transpose(iterator i) const                     {}
 
             // Function: switched(i, type)
             // This function is called after the transposition if the switch in pairing has occured.
             // `i` is the index of the preceding simplex after the transposition. 
             // `type` indicates the <SwitchType>.
-            void                        switched(OrderIndex i, SwitchType type) const   {}
+            void                        switched(iterator i, SwitchType type) const     {}
         };
 
     protected:
         using                           Parent::order;
+        using                           Parent::set_pair;
+        using                           Parent::swap_cycle;
+        
+        void                            cycle_add(iterator i, const Cycle& z)           { order().modify(i, boost::bind(&Element::template cycle_add<ConsistencyComparison>, bl::_1, boost::ref(z), ccmp_)); }      // i->cycle_add(z, ccmp_)
+        void                            chain_add(iterator i, const Chain& c)           { order().modify(i, boost::bind(&Element::template chain_add<ConsistencyComparison>, bl::_1, boost::ref(c), ccmp_)); }      // i->chain_add(c, ccmp_)
 
     private:
         void                            swap(OrderIndex i, OrderIndex j);
@@ -271,15 +286,14 @@ class DynamicPersistenceChains:
 
         struct PairingChainsVisitor: public Parent::PairVisitor 
         {
-            // TODO: this is specialized for std::vector
-                                        PairingChainsVisitor(OrderIndex bg, ConsistencyComparison ccmp, unsigned size): 
-                                            Parent::PairVisitor(size), bg_(bg), ccmp_(ccmp)     {}
+                                        PairingChainsVisitor(Order& order, ConsistencyComparison ccmp, unsigned size): 
+                                            Parent::PairVisitor(size), order_(order), ccmp_(ccmp)       {}
 
-            void                        init(OrderIndex i) const                        { i->consistency = i - bg_; i->chain.append(i, ccmp_); }
-            void                        update(OrderIndex j, OrderIndex i) const        { j->chain.add(i->pair->chain, ccmp_); }
-            void                        finished(OrderIndex i) const                    { Parent::PairVisitor::finished(i); CountBy(cChainLength, i->chain.size()); }
+            void                        init(iterator i) const                          { order_.modify(i,                  boost::bind(&Element::template chain_append<ConsistencyComparison>, bl::_1, &*i, ccmp_)); }                 // i->chain_append(&*i, ccmp)
+            void                        update(iterator j, iterator i) const            { order_.modify(j,                  boost::bind(&Element::template chain_add<ConsistencyComparison>, bl::_1, i->pair->chain, ccmp_)); }         // j->chain.add(i->pair->chain, ccmp_)
+            void                        finished(iterator i) const                      { Parent::PairVisitor::finished(i); CountBy(cChainLength, i->chain.size()); }
 
-            OrderIndex                  bg_;
+            Order&                      order_;            
             ConsistencyComparison       ccmp_;
         };
 

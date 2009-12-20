@@ -7,6 +7,9 @@
 
 // TODO: write documentation
 
+/**************
+ * Comparison *
+ **************/
 
 template<class Comparison_>
 struct IndirectComparison
@@ -63,6 +66,27 @@ struct ThreeOutcomeCompare: public Comparison
         else                        return 0;
     }
 };
+
+template<class Evaluator_>
+class ThroughEvaluatorComparison
+{
+    public:
+        typedef                 Evaluator_                                                  Evaluator;
+
+                                ThroughEvaluatorComparison(const Evaluator& eval): 
+                                    eval_(eval)                                             {}
+
+        template<class T>                            
+        bool                    operator()(T a, T b) const                                  { return (eval_(a) < eval_(b)); }
+
+    private:
+        const Evaluator&        eval_;
+};
+
+
+/*************
+ * Iterators *
+ *************/
 
 // Iterates over the difference of the two sorted sequences, dereferencing into the first sequence
 template<class Iterator1, class Iterator2, class StrictWeakOrdering>

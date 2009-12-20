@@ -1,6 +1,6 @@
 /*
  * Author: Dmitriy Morozov
- * Department of Computer Science, Duke University, 2005 -- 2006
+ * Department of Computer Science, Duke University, 2005 -- 2009
  */
 
 #ifndef __VINEYARD_H__
@@ -14,144 +14,142 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/list.hpp>
-	
+    
+#include <boost/iterator/iterator_traits.hpp>
 
-template<class Smplx>	class Knee;
-template<class Smplx>	class Vine;
+
+class Knee;
+class Vine;
 
 /**
  * Vineyard class. Keeps track of vines and knees. switched() is the key function called
- * by filtration when pairing switches after a Filtration::transpose().
+ * when pairing switches.
  *
  * \ingroup topology
  */
-template<class FltrSmplx>
+template<class Index_, class Iterator_, class Evaluator_>
 class Vineyard
 {
-	public:
-		typedef							FltrSmplx									FiltrationSimplex;
-		typedef							typename FiltrationSimplex::Simplex			Simplex;
-		typedef							Vine<Simplex>								VineS;
-		typedef							Knee<Simplex>								KneeS;
-		typedef							std::list<VineS>						    VineList;
-		typedef							std::list<VineList>						    VineListList;
-        typedef                         std::vector<typename VineListList::iterator> VineListVector;
-		typedef							typename FiltrationSimplex::Cycle			Cycle;
+    public:
+        typedef                         Index_                                          Index;
+        typedef                         Iterator_                                       Iterator;
+        typedef                         Evaluator_                                      Evaluator;
 
-		typedef							typename FiltrationSimplex::Index			Index;
-		typedef							typename FiltrationSimplex::EvaluatorS		Evaluator;
-										
-	public:
-										Vineyard(Evaluator* eval = 0): 
-											evaluator(eval)							{}
+        typedef                         std::list<Vine>                                 VineList;
+        typedef                         std::list<VineList>                             VineListList;
+        typedef                         std::vector<VineListList::iterator>             VineListVector;
+                                        
+    public:
+                                        Vineyard(Evaluator* eval = 0): 
+                                            evaluator(eval)                             {}
 
-		void							start_vines(Index bg, Index end);
-		void							switched(Index i, Index j);
-		void							record_knee(Index i);
-		void							record_diagram(Index bg, Index end);
+        void                            start_vines(Iterator bg, Iterator end);
+        void                            switched(Index i, Index j);
+        template<class Iter>
+        void                            record_knee(Iter i);
+        void                            record_diagram(Iterator bg, Iterator end);
 
-		void							set_evaluator(Evaluator* eval)				{ evaluator = eval; }
+        void                            set_evaluator(Evaluator* eval)                  { evaluator = eval; }
 
-		void							save_edges(const std::string& filename) const;
+        void                            save_edges(const std::string& filename, bool skip_infinite = false) const;
+        void                            save_vines(const std::string& filename, bool skip_infinite = false) const;
 
-	protected:
-		typename KneeS::SimplexList  	resolve_cycle(Index i) const;
+    private:
+        template<class Iter>
+        void                            start_vine(Iter i);
 
-	private:
-		void							start_vine(Index i);
-
-	private:
-		VineListList                    vines;            // stores vine lists
-		VineListVector                  vines_vector;     // stores pointers (iterators) to vine lists
-		Evaluator*						evaluator;
+    private:
+        VineListList                    vines;            // stores vine lists
+        VineListVector                  vines_vector;     // stores pointers (iterators) to vine lists
+        Evaluator*                      evaluator;
 };
 
 /**
- * Knee class stores the knee in R^3 as well as the cycle that is associated with the Simplex starting from the Knee.
+ * Knee class stores the knee in R^3.
  *
  * \ingroup topology
  */
-template<class S>
 class Knee
 {
-	public:
-		typedef					S												Simplex;
-		typedef					std::list<Simplex>								SimplexList;
-	
-		RealType				birth;
-		RealType				death;
-		RealType				time;
-		SimplexList				cycle;
-			
-								// Default parameters for serialization
-								Knee(RealType b = 0, RealType d = 0, RealType t = 0):
-									birth(b), death(d), time(t)
-								{}
-								Knee(const Knee& other): 
-									birth(other.birth), death(other.death), time(other.time)
-								{}
+    public:
+        RealType                birth;
+        RealType                death;
+        RealType                time;
+            
+                                // Default parameters for serialization
+                                Knee(RealType b = 0, RealType d = 0, RealType t = 0):
+                                    birth(b), death(d), time(t)
+                                {}
+                                Knee(const Knee& other): 
+                                    birth(other.birth), death(other.death), time(other.time)
+                                {}
 
-		bool 					is_diagonal() const								{ return birth == death; }
-		bool					is_infinite() const								{ return (death == Infinity) || (birth == Infinity); }
-		void 					set_cycle(const SimplexList& lst)				{ cycle = lst; }
+        bool                    is_diagonal() const                             { return birth == death; }
+        bool                    is_infinite() const                             { return (death == Infinity) || (birth == Infinity); }
 
-		std::ostream&			operator<<(std::ostream& out) const				{ return out << "(" << birth << ", " 
-																									<< death << ", " 
-																									<< time  << ")"; }
-	
-	private:
-		friend class boost::serialization::access;
+        std::ostream&           operator<<(std::ostream& out) const             { return out << "(" << birth << ", " 
+                                                                                                    << death << ", " 
+                                                                                                    << time  << ")"; }
+    
+    private:
+        friend class boost::serialization::access;
 
-		template<class Archive>
-		void 					serialize(Archive& ar, version_type );
+        template<class Archive>
+        void                    serialize(Archive& ar, version_type );
 };
 
-template<class S>
-std::ostream& operator<<(std::ostream& out, const Knee<S>& k) 					{ return k.operator<<(out); }
+std::ostream& operator<<(std::ostream& out, const Knee& k)                      { return k.operator<<(out); }
 
 /**
  * Vine is a list of Knees
  */
-template<class S>
-class Vine: public std::list<Knee<S> >
-{	
-	public:
-		typedef					S												Simplex;
-		typedef					Knee<Simplex>									KneeS;
-		typedef					std::list<KneeS>								VineRepresentation;
-		typedef					typename VineRepresentation::const_iterator		const_knee_iterator;
-		
-								Vine()											{}
-								Vine(const Vine& other): 
-                                    VineRepresentation(other)	                {}
-								Vine(const VineRepresentation& other): 
-                                    VineRepresentation(other)	                {}
-								Vine(const KneeS& k)						    { add(k); }
-		
-		void 					add(RealType b, RealType d, RealType t)			{ push_back(KneeS(b,d,t)); }
-		void 					add(const KneeS& k)								{ push_back(k); }
+class Vine: public std::list<Knee>
+{   
+    public:
+        typedef                 std::list<Knee>                                 VineRepresentation;
+        typedef                 VineRepresentation::const_iterator              const_knee_iterator;
+        
+                                Vine()                                          {}
+                                Vine(const Vine& other): 
+                                    VineRepresentation(other)                   {}
+                                Vine(const VineRepresentation& other): 
+                                    VineRepresentation(other)                   {}
+                                Vine(const Knee& k)                             { add(k); }
+        
+        void                    add(RealType b, RealType d, RealType t)         { push_back(Knee(b,d,t)); }
+        void                    add(const Knee& k)                              { push_back(k); }
 
-        std::ostream&           operator<<(std::ostream& out) const             { for (const_knee_iterator cur = begin(); cur != end(); ++cur) out << *cur; return out; }
+        std::ostream&           operator<<(std::ostream& out) const             { std::copy(begin(), end(), std::ostream_iterator<Knee>(out, " ")); return out; }
 
-		using VineRepresentation::begin;
-		using VineRepresentation::end;
-		using VineRepresentation::front;
-		using VineRepresentation::back;
-		using VineRepresentation::size;
-		using VineRepresentation::empty;
+        using VineRepresentation::begin;
+        using VineRepresentation::end;
+        using VineRepresentation::front;
+        using VineRepresentation::back;
+        using VineRepresentation::size;
+        using VineRepresentation::empty;
 
-	protected:
-		using VineRepresentation::push_back;
+    protected:
+        using VineRepresentation::push_back;
 
-	private:
-		friend class boost::serialization::access;
+    private:
+        friend class boost::serialization::access;
 
-		template<class Archive>
-		void 					serialize(Archive& ar, version_type );
+        template<class Archive>
+        void                    serialize(Archive& ar, version_type );
 };
 
-template<class S>
-std::ostream& operator<<(std::ostream& out, const Vine<S>& v) 					{ return v.operator<<(out); }
+std::ostream& operator<<(std::ostream& out, const Vine& v)                      { return v.operator<<(out); }
+
+
+class VineData
+{
+    public:
+        void        set_vine(Vine* vine) const                                          { vine_ = vine; }
+        Vine*       vine() const                                                        { return vine_; }
+
+    private:
+        mutable Vine*       vine_;      // cheap trick to work around MultiIndex's constness
+};
 
 
 #include "vineyard.hpp"

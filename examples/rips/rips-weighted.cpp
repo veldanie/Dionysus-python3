@@ -27,8 +27,7 @@ typedef         PairDistances::IndexType                                Vertex;
 
 typedef         WeightedRips<PairDistances>                             Generator;
 typedef         Generator::Simplex                                      Smplx;
-typedef         std::vector<Smplx>                                      SimplexVector;
-typedef         Filtration<SimplexVector, unsigned>                     Fltr;
+typedef         Filtration<Smplx>                                       Fltr;
 typedef         StaticPersistence<>                                     Persistence;
 //typedef         DynamicPersistenceChains<>                              Persistence;
 typedef         PersistenceDiagram<>                                    PDgm;
@@ -56,39 +55,38 @@ int main(int argc, char* argv[])
     Generator               rips(distances);
     Generator::Evaluator    size(distances);
     Generator::Comparison   cmp (distances);
-    SimplexVector           complex;
+    Fltr                    complex;
     
     // Generate skeleton of the weighted Rips complex for epsilon = 50
     rips.generate(skeleton, max_distance, make_push_back_functor(complex));
-
-    std::sort(complex.begin(), complex.end(), Smplx::VertexComparison());       // unnecessary
     std::cout << "# Generated complex of size: " << complex.size() << std::endl;
 
     // Generate filtration with respect to distance and compute its persistence
-    Fltr f(complex.begin(), complex.end(), cmp);
+    complex.sort(cmp);
 
     Timer persistence_timer; persistence_timer.start();
-    Persistence p(f);
+    Persistence p(complex);
     p.pair_simplices();
     persistence_timer.stop();
 
     // Output cycles
-    for (Persistence::OrderIndex cur = p.begin(); cur != p.end(); ++cur)
+    Persistence::SimplexMap<Fltr>   m = p.make_simplex_map(complex);
+    for (Persistence::iterator cur = p.begin(); cur != p.end(); ++cur)
     {
-        Persistence::Cycle& cycle = cur->cycle;
+        const Persistence::Cycle& cycle = cur->cycle;
 
         if (!cur->sign())        // only negative simplices have non-empty cycles
         {
             Persistence::OrderIndex birth = cur->pair;      // the cycle that cur killed was born when we added birth (another simplex)
 
-            const Smplx& b = f.simplex(f.begin() + (birth - p.begin()));        // eventually this will be encapsulated behind an interface
-            const Smplx& d = f.simplex(f.begin() + (cur   - p.begin()));
+            const Smplx& b = m[birth];
+            const Smplx& d = m[cur];
             
             if (b.dimension() >= skeleton) continue;
             std::cout << b.dimension() << " " << size(b) << " " << size(d) << std::endl;
-        } else if (cur->pair == cur)    // positive could be unpaired
+        } else if (cur->unpaired())    // positive could be unpaired
         {
-            const Smplx& b = f.simplex(f.begin() + (cur - p.begin()));
+            const Smplx& b = m[cur];
             if (b.dimension() >= skeleton) continue;
             
             std::cout << b.dimension() << " " << size(b) << " inf" << std::endl;

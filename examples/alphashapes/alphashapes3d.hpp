@@ -1,4 +1,5 @@
 #include <utilities/log.h>
+#include <boost/foreach.hpp>
 
 AlphaSimplex3D::	    
 AlphaSimplex3D(const Delaunay3D::Vertex& v): alpha_(0), attached_(false)
@@ -159,15 +160,12 @@ void fill_simplex_set(const Delaunay3D& Dt, AlphaSimplex3D::SimplexSet& simplice
 	rInfo("Vertices inserted");
 }
 
-void fill_complex(const Delaunay3D& Dt, AlphaSimplex3DVector& alpha_order)
+template<class Filtration>
+void fill_complex(const Delaunay3D& Dt, Filtration& filtration)
 {
 	AlphaSimplex3D::SimplexSet simplices;
     fill_simplex_set(Dt, simplices);
-    
-	// Sort simplices by their alpha values
-	alpha_order.resize(simplices.size());
-	std::copy(simplices.begin(), simplices.end(), alpha_order.begin());
-	//std::sort(alpha_order.begin(), alpha_order.end(), AlphaSimplex3D::AlphaOrder());
-	std::sort(alpha_order.begin(), alpha_order.end(), AlphaSimplex3D::VertexComparison());
+    BOOST_FOREACH(const AlphaSimplex3D& s, simplices)
+        filtration.push_back(s);
 }
 

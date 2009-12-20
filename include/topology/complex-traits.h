@@ -43,6 +43,9 @@ struct ComplexTraits
 
     static Index    begin(const Complex& complex)                           { return complex.begin(); }
     static Index    end(const Complex& complex)                             { return complex.end(); }
+
+    static const Simplex&
+                    simplex(Index i)                                        { return *i; }
 };
 
 
@@ -66,6 +69,9 @@ struct ComplexTraits<std::vector<Simplex_> >
 
     static Index    begin(const Complex& complex)                           { return complex.begin(); }
     static Index    end(const Complex& complex)                             { return complex.end(); }
+
+    static const Simplex&
+                    simplex(Index i)                                        { return *i; }
 };
 
 #endif // __COMPLEX_TRAITS_H__

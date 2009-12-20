@@ -57,7 +57,6 @@ boundary_end() const
     return BoundaryIterator(vertices().end(), vertices());
 }
 
-#if 0
 template<class V, class T>
 bool
 Simplex<V,T>::
@@ -67,7 +66,6 @@ contains(const Vertex& v) const
     typename VertexContainer::const_iterator location = std::lower_bound(vertices().begin(), vertices().end(), v); 
     return ((location != vertices().end()) && (*location == v)); 
 }
-#endif
  
 template<class V, class T>
 bool

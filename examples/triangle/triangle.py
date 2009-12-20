@@ -14,16 +14,18 @@ print "Vertex: ", sorted(complex, vertex_cmp)
 print "Data:   ", sorted(complex, data_cmp)
 print "DataDim:", sorted(complex, data_dim_cmp)
 
-complex.sort(vertex_cmp)        # put complex in the lexicographic order; required for persistence computation
-
 f = Filtration(complex, data_cmp)
-print "Complex in the filtration order:", ', '.join((str(complex[i]) for i in f))
+print "Complex in the filtration order:", ', '.join((str(s) for s in f))
 
 p = StaticPersistence(f)
+print "Persistence initialized"
 p.pair_simplices()
-for i in p:
-    print "%s (%d) - %s (%d)" % (complex[f[p(i)]], i.sign(), 
-                                 complex[f[p(i.pair)]], i.pair.sign())
-    print "Cycle (%d):" % len(i.cycle()), " + ".join((str(complex[f[p(ii)]]) for ii in i.cycle()))
+print "Simplices paired"
 
-print "Number of unpaired simplices:", len([i for i in p if i == i.pair])
+smap = p.make_simplex_map(f)
+for i in p:
+    print i.sign(), i.pair().sign()
+    print "%s (%d) - %s (%d)" % (smap[i], i.sign(), smap[i.pair()], i.pair().sign())
+    print "Cycle (%d):" % len(i.cycle), " + ".join((str(smap[ii]) for ii in i.cycle))
+
+print "Number of unpaired simplices:", len([i for i in p if i.unpaired()])

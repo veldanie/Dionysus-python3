@@ -3,9 +3,25 @@
 
 #include <vector>
 #include <iostream>
+
 #include "complex-traits.h"
+
 #include "utilities/indirect.h"
 #include "utilities/property-maps.h"
+#include "utilities/types.h"
+
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/identity.hpp>
+#include <boost/multi_index/random_access_index.hpp>
+
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/serialization.hpp>
+
+
+namespace b = boost;
+namespace bmi = boost::multi_index;
 
 
 // Class: Filtration
@@ -13,61 +29,69 @@
 // Filtration keeps track of the ordering of the simplices in a complex. 
 // The most significant function it provides is <boundary()> which converts
 // the boundary of a simplex at a given index into a list of indices.
-//
-// TODO: this is really specialized for an std::vector<> Complex; eventually generalize
-// TODO: should we derive from Order?
-template<class Complex_, 
-         class Index_ =             size_t, 
-         class ComplexTraits_ =     ComplexTraits<Complex_> >
+template<class Simplex_,
+         class SimplexOrderIndex_ = bmi::ordered_unique<bmi::identity<Simplex_>, 
+                                                        typename Simplex_::VertexComparison> >
 class Filtration
 {
+    private:
+        struct                  order {};           // tag
+
     public:
         // Typedefs: Template parameters
-        typedef                 Index_                                          IntermediateIndex;
-        typedef                 Complex_                                        Complex;
-        typedef                 ComplexTraits_                                  ComplexTraits;
+        typedef                 Simplex_                                        Simplex;
+        typedef                 SimplexOrderIndex_                              SimplexOrderIndex;
 
-        // Typedefs: Complex
-        typedef                 typename ComplexTraits::Index                   ComplexIndex;
-        typedef                 typename ComplexTraits::Simplex                 Simplex;
-        typedef                 typename ComplexTraits::SimplexIndexMap         SimplexIndexMap;
-        typedef                 std::vector<IntermediateIndex>                  IndexBoundary;
+        typedef                 b::multi_index_container<Simplex, 
+                                                         bmi::indexed_by<SimplexOrderIndex,
+                                                                         bmi::random_access<bmi::tag<order> > 
+                                                                        >
+                                                        >                       Container;
+        typedef                 typename Container::value_type                  value_type;
 
-        // Typedefs: Order
-        typedef                 std::vector<ComplexIndex>                       Order;
+        // Typedefs: Complex and Order views
+        typedef                 typename Container::template nth_index<0>::type Complex;
+        typedef                 typename Container::template nth_index<1>::type Order;
         typedef                 typename Order::const_iterator                  Index;
-        typedef                 std::vector<IntermediateIndex>                  ReverseOrder;
-        typedef                 typename ReverseOrder::const_iterator           ReverseOrderIndex;
+
+                                Filtration()                                    {}
 
         // Constructor: Filtration(bg, end, cmp)
-                                template<class Comparison>
-                                Filtration(ComplexIndex bg, ComplexIndex end, const Comparison& cmp = Comparison());
+                                template<class ComplexIndex, class Comparison>
+                                Filtration(ComplexIndex bg, ComplexIndex end, const Comparison& cmp = Comparison()):
+                                    container_(bg, end)                         { sort(cmp); }
 
-        const Simplex&          simplex(Index i) const                          { return **i; }
+        // Lookup
+        const Simplex&          simplex(Index i) const                          { return *i; }
+        Index                   find(const Simplex& s) const                    { return bmi::project<order>(container_, container_.find(s)); }
+        
+        // Modifiers
+        template<class Comparison>
+        void                    sort(const Comparison& cmp = Comparison())      { container_.get<order>().sort(cmp); }
+        void                    push_back(const Simplex& s)                     { container_.get<order>().push_back(s); }
+        void                    transpose(Index i)                              { container_.get<order>().relocate(i, i+1); }
+        void                    clear()                                         { container_.get<order>().clear(); }
 
-        // Function: boundary(i, bdry, map)
-        // Computes boundary of a given index `i` in terms of other indices
-        template<class Cycle, class Map>
-        void                    boundary(const Index& i, Cycle& bdry, const Map& map) const;
+        Index                   begin() const                                   { return container_.get<order>().begin(); }
+        Index                   end() const                                     { return container_.get<order>().end(); }
+        size_t                  size() const                                    { return container_.size(); }
 
-        Index                   begin() const                                   { return order_.begin(); }
-        Index                   end() const                                     { return order_.end(); }
-        size_t                  size() const                                    { return order_.size(); }
-
-        std::ostream&           operator<<(std::ostream& out) const;
+        std::ostream&           operator<<(std::ostream& out) const             { std::copy(begin(), end(), std::ostream_iterator<Simplex>(out, "\n")); return out; }
 
     private:
-        Order                   order_;
-        ReverseOrder            reverse_order_;
-        OffsetMap<ComplexIndex, 
-                  ReverseOrderIndex>        
-                                complex_order_map_;
-        SimplexIndexMap         simplex_index_map_;
+        Container               container_;
+
+    private:
+        // Serialization
+        friend class                            boost::serialization::access;
+        template<class Archive> 
+        void                                    serialize(Archive& ar, const unsigned int)
+        { ar & boost::serialization::make_nvp("order", container_); }
 };
 
-template<class C, class I, class CT>
+template<class S, class SOI>
 std::ostream&
-operator<<(std::ostream& out, const Filtration<C,I,CT>& f)                      { return f.operator<<(out); }
+operator<<(std::ostream& out, const Filtration<S,SOI>& f)                       { return f.operator<<(out); }
 
 
 template<class Functor_, class Filtration_>
@@ -96,6 +120,29 @@ template<class Filtration, class Functor>
 ThroughFiltration<Functor, Filtration>
 evaluate_through_filtration(const Filtration& filtration, const Functor& functor)
 { return ThroughFiltration<Functor, Filtration>(filtration, functor); }
+
+
+template<class Map, class Filtration>
+class DimensionFunctor
+{
+    public:
+                                DimensionFunctor(const Map& map, const Filtration& filtration):
+                                    map_(map), filtration_(filtration)
+                                {}
+
+        template<class key_type>
+        Dimension               operator()(key_type i) const                    { return filtration_.simplex(map_[i]).dimension(); }
+
+    private:        
+        const Map&              map_;
+        const Filtration&       filtration_;
+};
+
+template<class Map, class Filtration>
+DimensionFunctor<Map, Filtration>
+make_dimension_functor(const Map& map, const Filtration& filtration)
+{ return DimensionFunctor<Map, Filtration>(map, filtration); }
+
 
 #include "filtration.hpp"
 
