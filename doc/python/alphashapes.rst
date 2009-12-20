@@ -17,12 +17,12 @@ is the alpha shape value assigned to it. This value is stored in the simplex's
 
 .. function:: fill_alpha2D_complex(points, complex)
     
-    Appends to the list `complex` the simplices of the 2D Delaunay triangulation
+    Appends to the `complex` the simplices of the 2D Delaunay triangulation
     on the `points`.
 
 .. function:: fill_alpha3D_complex(points, complex)
     
-    Appends to the list `complex` the simplices of the 3D Delaunay triangulation
+    Appends to the `complex` the simplices of the 3D Delaunay triangulation
     on the `points`.
 
 
@@ -34,9 +34,9 @@ Delaunay triangulation with corresponding alpha shape values::
 
     from math import sin, cos, pi
     points = [[cos(2*pi*t/10), sin(2*pi*t/10)] for t in xrange(10)]
-    complex = []
+    complex = Filtration()
     fill_alpha2D_complex(points, complex)
 
 One can extract any given alpha shape with the usual Python list notation::
 
-    alphashape = [s for s in complex if s.data <= .5]
+    alphashape = [s for s in complex if s.data[0] <= .5]

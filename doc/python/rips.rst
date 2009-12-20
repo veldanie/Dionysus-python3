@@ -101,11 +101,11 @@ persistence of the resulting filtration (defined by ``rips.cmp``)::
     points = [for p in points_file('...')]
     distances = PairwiseDistances(points)
     rips = Rips(distances)
-    simplices = []
+    simplices = Filtration()
     rips.generate(2, 50, simplices.append)
     
-    f = Filtration(simplices, rips.cmp)
-    p = StaticPersistence(f)
+    simplices.sort(rips.cmp)
+    p = StaticPersistence(simplices)
     p.pair_simplices()
 
 Essentially the same example is implemented in

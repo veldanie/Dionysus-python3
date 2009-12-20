@@ -25,7 +25,7 @@ The bit that sets up the Rips complex is::
 
     distances = PairwiseDistances(points)
     rips = Rips(distances)
-    simplices = []
+    simplices = Filtration()
     rips.generate(skeleton, max, simplices.append)
 
 The computation of persistence and output of the persistence diagram are the

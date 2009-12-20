@@ -2,6 +2,7 @@
 #define __PYTHON_UTILS_H__
 
 #include <boost/python.hpp>
+#include <boost/iterator/counting_iterator.hpp>
 namespace bp = boost::python;
 
 namespace dionysus {
@@ -48,6 +49,12 @@ struct PythonCmp
                     PythonCmp(bp::object cmp): cmp_(cmp)    {}
 
     bp::object      cmp_;
+};
+
+template<class T1, class T2>
+struct PairToTupleConverter 
+{
+    static PyObject* convert(const std::pair<T1, T2>& pair) { return bp::incref(bp::make_tuple(pair.first, pair.second).ptr()); }
 };
 
 } } // namespace dionysus::python

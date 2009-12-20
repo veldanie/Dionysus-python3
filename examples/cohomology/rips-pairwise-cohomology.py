@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from    dionysus        import Simplex, CohomologyPersistence, points_file, PairwiseDistances, ExplicitDistances, Rips
+from    dionysus        import Simplex, CohomologyPersistence, points_file, PairwiseDistances, ExplicitDistances, Rips, data_dim_cmp
 from    sys             import argv, exit
 import  time
 

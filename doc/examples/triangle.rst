@@ -14,13 +14,8 @@ After the necessary imports, the ``complex`` is setup explicitly as a list of
 simplices. Each :class:`Simplex` constructor takes an iterable sequence of
 vertices, and optionally a data value.
 
-The complex must be sorted lexicographically to compute persistence using
-:class:`StaticPersistence`, and it is accomplished via a helper comparison function :func:`vertex_cmp`, which compares simplices with respect to the lexicographic ordering::
-
-    complex.sort(vertex_cmp)
-
 A filtration ``f`` is initialized using the :class:`Filtration` class, which
-takes a list of lexicographically sorted simplices and a comparison that defines
+takes a list of simplices (or anything iterable) and a comparison that defines
 in what order the simplices should come in the filtration. In this case we use
 :func:`data_cmp`, which simply compares simplices' :attr:`~Simplex.data`
 attributes.
@@ -33,11 +28,10 @@ filtration::
     p.pair_simplices()
 
 Subsequently, we iterate over ``p`` to access a representation of each simplex
-in the filtration order. We output each simplex, its sign, and its pair. Note
-``complex[f[p(i)]]``: ``p(i)`` gives the integer index of the iterator ``i`` in
-the filtration ``f``; in turn ``f[p(i)]`` gives the index of the simplex in the
-(lexicographically ordered) ``complex``. So the entire expression returns
-individual simplices. Naturally, one could use this to access the
+in the filtration order. We output each simplex, its sign, and its pair. The auxilliary 
+``smap = p.make_simplex_map(f)`` remaps the indices of :class:`StaticPersistence` into 
+the simplices in the filtration.
+Naturally, one could use this to access the
 :attr:`~Simplex.data` attribute of the simplices to output the actual
 persistence diagram, as is done in the :ref:`alpha-shape-example` and the
 :ref:`rips-example`.

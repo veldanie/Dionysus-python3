@@ -21,29 +21,26 @@ def lsf(values_filename, simplices_filename):
             vertices.append(float(line.split()[1]))
 
     # Read simplices
-    simplices = []            
+    fltr = Filtration()
     with open(simplices_filename) as f:
         for line in f:
             if line.startswith('#'): continue
-            simplices.append(map(int, line.split()))
-
-    # Setup the complex
-    complex = [Simplex(s) for s in simplices]
-    complex.sort(vertex_cmp)
+            fltr.append(Simplex(map(int, line.split())))
+    fltr.sort(lambda x,y: max_vertex_cmp(x,y,vertices))
 
     # Compute persistence
-    f = Filtration(complex, lambda x,y: max_vertex_cmp(x,y,vertices))
-    p = StaticPersistence(f)
+    p = StaticPersistence(fltr)
     p.pair_simplices()
     
     # Output the persistence diagram
+    smap = p.make_simplex_map(fltr)
     for i in p:
         if not i.sign(): continue
 
-        b = complex[f[p(i)]]
-        d = complex[f[p(i.pair)]]
+        b = smap[i]
+        d = smap[i.pair()]
 
-        if i == i.pair:
+        if i.unpaired():
             print b.dimension(), max_vertex(b, vertices), "inf"
             continue
 

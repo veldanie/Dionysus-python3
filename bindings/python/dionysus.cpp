@@ -1,7 +1,9 @@
 #include <utilities/log.h>
 #include <boost/python.hpp>
+#include "utils.h"
 
 namespace bp = boost::python;
+namespace dp = dionysus::python;
 
 void export_simplex();
 void export_filtration();
@@ -28,6 +30,8 @@ void            enable_log(std::string s)
 
 BOOST_PYTHON_MODULE(_dionysus)
 {
+    bp::to_python_converter<std::pair<double, bool>, dp::PairToTupleConverter<double, bool> >();
+
     export_simplex();
     export_filtration();
     export_static_persistence();

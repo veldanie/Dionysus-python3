@@ -17,8 +17,7 @@ namespace python   {
  * SimplexObject is the representation of Python simplices in C++; i.e. it wraps bp::object and exposes a simplex-like interface.
  */
 typedef                             int                                         Vertex;
-// typedef                             double                                      Data;
-typedef                             Empty<>                                     Data;
+typedef                             bp::object                                  Data;
 typedef                             Simplex<Vertex, Data>                       SimplexVD;
 
 
@@ -28,13 +27,13 @@ class SimplexObject: public bp::object
     public:
         typedef                 SimplexObject                                   Self;
         typedef                 bp::object                                      Parent;
-        typedef                 SimplexVD::BoundaryIterator                     BoundaryIterator;
+        typedef                 bp::stl_input_iterator<Self>                    BoundaryIterator;
 
 
                                 SimplexObject(Parent o = Parent()): Parent(o)   {}
 
-        BoundaryIterator        boundary_begin() const                          { return bp::extract<const SimplexVD&>(*this)().boundary_begin(); }
-        BoundaryIterator        boundary_end() const                            { return bp::extract<const SimplexVD&>(*this)().boundary_end(); }
+        BoundaryIterator        boundary_begin() const                          { return bp::stl_input_iterator<Self>(this->attr("boundary")); }
+        BoundaryIterator        boundary_end() const                            { return bp::stl_input_iterator<Self>(); }
 
                                 operator SimplexVD() const                      { return bp::extract<const SimplexVD&>(*this); }
                                 operator bp::object() const                     { return *this; }

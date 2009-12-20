@@ -13,7 +13,7 @@ def main(filename, skeleton, max):
     rips = Rips(distances)
     print time.asctime(), "Rips initialized"
 
-    simplices = []
+    simplices = Filtration()
     rips.generate(skeleton, max, simplices.append)
     print time.asctime(), "Generated complex: %d simplices" % len(simplices)
 
@@ -22,27 +22,28 @@ def main(filename, skeleton, max):
     for s in simplices: s.data = rips.eval(s)
     print time.asctime(), simplices[0], '...', simplices[-1]
 
-    f = Filtration(simplices, data_dim_cmp)             # could be rips.cmp if s.data for s in simplices is not set
+    simplices.sort(data_dim_cmp)             # could be rips.cmp if s.data for s in simplices is not set
     print time.asctime(), "Set up filtration"
 
-    p = StaticPersistence(f)
+    p = StaticPersistence(simplices)
     print time.asctime(), "Initialized StaticPersistence"
 
     p.pair_simplices()
     print time.asctime(), "Simplices paired"
 
     print "Outputting persistence diagram"
+    smap = p.make_simplex_map(simplices)
     for i in p:
         if i.sign():
-            b = simplices[f[p(i)]]
+            b = smap[i]
 
             if b.dimension() >= skeleton: continue
 
-            if i == i.pair:
+            if i.unpaired():
                 print b.dimension(), b.data, "inf"
                 continue
 
-            d = simplices[f[p(i.pair)]]
+            d = smap[i.pair()]
             print b.dimension(), b.data, d.data
 
 if __name__ == '__main__':

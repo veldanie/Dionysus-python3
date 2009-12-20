@@ -3,12 +3,16 @@
 
 #include <topology/static-persistence.h>
 
+#include "filtration.h"
+
 namespace dionysus {
 namespace python   {
 
 typedef         StaticPersistence<>             SPersistence;
 typedef         SPersistence::OrderElement      SPersistenceNode;
 typedef         SPersistence::OrderIndex        SPersistenceIndex;
+typedef         SPersistence::SimplexMap<PythonFiltration>        
+                                                PersistenceSimplexMap;
 
 } } // namespace dionysus::python
 

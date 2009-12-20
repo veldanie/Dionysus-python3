@@ -11,8 +11,8 @@ class Distances:
 
 dist = Distances()
 r = Rips(dist)
-lst = []
-lst2 = []
+lst = Filtration()
+lst2 = Filtration()
 
 #enable_log('rips')
 
@@ -33,8 +33,10 @@ cofaces = []
 r.vertex_cofaces(2, 1, 3, cofaces.append, [0,2,4])
 print "Cofaces of vertex 2 on vertices [0,2,4]:", cofaces
 
-f = Filtration(lst, r.cmp)
+f = lst
+f.sort(r.cmp)
 p = StaticPersistence(f)
 p.pair_simplices()
+smap = p.make_simplex_map(f)
 for s in p:
-    print lst[f[p(s)]], s.sign()
+    print smap[s], s.sign()
