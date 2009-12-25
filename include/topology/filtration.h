@@ -71,6 +71,8 @@ class Filtration
         void                    push_back(const Simplex& s)                     { container_.get<order>().push_back(s); }
         void                    transpose(Index i)                              { container_.get<order>().relocate(i, i+1); }
         void                    clear()                                         { container_.get<order>().clear(); }
+        template<class Iter>
+        void                    rearrange(Iter i)                               { container_.get<order>().rearrange(i); }
 
         Index                   begin() const                                   { return container_.get<order>().begin(); }
         Index                   end() const                                     { return container_.get<order>().end(); }

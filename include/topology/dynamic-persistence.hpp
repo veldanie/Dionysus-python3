@@ -26,7 +26,7 @@ template<class D, class CT, class OT, class E, class Cmp, class CCmp>
 template<class Filtration>
 DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::
 DynamicPersistenceTrails(const Filtration& f):
-    Parent(f), ccmp_(order().get<consistency>())
+    Parent(f), ccmp_(consistent_order())
 {}
         
 template<class D, class CT, class OT, class E, class Cmp, class CCmp>
@@ -113,6 +113,7 @@ transpose(iterator i, const DimensionFunctor& dimension, Visitor visitor)
         if (!(l->cycle.contains(index(i_prev))))
         {
             // Case 1.2
+            rLog(rlTranspositions, "k is in l: %d", (bool) l->trail.contains(index(k)));       // if true, a special update would be needed to maintain lazy decomposition
             swap(i_prev, i);
             rLog(rlTranspositions, "Case 1.2");
             Count(cTranspositionCase12);
@@ -120,7 +121,7 @@ transpose(iterator i, const DimensionFunctor& dimension, Visitor visitor)
         } else
         {
             // Case 1.1
-            if (std::not2(ccmp_)(index(k),index(l)))
+            if (std::not2(order_comparison())(index(k),index(l)))
             {
                 // Case 1.1.1
                 swap(i_prev, i);
@@ -160,7 +161,7 @@ transpose(iterator i, const DimensionFunctor& dimension, Visitor visitor)
             trail_add(i_prev, i->trail);                   // Add row i to i_prev
             cycle_add(i, i_prev->cycle);                   // Add column i_prev to i
             swap(i_prev, i);    
-            if (std::not2(ccmp_)(index(low_ii), index(low_i)))
+            if (std::not2(order_comparison())(index(low_ii), index(low_i)))
             {
                 // Case 2.1.2
                 cycle_add(i_prev, i->cycle);               // Add column i to i_prev (after transposition)
@@ -213,6 +214,26 @@ transpose(iterator i, const DimensionFunctor& dimension, Visitor visitor)
     }
     
     return false; // to avoid compiler complaints; we should never reach this point
+}
+
+
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
+template<class Iter>
+void
+DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::
+rearrange(Iter i)
+{ 
+    order().rearrange(i); 
+    consistent_order().rearrange(i);
+
+    // Resort the cycles
+    Cycle z;
+    for(iterator i = begin(); i != end(); ++i)
+    {
+        Parent::swap_cycle(i, z);
+        z.sort(ccmp_);
+        Parent::swap_cycle(i, z);
+    }
 }
 
 template<class D, class CT, class OT, class E, class Cmp, class CCmp>

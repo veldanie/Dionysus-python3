@@ -74,6 +74,7 @@ class DynamicPersistenceTrails:
  
         typedef         typename Parent::ContainerTraits                                Traits;
         typedef         typename Parent::Order                                          Order;
+        typedef         typename Traits::ConsistentContainer                            Consistency;
         typedef         typename Parent::OrderComparison                                OrderComparison;
         typedef         typename Parent::OrderIndex                                     OrderIndex;
         typedef         ConsistencyComparison_                                          ConsistencyComparison;
@@ -107,6 +108,10 @@ class DynamicPersistenceTrails:
         using                           Parent::iterator_to;
         using                           Parent::index;
         using                           Parent::size;
+        using                           Parent::order_comparison;
+
+        template<class Iter>
+        void                            rearrange(Iter i);
 
         // Struct: TranspositionVisitor
         //
@@ -130,6 +135,9 @@ class DynamicPersistenceTrails:
         using                           Parent::order;
         using                           Parent::set_pair;
         using                           Parent::swap_cycle;
+
+        Consistency&                    consistent_order()                              { return order().get<consistency>(); }
+        const Consistency&              consistent_order() const                        { return order().get<consistency>(); }
 
         bool                            trail_remove_if_contains
                                             (iterator i, OrderIndex j)                  { TrailRemover rm(j); order().modify(i, rm); return rm.result; }
@@ -219,6 +227,7 @@ class DynamicPersistenceChains:
  
         typedef         typename Parent::ContainerTraits                                Traits;
         typedef         typename Parent::Order                                          Order;
+
         typedef         typename Parent::OrderComparison                                OrderComparison;
         typedef         typename Parent::OrderIndex                                     OrderIndex;
         typedef         ConsistencyComparison_                                          ConsistencyComparison;
@@ -276,7 +285,7 @@ class DynamicPersistenceChains:
         using                           Parent::order;
         using                           Parent::set_pair;
         using                           Parent::swap_cycle;
-        
+
         void                            cycle_add(iterator i, const Cycle& z)           { order().modify(i, boost::bind(&Element::template cycle_add<ConsistencyComparison>, bl::_1, boost::ref(z), ccmp_)); }      // i->cycle_add(z, ccmp_)
         void                            chain_add(iterator i, const Chain& c)           { order().modify(i, boost::bind(&Element::template chain_add<ConsistencyComparison>, bl::_1, boost::ref(c), ccmp_)); }      // i->chain_add(c, ccmp_)
 

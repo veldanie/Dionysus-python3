@@ -8,50 +8,32 @@
 #include <string>
 #include <sstream>
 
-std::string frame_filename(const std::string& prefix, int frame, int subframe)
-{
-	std::ostringstream os;
-	os << prefix << frame << "_" << subframe << ".pdb";
-	return os.str();
-}
+#include <boost/program_options.hpp>
+
+void        program_options(int argc, char* argv[], std::string& input_fn_list,
+                                                    std::string& output_prefix, 
+                                                    bool& all_atoms,
+                                                    bool& save_vines);
 
 int main(int argc, char** argv)
 {
 #ifdef LOGGING
 	rlog::RLogInit(argc, argv);
-
-	stdoutLog.subscribeTo( RLOG_CHANNEL("topology/filtration") );
-	stdoutLog.subscribeTo( RLOG_CHANNEL("topology/cycle") );
-	stdoutLog.subscribeTo( RLOG_CHANNEL("topology/vineyard") );
-	stdoutLog.subscribeTo( RLOG_CHANNEL("topology/lowerstar") );
 #endif
 
-	if (argc < 5)
-	{
-		std::cout << "Usage: pdbdistance FILENAME LASTFRAME LASTSUBFRAME OUTFILENAME [CAs_ONLY]" << std::endl;
-		std::cout << "  FILENAME     - prefix of the filenames of the PDB frames" << std::endl;
-		std::cout << "  LASTFRAME    - the last frame number" << std::endl;
-		std::cout << "  LASTSUBFRAME - the last subframe number" << std::endl;
-		std::cout << "  OUTFILENAME  - filename prefix for the resulting vineyards" << std::endl;
-		std::cout << "  CAs_ONLY     - only use alpha carbons [1 = true, 0 = false, default: 1]" << std::endl;
-		std::cout << std::endl;
-		std::cout << "Computes a vineyard of the pairwise distance function for a sequence of PDB frames." << std::endl;
-		std::cout << "Frames are in files FILENAME#1_#2.pdb, where #1 goes from 0 to LASTFRAME, " << std::endl;
-		std::cout << "and #2 goes from 0 to LASTSUBFRAME." << std::endl;
-		exit(0);
-	}
-	std::string infilename = argv[1];
-	int lastframe; std::istringstream(argv[2]) >> lastframe;
-	int lastsubframe; std::istringstream(argv[3]) >> lastsubframe;
-	std::string outfilename = argv[4];
-	bool cas_only = true;
-	if (argc > 5)
-		std::istringstream(argv[5]) >> cas_only;
+    std::string                 input_fn_list, output_fn;
+    bool                        all_atoms = false, save_vines = false;
+    program_options(argc, argv, input_fn_list, output_fn, all_atoms, save_vines);
 
 	// Compute initial filtration
-	int f = 0; int sf = 0;
-	std::ifstream in(frame_filename(infilename, f, sf++).c_str());
-    PDBDistanceGrid ginit(in, cas_only);
+    std::vector<std::string> frame_fns;
+    std::ifstream in_fns(input_fn_list.c_str());
+    std::string fn;
+    while(std::getline(in_fns, fn))
+        frame_fns.push_back(fn);
+        
+	std::ifstream in(frame_fns[0].c_str());
+    PDBDistanceGrid ginit(in, !all_atoms);
 	in.close();
 
     typedef                     LSVineyard<Grid2D::CoordinateIndex, Grid2D>             Grid2DVineyard;
@@ -68,23 +50,75 @@ int main(int argc, char** argv)
 	std::cout << "Pairing computed" << std::endl;
 
 	// Process frames computing the vineyard
-	while (f <= lastframe)
+	for (size_t i = 1; i < frame_fns.size(); ++i)
 	{
-		std::string fn = frame_filename(infilename, f, sf++);
-		std::cout << "Processing " << fn << std::endl;
-		in.open(fn.c_str());
-		v.compute_vineyard(PDBDistanceGrid(in, cas_only));
+		std::cout << "Processing " << frame_fns[i] << std::endl;
+		in.open(frame_fns[i].c_str());
+		v.compute_vineyard(PDBDistanceGrid(in, !all_atoms));
 		in.close();
-		if (sf == lastsubframe) { sf = 0; ++f; }
 	}
 	std::cout << "Vineyard computed" << std::endl;
 
-	v.vineyard().save_edges(outfilename);
+    if (save_vines)
+        v.vineyard().save_vines(output_fn);
+    else
+    	v.vineyard().save_edges(output_fn);
 
 #if 0
-	std::ofstream ofs(outfilename.c_str(), std::ios::binary);
+	std::ofstream ofs(output_fn.c_str(), std::ios::binary);
 	boost::archive::binary_oarchive oa(ofs);
 	oa << make_nvp("Filtration", pgf);
 	ofs.close();
 #endif
 }
+
+void        program_options(int argc, char* argv[], std::string& input_fn_list, 
+                                                    std::string& output_prefix, 
+                                                    bool& all_atoms,
+                                                    bool& save_vines)
+{
+    namespace po = boost::program_options;
+
+    po::options_description     hidden("Hidden options");
+    hidden.add_options()
+        ("input-fn-list",       po::value<std::string>(&input_fn_list),         "prefix of the input frames")
+        ("output-prefix",       po::value<std::string>(&output_prefix),         "output prefix");
+    
+    po::options_description visible("Allowed options", 100);
+    visible.add_options()
+        ("all-atoms,a",         po::bool_switch(&all_atoms),                    "process all atoms (not only alpha carbons)")
+        ("save-vines,v",        po::bool_switch(&save_vines),                   "save vines instead of edges")
+        ("help,h",                                                              "produce help message");
+#if LOGGING
+    std::vector<std::string>    log_channels;
+    visible.add_options()
+        ("log,l",               po::value< std::vector<std::string> >(&log_channels),           "log channels to turn on (info, debug, etc)");
+#endif
+
+    po::positional_options_description pos;
+    pos.add("input-fn-list", 1);
+    pos.add("output-prefix", 1);
+    
+    po::options_description all; all.add(visible).add(hidden);
+
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).
+                  options(all).positional(pos).run(), vm);
+    po::notify(vm);
+
+#if LOGGING
+    for (std::vector<std::string>::const_iterator cur = log_channels.begin(); cur != log_channels.end(); ++cur)
+        stderrLog.subscribeTo( RLOG_CHANNEL(cur->c_str()) );
+#endif
+
+    if (vm.count("help") || !vm.count("input-fn-list") || !vm.count("output-prefix"))
+    { 
+        std::cout << "Usage: " << argv[0] << " [options] input-fn-list output-prefix" << std::endl;
+        std::cout << visible << std::endl; 
+		std::cout << std::endl;
+		std::cout << "Computes a vineyard of the pairwise distance function for a sequence of PDB frames." << std::endl;
+		std::cout << "Frames are listed in input-fn-list file." << std::endl;
+        std::abort();
+    }
+}
+                                                    

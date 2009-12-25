@@ -19,7 +19,8 @@
 #include <CGAL/Kinetic/Sort.h>
 #include <CGAL/Kinetic/Sort_visitor_base.h>
 
-#include <list>
+#include <boost/tuple/tuple.hpp>
+namespace b  = boost;
 
 
 template<class Vertex_, class VertexEvaluator_, class Simplex_ = Simplex<Vertex_>, class Filtration_ = Filtration<Simplex_> >
@@ -36,10 +37,37 @@ class LSVineyard
         typedef                     Filtration_                                         LSFiltration;
         typedef                     typename LSFiltration::Index                        LSFIndex;
 
-        class                       KineticVertexType;
+        class                       SortVisitor;
+        typedef                     CGAL::Kinetic::Inexact_simulation_traits            Traits;
+        typedef                     CGAL::Kinetic::Sort<Traits, SortVisitor>            Sort;
+        typedef                     Traits::Simulator                                   Simulator;
+        typedef                     Traits::Active_points_1_table                       ActivePointsTable;
+        typedef                     ActivePointsTable::Key                              Key;
+        class                       KineticVertexType
+        {
+            public:
+                                        KineticVertexType(const Vertex& v):
+                                            vertex_(v)                                              {}
+
+                Key                     kinetic_key() const                                         { return key_; }
+                void                    set_kinetic_key(Key k)                                      { key_ = k; }
+
+                Vertex                  vertex() const                                              { return vertex_; }
+                void                    set_vertex(Vertex v)                                        { vertex_ = v; }
+
+                LSFIndex                simplex_index() const                                       { return simplex_index_; }
+                void                    set_simplex_index(LSFIndex i)                               { simplex_index_ = i; }
+                
+            private:
+                Key                     key_;
+                Vertex                  vertex_;
+                LSFIndex                simplex_index_;
+        };
         class                       KineticVertexComparison;
-        typedef                     std::list<KineticVertexType>                        VertexContainer;
+        typedef                     typename OrderContainer<KineticVertexType>::Container        
+                                                                                        VertexContainer;
         typedef                     typename VertexContainer::iterator                  VertexIndex;
+        typedef                     std::map<Key, VertexIndex>                          KeyVertexMap;
 
         struct                      AttachmentData: public VineData                     
         {   
@@ -58,21 +86,15 @@ class LSVineyard
         class                       KineticEvaluator;
         class                       DimensionFromIterator;
 
+        typedef                     std::map<Vertex, LSFIndex>                          VertexLSFIndexMap;
         typedef                     ThroughEvaluatorComparison<VertexEvaluator>         VertexComparison;
+        class                       VertexAttachmentComparison;
         typedef                     MaxVertexComparison<Simplex, VertexComparison>      SimplexComparison;
 
         class                       TranspositionVisitor;
         friend class                TranspositionVisitor;
         
         typedef                     Vineyard<Index, iterator, Evaluator>                Vnrd;
-
-        class                       SortVisitor;
-        typedef                     CGAL::Kinetic::Inexact_simulation_traits            Traits;
-        typedef                     CGAL::Kinetic::Sort<Traits, SortVisitor>            Sort;
-        typedef                     Traits::Simulator                                   Simulator;
-        typedef                     Traits::Active_points_1_table                       ActivePointsTable;
-        typedef                     ActivePointsTable::Key                              Key;
-        typedef                     std::map<Key, VertexIndex>                          KeyVertexMap;
 
     public:
         template<class VertexIterator>
@@ -95,6 +117,7 @@ class LSVineyard
         VertexValue                 simplex_value(const Simplex& s) const               { return vertex_value(*std::max_element(s.vertices().begin(), s.vertices().end(), vcmp_)); } 
         const Simplex&              pfmap(iterator i) const                             { return pfmap_[i]; }
         const Simplex&              pfmap(Index i) const                                { return pfmap_[i]; }
+        VertexIndex                 filtration_attachment(LSFIndex i) const             { return (persistence().begin() + (i - filtration().begin()))->attachment; }
 
         Index                       index(iterator i) const                             { return persistence_.index(i); }
 
@@ -106,6 +129,13 @@ class LSVineyard
         void                        change_evaluator(Evaluator* eval);
         void                        set_attachment(iterator i, VertexIndex vi)          { persistence_.modifier()(i, boost::bind(&AttachmentData::set_attachment, bl::_1, vi)); }
         void                        transpose_filtration(iterator i)                    { filtration_.transpose(filtration_.begin() + (i - persistence_.begin())); }
+
+        bool                        verify_pairing() const;
+
+        typedef                     b::tuple< b::reference_wrapper<const Simplex>, 
+                                              b::reference_wrapper<const typename Persistence::Element> >
+                                                                                        SimplexPersistenceElementTuple;
+        struct                      AttachmentCmp;
 
     private:
         VertexContainer             vertices_;
@@ -143,27 +173,27 @@ class LSVineyard
 
 //BOOST_CLASS_EXPORT(LSVineyard)
         
-template<class V, class VE, class S, class C>
-class LSVineyard<V,VE,S,C>::KineticVertexType
-{
-    public:
-                                KineticVertexType(const Vertex& v):
-                                    vertex_(v)                                              {}
+// template<class V, class VE, class S, class C>
+// class LSVineyard<V,VE,S,C>::KineticVertexType
+// {
+//     public:
+//                                 KineticVertexType(const Vertex& v):
+//                                     vertex_(v)                                              {}
 
-        Key                     kinetic_key() const                                         { return key_; }
-        void                    set_kinetic_key(Key k)                                      { key_ = k; }
+//         Key                     kinetic_key() const                                         { return key_; }
+//         void                    set_kinetic_key(Key k)                                      { key_ = k; }
 
-        Vertex                  vertex() const                                              { return vertex_; }
-        void                    set_vertex(Vertex v)                                        { vertex_ = v; }
+//         Vertex                  vertex() const                                              { return vertex_; }
+//         void                    set_vertex(Vertex v)                                        { vertex_ = v; }
 
-        iterator                simplex_index() const                                       { return simplex_index_; }
-        void                    set_simplex_index(iterator i)                               { simplex_index_ = i; }
+//         LSFIndex                simplex_index() const                                       { return simplex_index_; }
+//         void                    set_simplex_index(iterator i)                               { simplex_index_ = i; }
         
-    private:
-        Key                     key_;
-        Vertex                  vertex_;
-        iterator                simplex_index_;
-};
+//     private:
+//         Key                     key_;
+//         Vertex                  vertex_;
+//         LSFIndex                simplex_index_;
+// };
 
 template<class V, class VE, class S, class C>
 std::ostream& 

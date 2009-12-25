@@ -15,7 +15,7 @@ if                              (CGAL_FOUND)
 
     foreach 					(t ${targets})
         add_executable			(${t} ${t}.cpp)
-        target_link_libraries	(${t} ${libraries} ${CGAL_LIBRARY} ${dsrpdb_LIBRARY})
+        target_link_libraries	(${t} ${libraries} ${CGAL_LIBRARY} ${dsrpdb_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY})
     endforeach 					(t ${targets})
     
     # Extra special for program_options
