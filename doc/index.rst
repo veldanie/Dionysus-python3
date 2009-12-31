@@ -25,6 +25,7 @@ implementations of the following algorithms:
   * :ref:`Rips complex construction <rips-example>`
   * Cech complex construction       |cpp-only|
   * :ref:`Circle-valued parametrization <cohomology-parametrization>`
+  * :ref:`Piecewise-linear vineyards <pl-vineyard>`
 
 .. todo:: 
    Document more examples.

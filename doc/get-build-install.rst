@@ -52,7 +52,7 @@ Dionysus requires the following software:
 
 Optional dependencies:
 
-  :CGAL_:               for alpha shapes    (version :math:`\geq` 3.4)
+  :CGAL_:               for alpha shapes and vineyards   (version :math:`\geq` 3.4)
   :CVXOPT_:             for :ref:`circle-valued parametrization <cohomology-parametrization>` using LSQR
   :PyX_:                :sfile:`tools/draw-diagram/draw.py` uses `PyX`_ to
                         produce a PDF of the diagram

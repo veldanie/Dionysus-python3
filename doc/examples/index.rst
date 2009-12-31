@@ -44,4 +44,12 @@ achieve this is available.
     cohomology
 
 A simple example of computing persistence of a lower-star filtration is in
-:sfile:`examples/lsfiltration.py`.    
+:sfile:`examples/lsfiltration.py`.
+
+A C++-only, but useful example is computation of a vineyard of piecewise
+straight-line homotopy of piecewise-linear functions.
+
+.. toctree::
+    :maxdepth: 1
+
+    pl-vineyard
