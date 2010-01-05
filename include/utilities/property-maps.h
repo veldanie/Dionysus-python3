@@ -1,7 +1,13 @@
 #ifndef __PROPERTY_MAPS_H__
 #define __PROPERTY_MAPS_H__
 
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 104000
 #include <boost/property_map/property_map.hpp>
+#else
+#include <boost/property_map.hpp>
+#endif
+
 #include <boost/iterator/iterator_traits.hpp>
 #include <algorithm>
 #include "utilities/log.h"

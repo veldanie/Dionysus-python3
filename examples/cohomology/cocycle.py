@@ -6,7 +6,7 @@ from    lsqr            import lsqr
 from    sys             import argv, exit
 import  os.path
 
-def smooth(boundary_list, cocycle_list, vertices):
+def smooth(boundary_list, cocycle_list):
     dimension = max((max(d[1], d[2]) for d in boundary_list))
     dimension += 1
 
@@ -45,11 +45,15 @@ def smooth(boundary_list, cocycle_list, vertices):
     if not (sum((D*v)**2) < tol and sum((D.T*v)**2) < tol):
         print "Expected a harmonic cocycle:", sum((D*v)**2), sum((D.T*v)**2) 
 
+    return solution[0]        
+
+
+def vertex_values(solution, vertices):
     values = [None]*len(vertices)
     for i,v in vertices:
-        values[v] = solution[0][i]
+        values[v] = solution[i]
     return values
-
+    
 
 def read_list_file(filename):
     list = []
@@ -73,7 +77,8 @@ if __name__ == '__main__':
     cocycle_list = read_list_file(cocycle_filename)
     vertexmap_list = read_list_file(vertexmap_filename)
 
-    values = smooth(boundary_list, cocycle_list, vertexmap_list)
+    solution = smooth(boundary_list, cocycle_list)
+    values = vertex_values(solution, vertexmap_list)
 
     outfn = os.path.splitext(cocycle_filename)[0] + '.val'
     with open(outfn, 'w') as f:
