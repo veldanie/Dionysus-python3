@@ -15,6 +15,8 @@
 #include <boost/lambda/bind.hpp>
 namespace bl = boost::lambda;
 
+#include <boost/make_shared.hpp>
+
 #ifdef LOGGING
 static rlog::RLogChannel* rlCohomology =                DEF_CHANNEL("topology/cohomology",        rlog::Log_Debug);
 #endif
@@ -42,7 +44,7 @@ struct Alternator
 
 template<class BirthInfo, class SimplexData, class Field>
 template<class BI>
-typename CohomologyPersistence<BirthInfo, SimplexData, Field>::IndexDeathPair
+typename CohomologyPersistence<BirthInfo, SimplexData, Field>::IndexDeathCocycle
 CohomologyPersistence<BirthInfo, SimplexData, Field>::
 add(BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd, bool image)
 {
@@ -56,7 +58,7 @@ add(BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd, bool i
 
 template<class BirthInfo, class SimplexData, class Field>
 template<class BI, class CI>
-typename CohomologyPersistence<BirthInfo, SimplexData, Field>::IndexDeathPair
+typename CohomologyPersistence<BirthInfo, SimplexData, Field>::IndexDeathCocycle
 CohomologyPersistence<BirthInfo, SimplexData, Field>::
 add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const SimplexData& sd, bool image)
 {
@@ -116,7 +118,8 @@ add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const Si
         if (!store)
         {
             simplices_.pop_back();
-            return std::make_pair(simplices_.end(), Death());
+            boost::shared_ptr<ZColumn> p = boost::make_shared<ZColumn>();
+            return boost::make_tuple(simplices_.end(), Death(), p);
         }
         
         signed order = 0;
@@ -150,7 +153,8 @@ add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const Si
         
         Count(cCohomologyElementCount);
 
-        return std::make_pair(si, Death());
+        boost::shared_ptr<ZColumn> p = boost::make_shared<ZColumn>();
+        return boost::make_tuple(si, Death(), p);
     }
 
     // Death
@@ -185,9 +189,11 @@ add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const Si
         cur->unlink();
     
     CountBy(cCohomologyElementCount, -z.first->zcolumn.size());
-    cocycles_.erase(candidates.front().first);
+    boost::shared_ptr<ZColumn> p = boost::make_shared<ZColumn>();
+    p->swap(z.first->zcolumn);
+    cocycles_.erase(z.first);
 
-    return std::make_pair(si, d);
+    return boost::make_tuple(si, d, p);
 }
         
 template<class BirthInfo, class SimplexData, class Field>

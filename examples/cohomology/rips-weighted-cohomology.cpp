@@ -25,6 +25,7 @@ typedef     boost::tuple<Dimension, DistanceType>                   BirthInfo;
 typedef     CohomologyPersistence<BirthInfo, Wrapper<unsigned> >    Persistence;
 typedef     Persistence::SimplexIndex                               Index;
 typedef     Persistence::Death                                      Death;
+typedef     Persistence::CocyclePtr                                 CocyclePtr;
 
 typedef     WeightedRips<PairDistances, Simplex<Vertex, Index> >    Generator;
 typedef     Generator::Simplex                                      Smplx;
@@ -100,9 +101,9 @@ int main(int argc, char* argv[])
         for (Smplx::BoundaryIterator bcur  = cur->boundary_begin(); bcur != cur->boundary_end(); ++bcur)
             boundary.push_back(map_of_v[*bcur]->data());
         
-        Index idx; Death d;
+        Index idx; Death d; CocyclePtr ccl;
         bool store = cur->dimension() < skeleton;
-        boost::tie(idx, d)      = p.add(boundary.begin(), boundary.end(), boost::make_tuple(cur->dimension(), size(*cur)), store, index_in_v[j]);
+        boost::tie(idx, d, ccl)     = p.add(boundary.begin(), boundary.end(), boost::make_tuple(cur->dimension(), size(*cur)), store, index_in_v[j]);
         
         if (store)
             map_of_v[*cur]->data() = idx;
@@ -126,7 +127,7 @@ int main(int argc, char* argv[])
     for (Persistence::Cocycles::const_iterator cur = p.begin(); cur != p.end(); ++cur)
     {
         if (cur->birth.get<0>() != 1) continue;
-        output_cocycle(cocycle_prefix, i, v, *cur, prime);
+        output_cocycle(cocycle_prefix, i, v, cur->birth, cur->zcolumn, prime);
         // std::cout << "Cocycle of dimension: " << cur->birth.get<0>() << " born at " << cur->birth.get<1>() << std::endl;
         ++i;
     }

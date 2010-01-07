@@ -51,13 +51,13 @@ void output_vertex_indices(std::ostream& out, const SimplexVector& v)
     }
 }
 
-void output_cocycle(std::string cocycle_prefix, unsigned i, const SimplexVector& v, const Persistence::Cocycle& c, ZpField::Element prime)
+void output_cocycle(std::string cocycle_prefix, unsigned i, const SimplexVector& v, const BirthInfo& birth, const Persistence::ZColumn& zcol, ZpField::Element prime)
 {
     std::ostringstream istr; istr << '-' << i;
     std::string filename = cocycle_prefix + istr.str() + ".ccl";
     std::ofstream out(filename.c_str());
-    out << "# Cocycle born at " << c.birth.get<1>() << std::endl;
-    for (Persistence::ZColumn::const_iterator zcur = c.zcolumn.begin(); zcur != c.zcolumn.end(); ++zcur)
+    out << "# Cocycle born at " << birth.get<1>() << std::endl;
+    for (Persistence::ZColumn::const_iterator zcur = zcol.begin(); zcur != zcol.end(); ++zcur)
     {
         //const Smplx& s = **(zcur->si);
         out << (zcur->coefficient <= prime/2 ? zcur->coefficient : zcur->coefficient - prime) << " ";

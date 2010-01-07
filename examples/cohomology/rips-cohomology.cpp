@@ -24,6 +24,7 @@ struct Distances
 typedef     CohomologyPersistence<Distances::DistanceType>          Persistence;
 typedef     Persistence::SimplexIndex                               Index;
 typedef     Persistence::Death                                      Death;
+typedef     Persistence::CocyclePtr                                 CocyclePtr;
 
 typedef     Rips<Distances>                                         Generator;
 typedef     Generator::Simplex                                      Smplx;
@@ -52,8 +53,8 @@ int main()
                                      bcur != cur->boundary_end();       ++bcur)
             boundary.push_back(c[*bcur]);
         
-        Index idx; Death d;
-        boost::tie(idx, d)      = p.add(boundary.begin(), boundary.end(), size(*cur));
+        Index idx; Death d; CocyclePtr ccl;
+        boost::tie(idx, d, ccl)     = p.add(boundary.begin(), boundary.end(), size(*cur));
         c[*cur] = idx;
         if (d && (size(*cur) - *d) > 0)
             std::cout << (cur->dimension() - 1) << " " << *d << " " << size(*cur) << std::endl;

@@ -19,6 +19,7 @@ typedef     CohomologyPersistence<BirthInfo>                        Persistence;
 
 typedef     Persistence::SimplexIndex                               Index;
 typedef     Persistence::Death                                      Death;
+typedef     Persistence::CocyclePtr                                 CocyclePtr;
 
 namespace po = boost::program_options;
 
@@ -97,9 +98,9 @@ int main(int argc, char** argv)
         for (AlphaSimplex3D::BoundaryIterator bcur  = s.boundary_begin(); bcur != s.boundary_end(); ++bcur)
             boundary.push_back(complex_map[*bcur]);
         
-        Index idx; Death d;
+        Index idx; Death d; CocyclePtr ccl;
         bool store = s.dimension() < 3;
-        boost::tie(idx, d)      = p.add(boundary.begin(), boundary.end(), boost::make_tuple(s.dimension(), s.value()), store);
+        boost::tie(idx, d, ccl)     = p.add(boundary.begin(), boundary.end(), boost::make_tuple(s.dimension(), s.value()), store);
         
         // c[*cur] = idx;
         if (store)

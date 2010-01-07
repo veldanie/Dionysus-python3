@@ -23,6 +23,9 @@
 #include <boost/intrusive/list.hpp>
 namespace bi = boost::intrusive;
 
+#include <boost/tuple/tuple.hpp>
+#include <boost/shared_ptr.hpp>
+
 
 template<class BirthInfo_, class SimplexData_ = Empty<>, class Field_ = ZpField>
 class CohomologyPersistence
@@ -55,16 +58,17 @@ class CohomologyPersistence
         typedef             std::pair<CocycleIndex, FieldElement>                       CocycleCoefficientPair;
 
         typedef             boost::optional<BirthInfo>                                  Death;
-        typedef             std::pair<SimplexIndex, Death>                              IndexDeathPair;
+        typedef             boost::shared_ptr<ZColumn>                                  CocyclePtr;
+        typedef             boost::tuple<SimplexIndex, Death, CocyclePtr>               IndexDeathCocycle;
 
         // return either a SimplexIndex or a Death
         // BI = BoundaryIterator; it should dereference to a SimplexIndex
         template<class BI>
-        IndexDeathPair      add(BI begin, BI end, BirthInfo b, bool store = true, const SimplexData& sd = SimplexData(), bool image = true);
+        IndexDeathCocycle   add(BI begin, BI end, BirthInfo b, bool store = true, const SimplexData& sd = SimplexData(), bool image = true);
         
         // if sign needs to be specified explicitly, provide (parallel) coefficient_iter
         template<class BI, class CI>
-        IndexDeathPair      add(CI coefficient_iter, BI begin, BI end, BirthInfo b, bool store = true, const SimplexData& sd = SimplexData(), bool image = true);
+        IndexDeathCocycle   add(CI coefficient_iter, BI begin, BI end, BirthInfo b, bool store = true, const SimplexData& sd = SimplexData(), bool image = true);
 
         void                show_cocycles() const;
         CocycleIndex        begin()                                                     { return image_begin_; }

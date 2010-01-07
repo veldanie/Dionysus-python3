@@ -30,20 +30,22 @@ bp::tuple                                   chp_add(dp::CohomPersistence& chp,
 {
     dp::CohomPersistence::SimplexIndex      i;
     dp::CohomPersistence::Death             d;
+    dp::CohomPersistence::CocyclePtr        ccl;
 
     if (coefficients)
     {
-        boost::tie(i,d)                         = chp.add(bp::stl_input_iterator<int>(coefficients),
-                                                          bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(bdry),
-                                                          bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(),
-                                                          birth, store, dp::CohomPersistence::SimplexData(), image); 
+        boost::tie(i,d,ccl)                         = chp.add(bp::stl_input_iterator<int>(coefficients),
+                                                              bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(bdry),
+                                                              bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(),
+                                                              birth, store, dp::CohomPersistence::SimplexData(), image); 
     } else
     {
-        boost::tie(i,d)                         = chp.add(bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(bdry),
-                                                          bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(),
-                                                          birth, store, dp::CohomPersistence::SimplexData(), image); 
+        boost::tie(i,d,ccl)                         = chp.add(bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(bdry),
+                                                              bp::stl_input_iterator<dp::CohomPersistence::SimplexIndex>(),
+                                                              birth, store, dp::CohomPersistence::SimplexData(), image); 
     }
 
+    // TODO: return ccl as well
     return bp::make_tuple(i,d);
 }
 

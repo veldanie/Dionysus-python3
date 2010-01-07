@@ -20,6 +20,7 @@
 typedef         CohomologyPersistence<unsigned>     Persistence;
 typedef         Persistence::SimplexIndex           Index;
 typedef         Persistence::Death                  Death;
+typedef         Persistence::CocyclePtr             CocyclePtr;
 
 typedef         unsigned                            Vertex;
 typedef         Simplex<Vertex, double>             Smplx;
@@ -78,8 +79,8 @@ int main(int argc, char** argv)
                                      bcur != cur->boundary_end();       ++bcur)
             boundary.push_back(c[*bcur]);
         
-        Index idx; Death d;
-        boost::tie(idx, d)      = p.add(boundary.begin(), boundary.end(), i++);
+        Index idx; Death d; CocyclePtr ccl;
+        boost::tie(idx, d, ccl)     = p.add(boundary.begin(), boundary.end(), i++);
         c[*cur] = idx;
         if (d)
             std::cout << (cur->dimension() - 1) << " " << *d << " " << (i-1) << std::endl;
