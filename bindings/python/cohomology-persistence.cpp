@@ -85,6 +85,7 @@ void export_cohomology_persistence()
         .def("add",             &chp_add, (bp::arg("bdry"), bp::arg("birth"), bp::arg("store")=true, bp::arg("image")=true, bp::arg("coefficients")=false))
         
         .def("__iter__",        bp::range(&dp::CohomPersistence::begin, &dp::CohomPersistence::end))
+        .def("show_cocycles",   &dp::CohomPersistence::show_cocycles)
     ;
 
     bp::class_<dp::CohomPersistence::Cocycle>("Cocycle", bp::no_init)
