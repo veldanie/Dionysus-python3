@@ -15,7 +15,7 @@
         complex :math:`VR` (`max`). If `seq` is provided, then the complex is
         restricted to the vertex indices in the sequence.
 
-    .. method:: vertex_coface(v, k, max, functor[, seq])
+    .. method:: vertex_cofaces(v, k, max, functor[, seq])
      
         Calls `functor` with every coface of the vertex `v` in the `k`-skeleton
         of the Rips complex :math:`VR` (`max`). If `seq` is provided, then the
