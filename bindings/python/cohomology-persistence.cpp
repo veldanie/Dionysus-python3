@@ -12,12 +12,17 @@ namespace dp = dionysus::python;
 
 
 // CohomPersistence
-boost::shared_ptr<dp::CohomPersistence>     init_from_prime(unsigned p = 11)
+boost::shared_ptr<dp::CohomPersistence>     init_from_prime(unsigned p)
 {
     dp::CohomPersistence::Field field(p);       // Zp
 
     boost::shared_ptr<dp::CohomPersistence> chp(new dp::CohomPersistence(field));
     return chp;
+}
+
+boost::shared_ptr<dp::CohomPersistence>     init()
+{
+    return init_from_prime(11);
 }
 
 
@@ -80,7 +85,8 @@ void export_cohomology_persistence()
         .add_property("si",             &dp::CohomPersistence::SNode::si)
     ;
 
-    bp::class_<dp::CohomPersistence>("CohomologyPersistence")
+    bp::class_<dp::CohomPersistence>("CohomologyPersistence", bp::no_init)
+        .def("__init__",        bp::make_constructor(&init))
         .def("__init__",        bp::make_constructor(&init_from_prime))
         .def("add",             &chp_add, (bp::arg("bdry"), bp::arg("birth"), bp::arg("store")=true, bp::arg("image")=true, bp::arg("coefficients")=false))
         

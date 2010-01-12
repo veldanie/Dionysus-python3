@@ -45,7 +45,7 @@ def smooth(boundary_list, cocycle_list):
     if not (sum((D*v)**2) < tol and sum((D.T*v)**2) < tol):
         print "Expected a harmonic cocycle:", sum((D*v)**2), sum((D.T*v)**2) 
 
-    return solution[0]        
+    return solution[0], v
 
 
 def vertex_values(solution, vertices):
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     cocycle_list = read_list_file(cocycle_filename)
     vertexmap_list = read_list_file(vertexmap_filename)
 
-    solution = smooth(boundary_list, cocycle_list)
+    solution, v = smooth(boundary_list, cocycle_list)
     values = vertex_values(solution, vertexmap_list)
 
     outfn = os.path.splitext(cocycle_filename)[0] + '.val'
