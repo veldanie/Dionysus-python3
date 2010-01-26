@@ -18,7 +18,7 @@ def lsf(values_filename, simplices_filename):
     with open(values_filename) as f:
         for line in f:
             if line.startswith('#'): continue
-            vertices.append(float(line.split()[1]))
+            vertices.append(float(line.split()[0]))
 
     # Read simplices
     fltr = Filtration()
