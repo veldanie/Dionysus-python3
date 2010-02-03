@@ -245,7 +245,6 @@ transpose_vertices(VertexIndex vi)
             AssertMsg(j_prev->attachment == vi, "Simplex preceding the one being moved must be attached to v");
             result |= persistence_.transpose(j_prev, dim, visitor);
             AssertMsg((j_prev  <= persistence().iterator_to(j_prev->pair)) == j_prev->sign(), "Pairing must respect order");
-            AssertMsg((j       <= persistence().iterator_to(j->pair))      == j->sign(),      "Pairing must respect order");
             --j_prev;
         }
     }
