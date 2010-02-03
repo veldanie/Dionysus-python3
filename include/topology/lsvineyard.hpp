@@ -126,7 +126,11 @@ compute_vineyard(const VertexEvaluator& veval, bool explicit_events)
     rLog(rlLSVineyard, "Setting up trajectories");
     CF cf; 
     kinetic_map_.clear();
-    for (VertexIndex cur = vertices_.begin(); cur != vertices_.end(); ++cur)
+    
+    // The reverse order takes advantage of how the kinetic sort arranges its elements 
+    // (inserts before the upper bound) to avoid problems with duplicates; it's unfortunate 
+    // that such dependence is necessary, it would be nice to eventually get rid of it.
+    for (VertexIndex cur = boost::prior(vertices_.end()); cur != boost::prior(vertices_.begin()); --cur)
     {
         VertexValue val0 = veval_(cur->vertex());
         VertexValue val1 = veval(cur->vertex());
@@ -165,7 +169,7 @@ swap(Key a, Key b)
     rLog(rlLSVineyardDebug, "Entered swap");
     VertexIndex ao = kinetic_map_[a], bo = kinetic_map_[b];
     rLog(rlLSVineyardDebug, "Vertices: %d %d compare %d", ao->vertex(), bo->vertex(), vcmp_(ao->vertex(), bo->vertex()));
-    AssertMsg(vcmp_(ao->vertex(), bo->vertex()), "In swap(a,b), a must precede b");
+    AssertMsg(!vcmp_(bo->vertex(), ao->vertex()), "In swap(a,b), a must precede b");
     transpose_vertices(ao);
     // AssertMsg(vcmp_(bo->vertex(), ao->vertex()), "In swap(a,b), b must precede a after the transposition");
 }
