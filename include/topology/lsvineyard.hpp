@@ -164,6 +164,7 @@ swap(Key a, Key b)
 {
     rLog(rlLSVineyardDebug, "Entered swap");
     VertexIndex ao = kinetic_map_[a], bo = kinetic_map_[b];
+    rLog(rlLSVineyardDebug, "Vertices: %d %d compare %d", ao->vertex(), bo->vertex(), vcmp_(ao->vertex(), bo->vertex()));
     AssertMsg(vcmp_(ao->vertex(), bo->vertex()), "In swap(a,b), a must precede b");
     transpose_vertices(ao);
     // AssertMsg(vcmp_(bo->vertex(), ao->vertex()), "In swap(a,b), b must precede a after the transposition");
@@ -265,7 +266,7 @@ verify_pairing() const
 {
     rLog(rlLSVineyardDebug, "Verifying pairing");
     StaticPersistence<> p(filtration());
-    p.pair_simplices();
+    p.pair_simplices(false);
     iterator                        i     = persistence().begin();
     StaticPersistence<>::iterator   ip    = p.begin();
     StaticPersistence<>::SimplexMap<LSFiltration>       m = p.make_simplex_map(filtration());

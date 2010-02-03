@@ -19,6 +19,8 @@ boost::shared_ptr<dp::SPersistence>     init_from_filtration(bp::object f)
     return p;
 }
 
+void                                    pair_simplices(dp::SPersistence& sp)                { sp.pair_simplices(false); }
+
 unsigned                                distance(dp::SPersistence& sp, 
                                                  const dp::SPersistenceIndex& i)            { return sp.iterator_to(i) - sp.begin(); }
 
@@ -41,7 +43,7 @@ void export_static_persistence()
     bp::class_<dp::SPersistence>("StaticPersistence", bp::no_init)
         .def("__init__",        bp::make_constructor(&init_from_filtration))
         
-        .def("pair_simplices",  (void (dp::SPersistence::*)())  &dp::SPersistence::pair_simplices)
+        .def("pair_simplices",  &pair_simplices)
         .def("__call__",        &distance)
         .def("make_simplex_map",&dp::SPersistence::make_simplex_map<dp::PythonFiltration>)
 

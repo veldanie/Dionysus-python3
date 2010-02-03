@@ -40,6 +40,17 @@ StaticPersistence(const Filtration& filtration):
         set_pair(ocur,   ocur);
     }
 }
+                    
+template<class D, class CT, class OT, class E, class Cmp>
+void 
+StaticPersistence<D, CT, OT, E, Cmp>::
+pair_simplices(bool progress)
+{ 
+    if (progress) 
+        pair_simplices<PairVisitor>(begin(), end(), false, PairVisitor(size())); 
+    else
+        pair_simplices<PairVisitorNoProgress>(begin(), end(), false, PairVisitorNoProgress());
+}
 
 template<class D, class CT, class OT, class E, class Cmp>
 template<class Visitor>

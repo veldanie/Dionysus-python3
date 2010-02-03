@@ -90,7 +90,7 @@ class StaticPersistence
         
         // Function: pair_simplices()                                        
         // Compute persistence of the filtration
-        void                            pair_simplices()                                        { pair_simplices<PairVisitor>(begin(), end(), false, PairVisitor(size())); }
+        void                            pair_simplices(bool progress = true);
 
         // Functions: Accessors
         //   begin() -              returns OrderIndex of the first element
@@ -147,6 +147,14 @@ class StaticPersistence
             void                        finished(iterator j) const                              { ++show_progress; }
             mutable boost::progress_display     
                                         show_progress;
+        };
+        
+        struct                          PairVisitorNoProgress
+        {
+                                        PairVisitorNoProgress()                                 {}
+            void                        init(iterator i) const                                  {}
+            void                        update(iterator j, iterator i) const                    {}
+            void                        finished(iterator j) const                              {}
         };
 
         const Order&                    order() const                                           { return order_; }
