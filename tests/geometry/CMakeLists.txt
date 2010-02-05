@@ -1,5 +1,6 @@
 set							(targets
 							 euclidean
+                             test-ksort-linear
 							 test-eventqueue)
 
 if                          (use_synaps)
