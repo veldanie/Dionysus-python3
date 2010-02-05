@@ -2,7 +2,6 @@
 #define __FIELD_ARITHMETIC_H__
 
 #include <vector>
-#include <gmpxx.h>
 
 class ZpField
 {
@@ -42,6 +41,9 @@ ZpField(Element p):
             }
 }
 
+#if 0                   // unused example; commented out to get rid of the artificial dependence on GMP
+#include <gmpxx.h>
+
 class QField
 {
     public:
@@ -61,5 +63,6 @@ class QField
 
         bool        is_zero(Element a) const                        { return a == 0; }
 };
+#endif
  
 #endif // __FIELD_ARITHMETIC_H__
