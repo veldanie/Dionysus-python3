@@ -47,9 +47,15 @@ StaticPersistence<D, CT, OT, E, Cmp>::
 pair_simplices(bool progress)
 { 
     if (progress) 
-        pair_simplices<PairVisitor>(begin(), end(), false, PairVisitor(size())); 
+    {
+        PairVisitor visitor(size());
+        pair_simplices<PairVisitor>(begin(), end(), false, visitor); 
+    }
     else
-        pair_simplices<PairVisitorNoProgress>(begin(), end(), false, PairVisitorNoProgress());
+    {
+        PairVisitorNoProgress visitor;
+        pair_simplices<PairVisitorNoProgress>(begin(), end(), false, visitor);
+    }
 }
 
 template<class D, class CT, class OT, class E, class Cmp>

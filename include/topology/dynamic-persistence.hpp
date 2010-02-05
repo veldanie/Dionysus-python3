@@ -34,7 +34,8 @@ void
 DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::
 pair_simplices()
 { 
-    Parent::pair_simplices(begin(), end(), true, PairingTrailsVisitor(order(), ccmp_, size()));
+    PairingTrailsVisitor visitor(order(), ccmp_, size());
+    Parent::pair_simplices(begin(), end(), true, visitor);
 }
 
 template<class D, class CT, class OT, class E, class Cmp, class CCmp>
@@ -300,5 +301,6 @@ void
 DynamicPersistenceChains<D,CT,OT,E,Cmp,CCmp>::
 pair_simplices()
 { 
-    Parent::pair_simplices(begin(), end(), true, PairingChainsVisitor(order(), ccmp_, size()));
+    PairingChainsVisitor visitor(order(), ccmp_, size());
+    Parent::pair_simplices(begin(), end(), true, visitor);
 }
