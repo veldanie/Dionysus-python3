@@ -53,7 +53,7 @@ class KineticSort
 		/// \name Core Functionality
 		/// @{
 									KineticSort();
-									KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator);
+									KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator, const TrajectoryExtractor& te);
 		void						initialize(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator);
 
 		void						insert(iterator pos, ElementIterator f, ElementIterator l, Simulator* simulator);
@@ -68,6 +68,8 @@ class KineticSort
 		iterator					begin() 									{ return list_.begin(); }
 		iterator					end() 										{ return list_.end(); }
 
+        const TrajectoryExtractor&  trajectory_extractor() const                { return te_; }
+
 	private:
 		class SwapEvent;
 		void						schedule_swaps(iterator b, iterator e, Simulator* s);
@@ -76,6 +78,7 @@ class KineticSort
 	private:
 		NodeList					list_;
 		Swap						swap_;	
+        TrajectoryExtractor         te_;
 };
 
 #include "kinetic-sort.hpp"

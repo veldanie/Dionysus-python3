@@ -111,50 +111,30 @@ LSVineyard<V,VE,S,F>::
 template<class V, class VE, class S, class F_>
 void                    
 LSVineyard<V,VE,S,F_>::
-compute_vineyard(const VertexEvaluator& veval, bool explicit_events)
+compute_vineyard(const VertexEvaluator& veval)
 {
-    typedef Traits::Kinetic_kernel::Point_1                                 Point;
-    typedef Traits::Kinetic_kernel::Function_kernel::Construct_function     CF; 
-    typedef Traits::Kinetic_kernel::Motion_function                         F; 
-    
-    Traits tr(0,1);
-    Simulator::Handle sp = tr.simulator_handle();
-    ActivePointsTable::Handle apt = tr.active_points_1_table_handle();
-    Sort sort(tr, SortVisitor(*this));
+    typedef     KineticSort<VertexIndex, TrajectoryExtractor, KineticSimulator>       KineticSortDS;
     
     // Setup the (linear) trajectories
     rLog(rlLSVineyard, "Setting up trajectories");
-    CF cf; 
-    kinetic_map_.clear();
+    KineticSimulator    simulator;
+    TrajectoryExtractor traj(veval_, veval);
     
-    // The reverse order takes advantage of how the kinetic sort arranges its elements 
-    // (inserts before the upper bound) to avoid problems with duplicates; it's unfortunate 
-    // that such dependence is necessary, it would be nice to eventually get rid of it.
-    for (VertexIndex cur = boost::prior(vertices_.end()); cur != boost::prior(vertices_.begin()); --cur)
-    {
-        VertexValue val0 = veval_(cur->vertex());
-        VertexValue val1 = veval(cur->vertex());
-        rLog(rlLSVineyardDebug, "Vertex %d: %f -> %f", cur->vertex(), val0, val1);
-        F x = cf(F::NT(val0), F::NT(val1 - val0));          // x = val0 + (val1 - val0)*t = (1-t)*val0 + t*val1
-        Point p(x);
-        vertices_.modify(cur,   b::bind(&KineticVertexType::set_kinetic_key, bl::_1, apt->insert(p)));    // cur->set_kinetic_key(apt->insert(p))
-        kinetic_map_[cur->kinetic_key()] = cur;
-        rLog(rlLSVineyardDebug, "Scheduling: %d %s", cur->vertex(), tostring(x).c_str());
-    }
+    KineticSortDS       sort(vertices_.begin(), vertices_.end(), 
+                             boost::bind(&LSVineyard::swap, this, bl::_1, bl::_2),
+                             &simulator, traj);
+    AssertMsg(sort.audit(&simulator), "Sort audit should succeed");
     
     // Process all the events (compute the vineyard in the process)
-    change_evaluator(new KineticEvaluator(*this, sp, apt, time_count_));
-    if (explicit_events)
+    change_evaluator(new KineticEvaluator(*this, simulator, time_count_, traj));
+    while (!simulator.reached_infinity() && simulator.next_event_time() < 1)
     {
-        while (sp->next_event_time() < 1)
-        {
-            rLog(rlLSVineyardDebug, "Next event time: %f", sp->next_event_time());
-            sp->set_current_event_number(sp->current_event_number() + 1);
-            rLog(rlLSVineyardDebug, "Processed event");
-        }
-    } else
-        sp->set_current_time(1.0);
-    rLog(rlLSVineyard, "Processed %d events", sp->current_event_number());
+        rLog(rlLSVineyardDebug, "Next event time: %f", simulator.next_event_time());
+        simulator.process();
+        rLog(rlLSVineyardDebug, "Processed event");
+    }
+    rLog(rlLSVineyard, "Processed %d events", simulator.event_count());
+    AssertMsg(sort.audit(&simulator), "Sort audit should succeed");
     
     veval_ = veval;
     change_evaluator(new StaticEvaluator(*this, ++time_count_));
@@ -164,14 +144,15 @@ compute_vineyard(const VertexEvaluator& veval, bool explicit_events)
 template<class V, class VE, class S, class F>
 void                    
 LSVineyard<V,VE,S,F>::
-swap(Key a, Key b)
+swap(VertexIndex a, KineticSimulator* simulator)
 {
+    VertexIndex b = boost::next(a);
     rLog(rlLSVineyardDebug, "Entered swap");
-    VertexIndex ao = kinetic_map_[a], bo = kinetic_map_[b];
-    rLog(rlLSVineyardDebug, "Vertices: %d %d compare %d", ao->vertex(), bo->vertex(), vcmp_(ao->vertex(), bo->vertex()));
-    AssertMsg(!vcmp_(bo->vertex(), ao->vertex()), "In swap(a,b), a must precede b");
-    transpose_vertices(ao);
-    // AssertMsg(vcmp_(bo->vertex(), ao->vertex()), "In swap(a,b), b must precede a after the transposition");
+    rLog(rlLSVineyardDebug, "Vertices: %d %d compare %d", a->vertex(), b->vertex(), vcmp_(a->vertex(), b->vertex()));
+    AssertMsg(!vcmp_(b->vertex(), a->vertex()), "In swap(a,b), a must precede b");
+    AssertMsg(a < b, "In swap(a,b), a must precede b");
+    transpose_vertices(a);
+    AssertMsg(b < a, "In swap(a,b), b must precede a after the transposition");
 }
 
 template<class V, class VE, class S, class F>
@@ -318,27 +299,30 @@ template<class V, class VE, class S, class C>
 class LSVineyard<V,VE,S,C>::KineticEvaluator: public Evaluator
 {
     public:
-                                KineticEvaluator(const LSVineyard& v, Simulator::Handle sp, ActivePointsTable::Handle apt, RealType time_offset): 
-                                    vineyard_(v), sp_(sp), apt_(apt), time_offset_(time_offset)           {}
+        typedef                 typename KineticSimulator::Time                             Time;
 
-        virtual RealType        time() const                                                { return time_offset_ + CGAL::to_double(get_time()); }
+                                KineticEvaluator(const LSVineyard& v, const KineticSimulator& sp, RealType time_offset, const TrajectoryExtractor& traj): 
+                                    vineyard_(v), sp_(sp), 
+                                    time_offset_(time_offset), traj_(traj)                  {}
+
+        virtual RealType        time() const                                                { return time_offset_ + get_time(); }
         virtual RealType        operator()(Index i) const                                   
         {
             rLog(rlLSVineyard, "%s (attached to %d): %s(%f) = %f", tostring(vineyard_.pfmap(i)).c_str(),
                                                                    i->attachment->vertex(),
-                                                                   tostring(apt_->at(i->attachment->kinetic_key()).x()).c_str(),
+                                                                   tostring(traj_(i->attachment)).c_str(),
                                                                    get_time(),
-                                                                   CGAL::to_double(apt_->at(i->attachment->kinetic_key()).x()(get_time())));
-            return CGAL::to_double(apt_->at(i->attachment->kinetic_key()).x()(get_time())); 
+                                                                   traj_(i->attachment)(get_time()));
+            return traj_(i->attachment)(get_time()); 
         }
         virtual Dimension       dimension(Index i) const                                    { return vineyard_.pfmap(i).dimension(); }
 
     private:
-        Simulator::Time         get_time() const                                            { return sp_->current_time(); }
+        Time                    get_time() const                                            { return sp_.current_time(); }
         
         const LSVineyard&           vineyard_;
-        Simulator::Handle           sp_;
-        ActivePointsTable::Handle   apt_;
+        const KineticSimulator&     sp_;
+        const TrajectoryExtractor&  traj_;
         RealType                    time_offset_;
 };
 

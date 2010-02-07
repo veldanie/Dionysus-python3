@@ -42,7 +42,7 @@ int main(int argc, char** argv)
         std::cout << "  " << v.filtration().simplex(cur) << std::endl;
 
     // Compute vineyard
-    v.compute_vineyard(g1, true);
+    v.compute_vineyard(g1);
     std::cout << "Vineyard computed" << std::endl;
     
     // Simplex order after

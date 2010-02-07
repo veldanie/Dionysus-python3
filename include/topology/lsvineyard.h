@@ -1,6 +1,6 @@
 /**
  * Author: Dmitriy Morozov
- * Department of Computer Science, Duke University, 2005 -- 2009
+ * Department of Computer Science, Duke University, 2005 -- 2010
  */
 
 #ifndef __LSVINEYARD_H__
@@ -15,9 +15,9 @@
 
 #include <utilities/indirect.h>
 
-#include <CGAL/Kinetic/Inexact_simulation_traits.h>
-#include <CGAL/Kinetic/Sort.h>
-#include <CGAL/Kinetic/Sort_visitor_base.h>
+#include <geometry/simulator.h>
+#include <geometry/kinetic-sort.h>
+#include <geometry/linear-kernel.h>
 
 #include <boost/tuple/tuple.hpp>
 namespace b  = boost;
@@ -37,37 +37,14 @@ class LSVineyard
         typedef                     Filtration_                                         LSFiltration;
         typedef                     typename LSFiltration::Index                        LSFIndex;
 
-        class                       SortVisitor;
-        typedef                     CGAL::Kinetic::Inexact_simulation_traits            Traits;
-        typedef                     CGAL::Kinetic::Sort<Traits, SortVisitor>            Sort;
-        typedef                     Traits::Simulator                                   Simulator;
-        typedef                     Traits::Active_points_1_table                       ActivePointsTable;
-        typedef                     ActivePointsTable::Key                              Key;
-        class                       KineticVertexType
-        {
-            public:
-                                        KineticVertexType(const Vertex& v):
-                                            vertex_(v)                                              {}
-
-                Key                     kinetic_key() const                                         { return key_; }
-                void                    set_kinetic_key(Key k)                                      { key_ = k; }
-
-                Vertex                  vertex() const                                              { return vertex_; }
-                void                    set_vertex(Vertex v)                                        { vertex_ = v; }
-
-                LSFIndex                simplex_index() const                                       { return simplex_index_; }
-                void                    set_simplex_index(LSFIndex i)                               { simplex_index_ = i; }
-                
-            private:
-                Key                     key_;
-                Vertex                  vertex_;
-                LSFIndex                simplex_index_;
-        };
+        typedef                     LinearKernel<VertexValue>                           KineticKernel;
+        typedef                     Simulator<KineticKernel>                            KineticSimulator;
+        class                       KineticVertexType;
         class                       KineticVertexComparison;
+        class                       TrajectoryExtractor;
         typedef                     typename OrderContainer<KineticVertexType>::Container        
                                                                                         VertexContainer;
         typedef                     typename VertexContainer::iterator                  VertexIndex;
-        typedef                     std::map<Key, VertexIndex>                          KeyVertexMap;
 
         struct                      AttachmentData: public VineData                     
         {   
@@ -103,7 +80,7 @@ class LSVineyard
                                                const VertexEvaluator& veval = VertexEvaluator());
                                     ~LSVineyard();
 
-        void                        compute_vineyard(const VertexEvaluator& veval, bool explicit_events = false);
+        void                        compute_vineyard(const VertexEvaluator& veval);
         bool                        transpose_vertices(VertexIndex vi);
         
         const LSFiltration&         filtration() const                                  { return filtration_; }
@@ -123,7 +100,7 @@ class LSVineyard
 
     public:
         // For Kinetic Sort
-        void                        swap(Key a, Key b);
+        void                        swap(VertexIndex a, KineticSimulator* simulator);
         
     private:
         void                        change_evaluator(Evaluator* eval);
@@ -151,8 +128,6 @@ class LSVineyard
         Vnrd                        vineyard_;
         Evaluator*                  evaluator_;
         unsigned                    time_count_;
-
-        KeyVertexMap                kinetic_map_;
                 
 #if 0
     private:
@@ -172,34 +147,48 @@ class LSVineyard
 };
 
 //BOOST_CLASS_EXPORT(LSVineyard)
-        
-// template<class V, class VE, class S, class C>
-// class LSVineyard<V,VE,S,C>::KineticVertexType
-// {
-//     public:
-//                                 KineticVertexType(const Vertex& v):
-//                                     vertex_(v)                                              {}
-
-//         Key                     kinetic_key() const                                         { return key_; }
-//         void                    set_kinetic_key(Key k)                                      { key_ = k; }
-
-//         Vertex                  vertex() const                                              { return vertex_; }
-//         void                    set_vertex(Vertex v)                                        { vertex_ = v; }
-
-//         LSFIndex                simplex_index() const                                       { return simplex_index_; }
-//         void                    set_simplex_index(iterator i)                               { simplex_index_ = i; }
-        
-//     private:
-//         Key                     key_;
-//         Vertex                  vertex_;
-//         LSFIndex                simplex_index_;
-// };
 
 template<class V, class VE, class S, class C>
 std::ostream& 
 operator<<(std::ostream& out, const typename LSVineyard<V,VE,S,C>::VertexIndex& vi)    
 { return out << vi->vertex(); }
+
+
+template<class V, class VE, class S, class C>
+class LSVineyard<V,VE,S,C>::KineticVertexType
+{
+    public:
+                                KineticVertexType(const Vertex& v):
+                                    vertex_(v)                                              {}
+
+        Vertex                  vertex() const                                              { return vertex_; }
+        void                    set_vertex(Vertex v)                                        { vertex_ = v; }
+
+        LSFIndex                simplex_index() const                                       { return simplex_index_; }
+        void                    set_simplex_index(LSFIndex i)                               { simplex_index_ = i; }
         
+    private:
+        Vertex                  vertex_;
+        LSFIndex                simplex_index_;
+};
+
+template<class V, class VE, class S, class C>
+class LSVineyard<V,VE,S,C>::TrajectoryExtractor: public std::unary_function<VertexIndex, typename KineticSimulator::Function>
+{
+    public:
+        typedef                 typename KineticSimulator::Function                         Function;
+
+                                TrajectoryExtractor(const VertexEvaluator& veval0, 
+                                                    const VertexEvaluator& veval1):
+                                    veval0_(veval0), veval1_(veval1)                        {}
+                                
+
+        Function                operator()(VertexIndex i) const                             { VertexValue v0 = veval0_(i->vertex()), v1 = veval1_(i->vertex()); return Function(v0, v1 - v0); }
+    
+    private:
+        const VertexEvaluator&  veval0_, veval1_;
+};
+
 template<class V, class VE, class S, class C>
 class LSVineyard<V,VE,S,C>::KineticVertexComparison: public std::binary_function<const KineticVertexType&, const KineticVertexType&, bool>
 {
@@ -242,20 +231,6 @@ class LSVineyard<V,VE,S,C>::Evaluator: public std::unary_function<Index, RealTyp
         virtual Dimension       dimension(Index i) const                                    =0;
         virtual RealType        operator()(iterator i) const                                { return operator()(&*i); }
         virtual Dimension       dimension(iterator i) const                                 { return dimension(&*i); }
-};
-
-template<class V, class VE, class S, class C>
-class LSVineyard<V,VE,S,C>::SortVisitor: public CGAL::Kinetic::Sort_visitor_base
-{
-    public:
-                                SortVisitor(LSVineyard& v): 
-                                    vineyard_(v)                                            {}
-
-        template<class Vertex_handle>
-        void                    pre_swap(Vertex_handle a, Vertex_handle b) const            { vineyard_.swap(*a,*b); }
-
-    private:
-        LSVineyard&             vineyard_;
 };
 
 template<class V, class VE, class S, class C>

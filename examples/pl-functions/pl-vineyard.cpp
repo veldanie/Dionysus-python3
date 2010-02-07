@@ -15,7 +15,7 @@
 namespace bl = boost::lambda;
 
 
-typedef     float                                       VertexValue;
+typedef     double                                      VertexValue;
 typedef     unsigned                                    Vertex;
 typedef     std::vector<VertexValue>                    VertexVector;
 struct SubscriptFunctor: public std::unary_function<Vertex, VertexValue>
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
     for (size_t i = 1; i < vertices.size(); ++i)
     {
         veval = VertexEvaluator(vertices[i]);
-        v.compute_vineyard(veval, explicit_events);
+        v.compute_vineyard(veval);
         std::cout << "Processed frame: " << i << std::endl;
     }
     std::cout << "Vineyard computed" << std::endl;

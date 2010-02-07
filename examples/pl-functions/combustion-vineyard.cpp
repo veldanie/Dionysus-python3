@@ -81,7 +81,7 @@ int main(int argc, char** argv)
     std::cout << "Pairing computed" << std::endl;
     
     // Compute vineyard
-    v.compute_vineyard(g1, true);
+    v.compute_vineyard(g1);
     std::cout << "Vineyard computed" << std::endl;
 
     v.vineyard().save_edges("combustion");

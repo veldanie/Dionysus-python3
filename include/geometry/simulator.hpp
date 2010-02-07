@@ -88,10 +88,12 @@ process()
 	current_ = e->root_stack().top(); e->root_stack().pop();
 	
     // Get the top element out of the queue, put it back depending on what process() says
-    EventQueueS tmp; tmp.prepend(top, queue_);
+    EventQueueS             tmp; tmp.prepend(top, queue_);
 
 	if (e->process(this))				{ queue_.prepend(top, tmp); update(top); }
 	else								{ delete e; }
+
+    ++count_;
 }
 
 template<class FuncKernel_, template<class Event> class EventComparison_>
