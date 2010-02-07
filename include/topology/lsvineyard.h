@@ -153,6 +153,10 @@ std::ostream&
 operator<<(std::ostream& out, const typename LSVineyard<V,VE,S,C>::VertexIndex& vi)    
 { return out << vi->vertex(); }
 
+template<class V, class VE, class S, class C>
+std::ostream& 
+operator<<(std::ostream& out, const typename LSVineyard<V,VE,S,C>::KineticVertexType& v)    
+{ return out << v.vertex(); }
 
 template<class V, class VE, class S, class C>
 class LSVineyard<V,VE,S,C>::KineticVertexType

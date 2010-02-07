@@ -4,7 +4,7 @@
 
 int main()
 {
-	typedef EventQueue<int, std::less<int> >			EQ;
+	typedef EventQueue<int, std::less<int> >		    EQ;
 	typedef EQ::iterator								iterator;
 	 
 	EQ queue;
@@ -15,8 +15,7 @@ int main()
 	iterator j = queue.push(6);
 	queue.push(5);
 
-	*i = 8;
-	queue.update(i);
+	queue.replace(i,8);
 	queue.remove(j);
 
 	while (!queue.empty())

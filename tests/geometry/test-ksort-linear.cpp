@@ -55,6 +55,7 @@ int main(int argc, char** argv)
     // Insert polynomials and sort the list for current time
     list.push_back(Function(2, -2));
     list.push_back(Function(1, 3));
+    list.push_back(Function(-1, 6));
     list.push_back(Function(2));
     list.push_back(Function(2, 2));
     //list.sort(EvaluatedComparison(simulator.current_time()));

@@ -36,6 +36,7 @@ class Simulator
 
                                     Simulator(Time start = FunctionKernel::root(0)):
                                         current_(start)                         {}
+                                    ~Simulator()                                { for (Key cur = queue_.top(); cur != queue_.end(); ++cur) delete *cur; }
 
 
         template<class Event_> 
@@ -45,7 +46,7 @@ class Simulator
         void                        process();
         void                        update(Key k, const Function& f);
         
-        void                        remove(Key k)                               { queue_.remove(k); }
+        void                        remove(Key k)                               { Event* e = *k; queue_.remove(k); delete e; }
         Key                         null_key()                                  { return queue_.end(); }
 
         Time                        current_time() const                        { return current_; }
@@ -57,10 +58,9 @@ class Simulator
         unsigned                    size() const                                { return queue_.size(); }
         unsigned                    event_count() const                         { return count_; }
 
-        std::ostream&               operator<<(std::ostream& out) const;
+        bool                        audit_queue() const;
 
-    private:
-        void                        update(Key i);
+        std::ostream&               operator<<(std::ostream& out) const;
 
     private:
         Time                        current_;

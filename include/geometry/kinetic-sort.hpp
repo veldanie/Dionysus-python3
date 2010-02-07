@@ -127,6 +127,8 @@ audit(Simulator* simulator) const
 	typedef 		typename Simulator::Function		        Function;
 	typedef 		typename Simulator::Time					Time;
 	
+    AssertMsg(simulator->audit_queue(), "Simulator's queue should be properly ordered");
+
 	Time t = simulator->audit_time();
 	rLog(rlKineticSortAudit, "Auditing at %s", tostring(t).c_str());
 
@@ -202,7 +204,6 @@ schedule_swaps(iterator i, Simulator* simulator)
 	//std::cout << "Difference:         " << next_trajectory - i_trajectory << std::endl;
 
 	i->swap_event_key = simulator->add(next_trajectory - i_trajectory, SwapEvent(this, i));
-	//i->swap_event_key = simulator->add(next_trajectory, SwapEvent(this, i));
 }
 
 /* SwapEvent */

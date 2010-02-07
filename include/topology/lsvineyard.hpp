@@ -123,7 +123,6 @@ compute_vineyard(const VertexEvaluator& veval)
     KineticSortDS       sort(vertices_.begin(), vertices_.end(), 
                              boost::bind(&LSVineyard::swap, this, bl::_1, bl::_2),
                              &simulator, traj);
-    AssertMsg(sort.audit(&simulator), "Sort audit should succeed");
     
     // Process all the events (compute the vineyard in the process)
     change_evaluator(new KineticEvaluator(*this, simulator, time_count_, traj));
@@ -134,7 +133,7 @@ compute_vineyard(const VertexEvaluator& veval)
         rLog(rlLSVineyardDebug, "Processed event");
     }
     rLog(rlLSVineyard, "Processed %d events", simulator.event_count());
-    AssertMsg(sort.audit(&simulator), "Sort audit should succeed");
+    // AssertMsg(sort.audit(&simulator), "Sort audit should succeed");
     
     veval_ = veval;
     change_evaluator(new StaticEvaluator(*this, ++time_count_));
@@ -149,7 +148,7 @@ swap(VertexIndex a, KineticSimulator* simulator)
     VertexIndex b = boost::next(a);
     rLog(rlLSVineyardDebug, "Entered swap");
     rLog(rlLSVineyardDebug, "Vertices: %d %d compare %d", a->vertex(), b->vertex(), vcmp_(a->vertex(), b->vertex()));
-    AssertMsg(!vcmp_(b->vertex(), a->vertex()), "In swap(a,b), a must precede b");
+    AssertMsg(!vcmp_(b->vertex(), a->vertex()), "In swap(a,b), a must precede b");      // true since we are using linear iterpolation
     AssertMsg(a < b, "In swap(a,b), a must precede b");
     transpose_vertices(a);
     AssertMsg(b < a, "In swap(a,b), b must precede a after the transposition");

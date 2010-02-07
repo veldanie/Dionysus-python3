@@ -39,14 +39,18 @@ add(const Function& f, const Event_& e)
 
 	while (!ee->root_stack().empty() && ee->root_stack().top() < current_time())
 	{
+        // rLog(rlSimulator, "Popping expired root: %f", ee->root_stack().top());
 		ee->root_stack().pop();
 		sign *= -1;
 	}
+
     if (sign == -1)
     {
-        //AssertMsg(ee->root_stack().top() == current_time(), 
-        //          "If sign is negative, we must be in the degenerate case");
         rLog(rlSimulator, "Popping the root because of negative sign (degeneracy)");
+        // rLog(rlSimulator, "Popping the root because of negative sign (degeneracy): %f", ee->root_stack().top());
+        // rLog(rlSimulator, "  Current time: %f", current_time());
+        // AssertMsg(ee->root_stack().top() == current_time(), 
+                 // "If sign is negative, we must be in the degenerate case");
         ee->root_stack().pop();
     }
 
@@ -57,7 +61,8 @@ add(const Function& f, const Event_& e)
         rLog(rlSimulator, "Root stack size: %i", ee->root_stack().size());
         rLog(rlSimulator, "Pushing: %s", tostring(ee->root_stack().top()).c_str());
     }
-	return queue_.push(ee);
+	Key k = queue_.push(ee);
+    return k;
 }
 		
 template<class FuncKernel_, template<class Event> class EventComparison_>
@@ -70,7 +75,7 @@ update(Key k, const Function& f)
 	FunctionKernel::solve(f, ee->root_stack());
 	while (!ee->root_stack().empty() && ee->root_stack().top() < current_time())
 		ee->root_stack().pop();
-	update(k);
+	queue_.update(k);
 }
 
 template<class FuncKernel_, template<class Event> class EventComparison_>
@@ -86,22 +91,12 @@ process()
     rLog(rlSimulator, "Processing event: %s", intostring(*e).c_str());
 	
 	current_ = e->root_stack().top(); e->root_stack().pop();
-	
-    // Get the top element out of the queue, put it back depending on what process() says
-    EventQueueS             tmp; tmp.prepend(top, queue_);
+    queue_.update(top);
 
-	if (e->process(this))				{ queue_.prepend(top, tmp); update(top); }
-	else								{ delete e; }
+    // Get the top element out of the queue, put it back depending on what process() says
+	if (!(e->process(this)))            { queue_.remove(top);  delete e; }
 
     ++count_;
-}
-
-template<class FuncKernel_, template<class Event> class EventComparison_>
-void
-Simulator<FuncKernel_, EventComparison_>::
-update(Key i)
-{
-	queue_.update(i);
 }
 		
 template<class FuncKernel_, template<class Event> class EventComparison_>
@@ -114,6 +109,27 @@ audit_time() const
 
 	if (e->root_stack().empty()) return current_ + 1;
 	else return FunctionKernel::between(e->root_stack().top(), current_);
+}
+
+template<class FuncKernel_, template<class Event> class EventComparison_>
+bool
+Simulator<FuncKernel_, EventComparison_>::
+audit_queue() const
+{
+	const_Key next = queue_.top();
+    const_Key cur = next++;
+	        
+    while (next != queue_.end())
+    {
+        if (IndirectEventComparison()(*next, *cur))
+        {
+            rError("Events [%s] and [%s] not in order", intostring(**cur).c_str(), intostring(**next).c_str());
+            queue_.print(std::cout, "  ");
+            return false;
+        }
+        cur = next++;
+    }
+    return true;
 }
 		
 template<class FuncKernel_, template<class Event> class EventComparison_>
