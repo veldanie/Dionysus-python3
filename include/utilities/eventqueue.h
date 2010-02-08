@@ -2,18 +2,20 @@
 #define __EVENTQUEUE_H__
 
 #include <list>
+#include <vector>
 #include <functional>
-#include <boost/utility.hpp>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/sequenced_index.hpp>
-namespace bmi = boost::multi_index;
+#include <boost/utility.hpp>
+#include <boost/iterator/iterator_adaptor.hpp>
+namespace b = boost;
+
 
 #include <utilities/log.h>
 #ifdef LOGGING
 static rlog::RLogChannel* rlEventQueue =             DEF_CHANNEL("utilities/eventqueue", rlog::Log_Debug);
 #endif // LOGGING
+
+#include <utilities/binaryheap.h>
 
 #include <iostream>
 #include <string>
@@ -27,57 +29,188 @@ class EventQueue
 		typedef					Event_											Event;
 		typedef					EventComparison_								EventComparison;
 
-        // Not actually a heap, but will work for now
-        typedef                 boost::multi_index_container<Event, 
-                                                             bmi::indexed_by<
-                                                                bmi::sequenced<>,
-                                                                bmi::ordered_non_unique<bmi::identity<Event>, EventComparison >
-                                                             > >
-                                                                                QueueRepresentation;
-		typedef					typename QueueRepresentation::iterator			iterator;
-		typedef					typename QueueRepresentation::const_iterator	const_iterator;
+        struct                  HeapNode;
+        struct                  CompareNodes;
+        struct                  MarkedCompareNodes;
+        struct                  UpdateNode;
+        class                   iterator;
+        class                   const_iterator;
+
+        typedef                 std::list<HeapNode>                             QueueRepresentation;
+        typedef                 std::vector<iterator>                           EventListHeap;
+
+		                        EventQueue()			    {}
 		
-		EventQueue()			{}
-		
-		const_iterator 			top() const					{ AssertMsg(!empty(), "Queue must not be empty"); return queue_.begin(); }
-		iterator 				top()						{ AssertMsg(!empty(), "Queue must not be empty"); return queue_.begin(); }
-		// iterator 				push(Event e)				{ return queue_.insert(insert_position(e), e).first; }
-		iterator 				push(Event e)				{ iterator i = queue_.push_front(e).first; update(i); return i; }
-		void 					pop()						{ AssertMsg(!empty(), "Queue must not be empty"); queue_.erase(queue_.begin()); }
-		void					remove(iterator i)			{ queue_.erase(i); }
-        void                    replace(iterator i,
-                                        Event e)            { queue_.replace(i, e); update(i); }
+		const_iterator 			top() const					{ AssertMsg(!empty(), "Queue must not be empty"); return heap_.front(); }
+		iterator 				top()						{ AssertMsg(!empty(), "Queue must not be empty"); return heap_.front(); }
+		iterator 				push(Event e);
+		void 					pop()						{ AssertMsg(!empty(), "Queue must not be empty"); std::pop_heap(heap_.begin(), heap_.end(), CompareNodes(), UpdateNode()); queue_.erase(heap_.back().base()); heap_.pop_back(); }
+        void					remove(iterator i);
+        void                    replace(iterator i, Event e);
+        void                    promoted(iterator i)        { std::update_heap_pos(heap_.begin(), heap_.end(), heap_.begin() + i.base()->heap_position_, CompareNodes(), UpdateNode()); }
+        void                    demoted(iterator i);
 
         iterator                begin()                     { return queue_.begin(); }
         const_iterator          begin() const               { return queue_.begin(); }
 		iterator 				end()						{ return queue_.end(); }
 		const_iterator 			end() const					{ return queue_.end(); }
 		bool					empty() const				{ return queue_.empty(); }
-		size_t					size() const				{ return queue_.size(); }
+		size_t					size() const				{ return heap_.size(); }
 
 		std::ostream&			print(std::ostream& out, const std::string& prefix) const;
 
-        iterator                update(iterator i)
-        { 
-            iterator bg = bmi::project<0>(queue_, bmi::get<1>(queue_).lower_bound(*i)); 
-            iterator pos = std::find_if(bg, queue_.end(), std::bind1st(EventComparison(), *i));
-            queue_.replace(i, *i);
-            queue_.relocate(pos, i);
-            return pos; 
-        }
-
 	private:
 		QueueRepresentation		queue_;
+		EventListHeap           heap_;
 };
 
+template<class Event_, class EventComparison_>
+struct EventQueue<Event_, EventComparison_>::HeapNode
+{
+                        HeapNode(const Event& e): e_(e)     {}
+
+    size_t              heap_position_;
+    Event               e_;
+};
+
+template<class Event_, class EventComparison_>
+class EventQueue<Event_, EventComparison_>::iterator: 
+    public boost::iterator_adaptor<iterator, 
+                                   typename QueueRepresentation::iterator,
+                                   Event>
+{
+    public:
+        iterator():     
+            iterator::iterator_adaptor_(0)                              {}
+
+        iterator(typename QueueRepresentation::iterator i):
+            iterator::iterator_adaptor_(i)                              {}
+
+        using iterator::iterator_adaptor_::base;
+
+        typename iterator::iterator_adaptor_::reference
+                        dereference() const                             { return base()->e_; }
+};
+
+template<class Event_, class EventComparison_>
+class EventQueue<Event_, EventComparison_>::const_iterator: 
+    public boost::iterator_adaptor<const_iterator, 
+                                   typename QueueRepresentation::const_iterator,
+                                   Event,
+                                   b::use_default,
+                                   const Event&>
+{
+    public:
+        const_iterator():
+            const_iterator::iterator_adaptor_(0)                        {}
+
+        const_iterator(iterator i):
+            const_iterator::iterator_adaptor_(i.base())                 {}
+
+        const_iterator(typename QueueRepresentation::const_iterator i):
+            const_iterator::iterator_adaptor_(i)                        {}
+
+        using const_iterator::iterator_adaptor_::base;
+
+        typename const_iterator::iterator_adaptor_::reference
+                        dereference() const                             { return base()->e_; }
+};
+
+template<class Event_, class EventComparison_>
+struct EventQueue<Event_, EventComparison_>::UpdateNode
+{
+    void operator()(iterator i, size_t pos) const                       { i.base()->heap_position_ = pos; }
+};
+        
+template<class Event_, class EventComparison_>
+struct EventQueue<Event_, EventComparison_>::CompareNodes
+{
+    bool operator()(iterator i, iterator j) const                       { return EventComparison()(*j, *i); }
+};
+
+template<class Event_, class EventComparison_>
+struct EventQueue<Event_, EventComparison_>::MarkedCompareNodes
+{
+         MarkedCompareNodes(iterator i): i_(i)                          {}
+    bool operator()(iterator i, iterator j) const                       
+    { 
+        // i_ is less than everything else
+        if (i == i_)
+            return false;
+        if (j == i_)
+            return true;
+        return EventComparison()(*j, *i); 
+    }
+    iterator i_;
+};
+
+        
+template<class Event_, class EventComparison_>
+typename EventQueue<Event_, EventComparison_>::iterator
+EventQueue<Event_, EventComparison_>::
+push(Event e)
+{ 
+    queue_.push_back(e); 
+    iterator i = b::prior(queue_.end()); 
+    heap_.push_back(i); 
+    std::push_heap(heap_.begin(), heap_.end(), CompareNodes(), UpdateNode()); 
+
+    return i;
+}
+			
+template<class Event_, class EventComparison_>
+void
+EventQueue<Event_, EventComparison_>::
+remove(iterator i)
+{ 
+    MarkedCompareNodes mcmp(i);
+    std::update_heap_pos(heap_.begin(), heap_.end(), heap_.begin() + i.base()->heap_position_, mcmp, UpdateNode());
+    std::pop_heap(heap_.begin(), heap_.end(), mcmp, UpdateNode()); 
+    AssertMsg(heap_.back() == i, "i should be in the back");
+    queue_.erase(heap_.back().base()); 
+    heap_.pop_back();
+}
+        
+template<class Event_, class EventComparison_>
+void
+EventQueue<Event_, EventComparison_>::
+replace(iterator i, Event e)
+{ 
+    
+    if (EventComparison()(*i, e))
+    {
+        *i = e; 
+        promoted(i); 
+    } else
+    {
+        *i = e;
+        demoted(i);
+    }
+}
+
+template<class Event_, class EventComparison_>
+void
+EventQueue<Event_, EventComparison_>::
+demoted(iterator i)
+{ 
+    // Bring to front
+    MarkedCompareNodes mcmp(i);
+    std::update_heap_pos(heap_.begin(), heap_.end(), heap_.begin() + i.base()->heap_position_, mcmp, UpdateNode());
+
+    // Bring to back
+    std::pop_heap(heap_.begin(), heap_.end(), mcmp, UpdateNode()); 
+
+    // Find new place
+    std::update_heap_pos(heap_.begin(), heap_.end(), heap_.begin() + i.base()->heap_position_, CompareNodes(), UpdateNode()); 
+}
 
 template<class Event_, class EventComparison_>
 std::ostream&
 EventQueue<Event_, EventComparison_>::
 print(std::ostream& out, const std::string& prefix) const
 {
-	for (typename QueueRepresentation::const_iterator cur = queue_.begin(); cur != queue_.end(); ++cur)
-		(*cur)->operator<<(out << prefix) << std::endl;
+	for (typename EventListHeap::const_iterator cur = heap_.begin(); cur != heap_.end(); ++cur)
+		out << prefix << **cur << std::endl;
 	return out;
 }
 

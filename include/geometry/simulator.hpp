@@ -71,11 +71,13 @@ Simulator<FuncKernel_, EventComparison_>::
 update(Key k, const Function& f)
 {
 	Event* ee = *k;
-	ee->root_stack() = RootStack();								// no clear() in std::stack
-	FunctionKernel::solve(f, ee->root_stack());
-	while (!ee->root_stack().empty() && ee->root_stack().top() < current_time())
-		ee->root_stack().pop();
-	queue_.update(k);
+    Event* e = new Event;
+	e->root_stack() = RootStack();								// no clear() in std::stack
+	FunctionKernel::solve(f, e->root_stack());
+	while (!e->root_stack().empty() && e->root_stack().top() < current_time())
+		e->root_stack().pop();
+	queue_.replace(k, e);
+    delete ee;
 }
 
 template<class FuncKernel_, template<class Event> class EventComparison_>
@@ -91,7 +93,7 @@ process()
     rLog(rlSimulator, "Processing event: %s", intostring(*e).c_str());
 	
 	current_ = e->root_stack().top(); e->root_stack().pop();
-    queue_.update(top);
+    queue_.demoted(top);
 
     // Get the top element out of the queue, put it back depending on what process() says
 	if (!(e->process(this)))            { queue_.remove(top);  delete e; }
@@ -111,27 +113,6 @@ audit_time() const
 	else return FunctionKernel::between(e->root_stack().top(), current_);
 }
 
-template<class FuncKernel_, template<class Event> class EventComparison_>
-bool
-Simulator<FuncKernel_, EventComparison_>::
-audit_queue() const
-{
-	const_Key next = queue_.top();
-    const_Key cur = next++;
-	        
-    while (next != queue_.end())
-    {
-        if (IndirectEventComparison()(*next, *cur))
-        {
-            rError("Events [%s] and [%s] not in order", intostring(**cur).c_str(), intostring(**next).c_str());
-            queue_.print(std::cout, "  ");
-            return false;
-        }
-        cur = next++;
-    }
-    return true;
-}
-		
 template<class FuncKernel_, template<class Event> class EventComparison_>
 std::ostream&
 Simulator<FuncKernel_, EventComparison_>::

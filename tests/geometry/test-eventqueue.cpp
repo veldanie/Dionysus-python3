@@ -4,19 +4,30 @@
 
 int main()
 {
-	typedef EventQueue<int, std::less<int> >		    EQ;
+	typedef EventQueue<int, std::less<int> >            EQ;
 	typedef EQ::iterator								iterator;
 	 
 	EQ queue;
 
-	iterator i = queue.push(4);
-	queue.push(2);
-	queue.push(7);
-	iterator j = queue.push(6);
-	queue.push(5);
+    std::cout << "Queue initialized" << std::endl;
 
-	queue.replace(i,8);
-	queue.remove(j);
+	iterator i1 = queue.push(4);
+	iterator i2 = queue.push(2);
+	iterator i3 = queue.push(9);
+	iterator i4 = queue.push(6);
+	iterator i5 = queue.push(5);
+
+    std::cout << "Values inserted" << std::endl;
+    queue.print(std::cout, "  ");
+
+    queue.replace(i1,1);
+    queue.remove(i4);
+    queue.replace(i5,10);
+
+    *i3 = 14;
+    queue.demoted(i3);
+    
+    std::cout << "Replaced and removed" << std::endl;
 
 	while (!queue.empty())
 	{

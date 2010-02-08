@@ -127,8 +127,6 @@ audit(Simulator* simulator) const
 	typedef 		typename Simulator::Function		        Function;
 	typedef 		typename Simulator::Time					Time;
 	
-    AssertMsg(simulator->audit_queue(), "Simulator's queue should be properly ordered");
-
 	Time t = simulator->audit_time();
 	rLog(rlKineticSortAudit, "Auditing at %s", tostring(t).c_str());
 

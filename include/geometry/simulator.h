@@ -58,8 +58,6 @@ class Simulator
         unsigned                    size() const                                { return queue_.size(); }
         unsigned                    event_count() const                         { return count_; }
 
-        bool                        audit_queue() const;
-
         std::ostream&               operator<<(std::ostream& out) const;
 
     private:
