@@ -60,7 +60,7 @@ struct ThreeOutcomeCompare: public Comparison
 
                     ThreeOutcomeCompare(const Comparison& cmp = Comparison()): Comparison(cmp)              {}
 
-    int             compare(const first_argument_type& a, const second_argument_type& b) const          
+    int             compare(first_argument_type a, second_argument_type b) const          
     {   if (operator()(a,b))        return -1;
         else if (operator()(b,a))   return 1;
         else                        return 0;
