@@ -11,9 +11,6 @@
 #include <utilities/counter.h>
 #include <utilities/memory.h>
 
-#include <sys/resource.h>
-#include <malloc.h>
-
 #include <string>
 
 #include <boost/tuple/tuple.hpp>

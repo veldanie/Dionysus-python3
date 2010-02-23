@@ -11,9 +11,6 @@
 #include <utilities/counter.h>
 #include <utilities/memory.h>
 
-#include <sys/resource.h>
-#include <malloc.h>
-
 #include <string>
 
 #include <boost/tuple/tuple.hpp>
@@ -133,18 +130,6 @@ int main(int argc, char* argv[])
         
         #ifdef COUNTERS
         max_element_count = std::max(max_element_count, cCohomologyElementCount->count);
-        // max_memory = std::max(max_memory, report_memory());
-
-        // struct rusage usage;
-        // getrusage(RUSAGE_SELF, &usage);
-        // max_rss = std::max(max_rss, usage.ru_maxrss);
-        // max_ixrss = std::max(max_ixrss, usage.ru_ixrss);
-        // max_idrss = std::max(max_idrss, usage.ru_idrss);
-        // max_isrss = std::max(max_isrss, usage.ru_isrss);
-
-        // struct mallinfo info = mallinfo();
-        // max_uordblks = std::max(max_uordblks, info.uordblks);
-        // max_fordblks = std::max(max_fordblks, info.fordblks);
         #endif
     }
     // output infinte persistence pairs 
@@ -173,9 +158,6 @@ int main(int argc, char* argv[])
 
     #ifdef COUNTERS
     std::cout << "Max element count: " << max_element_count << std::endl;
-    // std::cout << "Max memory use: " << max_memory << " kB" << std::endl;
-    // std::cout << "Max RSS: " << max_rss << " " << max_ixrss << " " << max_idrss << " " << max_isrss << std::endl;
-    // std::cout << "Max Blks: " << max_uordblks << " " << max_fordblks << std::endl;
     #endif
 }
 
