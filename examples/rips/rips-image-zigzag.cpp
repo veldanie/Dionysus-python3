@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
         rDebug("  Recorded cofaces to remove");
         rDebug("  Cofaces size: %d", cofaces.size());
         // Remove all the cofaces
-        for (SimplexSet::const_reverse_iterator cur = cofaces.rbegin(); cur != cofaces.rend(); ++cur)
+        for (SimplexSet::const_reverse_iterator cur = cofaces.rbegin(); cur != (SimplexSet::const_reverse_iterator)cofaces.rend(); ++cur)
         {
             rDebug("    Removing %s", tostring(*cur).c_str());
             Complex::iterator si = complex.find(*cur);
@@ -306,7 +306,7 @@ int main(int argc, char* argv[])
                             vertices.begin() + i + 1);
         vc.stop();
         rDebug("  Computed cofaces of the vertex, their number: %d", cofaces.size());
-        for (SimplexSet::const_reverse_iterator cur = cofaces.rbegin(); cur != cofaces.rend(); ++cur)
+        for (SimplexSet::const_reverse_iterator cur = cofaces.rbegin(); cur != (SimplexSet::const_reverse_iterator)cofaces.rend(); ++cur)
         {
             rDebug("    Removing: %s", tostring(*cur).c_str());
             Complex::iterator si = complex.find(*cur);

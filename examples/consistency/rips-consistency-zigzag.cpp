@@ -215,12 +215,12 @@ int main(int argc, char* argv[])
         std::sort(across.begin(), across.end(), Smplx::VertexDimensionComparison());
         rInfo("  Cross simplices size: %d", across.size());
 
-        for (SimplexVector::const_reverse_iterator cur = across.rbegin(); cur != across.rend(); ++cur)
+        for (SimplexVector::const_reverse_iterator cur = across.rbegin(); cur != (SimplexVector::const_reverse_iterator)across.rend(); ++cur)
             remove_simplex(*cur, BirthInfo(cur->dimension() - 1, i+1), BirthInfo(cur->dimension(), i, true),
                            complex, zz, out, remove, skeleton_dimension);
         rInfo("  Cross simplices removed");
 
-        for (SimplexVector::const_reverse_iterator cur = subcomplex.rbegin(); cur != subcomplex.rend(); ++cur)
+        for (SimplexVector::const_reverse_iterator cur = subcomplex.rbegin(); cur != (SimplexVector::const_reverse_iterator)subcomplex.rend(); ++cur)
             remove_simplex(*cur, BirthInfo(cur->dimension() - 1, i+1), BirthInfo(cur->dimension(), i, true),
                            complex, zz, out, remove, skeleton_dimension);
         rInfo("  Subcomplex simplices removed");
