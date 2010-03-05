@@ -25,6 +25,7 @@ static rlog::RLogChannel* rlCohomology =                DEF_CHANNEL("topology/co
 static Counter*  cCohomologyAddBasic =                  GetCounter("cohomology/add/basic");
 static Counter*  cCohomologyAddComparison =             GetCounter("cohomology/add/comparison");
 static Counter*  cCohomologyElementCount =              GetCounter("cohomology/elements");
+static Counter*  cCohomologyCocycleCount =              GetCounter("cohomology/cocycles");
 #endif // COUNTERS
 
 template<class BirthInfo, class SimplexData, class Field>
@@ -152,6 +153,7 @@ add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const Si
         rLog(rlCohomology,  "  Cocyle: %d", si->order);
         
         Count(cCohomologyElementCount);
+        Count(cCohomologyCocycleCount);
 
         boost::shared_ptr<ZColumn> p = boost::make_shared<ZColumn>();
         return boost::make_tuple(si, Death(), p);
@@ -189,6 +191,7 @@ add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const Si
         cur->unlink();
     
     CountBy(cCohomologyElementCount, -z.first->zcolumn.size());
+    CountBy(cCohomologyCocycleCount, -1);
     boost::shared_ptr<ZColumn> p = boost::make_shared<ZColumn>();
     p->swap(z.first->zcolumn);
     cocycles_.erase(z.first);
