@@ -221,13 +221,27 @@ add_cocycle(CocycleCoefficientPair& to, CocycleCoefficientPair& from)
 {
     rLog(rlCohomology,  "Adding cocycle %d to %d", from.first->order, to.first->order);
 
-    ZColumn         nw;
     FieldElement    multiplier = field_.neg(field_.div(to.second, from.second));
     CocycleIndex    ci = to.first;
+    CompareSNode    cmp;
 
+    // Insert at the end optimization
+    if (cmp(to.first->zcolumn.back(), from.first->zcolumn.front()) && 
+        to.first->zcolumn.capacity() >= (to.first->zcolumn.size() + from.first->zcolumn.size()))
+    {
+        BOOST_FOREACH(const SNode& fs, from.first->zcolumn)
+        {
+            to.first->zcolumn.push_back(SNode(fs.si, field_.mul(multiplier, fs.coefficient), ci));
+            fs.si->row.push_back(to.first->zcolumn.back());
+            Count(cCohomologyAddBasic);
+        }
+
+        return;
+    }
+
+    ZColumn         nw;
     typename ZColumn::iterator tcur = to.first->zcolumn.begin();
     typename ZColumn::iterator fcur = from.first->zcolumn.begin();
-    CompareSNode cmp;
     while (tcur != to.first->zcolumn.end() && fcur != from.first->zcolumn.end())
     {
         rLog(rlCohomology, "  %d %d", tcur->si->order, fcur->si->order);
