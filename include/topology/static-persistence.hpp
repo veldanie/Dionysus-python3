@@ -20,9 +20,9 @@ static Counter*  cPersistencePairCycleLength =              GetCounter("persiste
 
 template<class D, class CT, class OT, class E, class Cmp>
 template<class Filtration>
+void
 StaticPersistence<D, CT, OT, E, Cmp>::
-StaticPersistence(const Filtration& filtration):
-    ocmp_(order_)
+initialize(const Filtration& filtration)
 { 
     order_.assign(filtration.size(), OrderElement());
     rLog(rlPersistence, "Initializing persistence");

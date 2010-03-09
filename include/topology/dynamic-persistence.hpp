@@ -23,6 +23,12 @@ static Counter*  cTranspositionCase4 =          GetCounter("persistence/transpos
 /* Trails */
 
 template<class D, class CT, class OT, class E, class Cmp, class CCmp>
+DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::
+DynamicPersistenceTrails():
+    ccmp_(consistent_order())
+{}
+
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
 template<class Filtration>
 DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::
 DynamicPersistenceTrails(const Filtration& f):
@@ -290,12 +296,18 @@ struct DynamicPersistenceTrails<D,CT,OT,E,Cmp,CCmp>::TrailRemover:
 /* Chains */
 
 template<class D, class CT, class OT, class E, class Cmp, class CCmp>
+DynamicPersistenceChains<D,CT,OT,E,Cmp,CCmp>::
+DynamicPersistenceChains():
+    ccmp_(order().get<consistency>())
+{}
+
+template<class D, class CT, class OT, class E, class Cmp, class CCmp>
 template<class Filtration>
 DynamicPersistenceChains<D,CT,OT,E,Cmp,CCmp>::
 DynamicPersistenceChains(const Filtration& f):
     Parent(f), ccmp_(order().get<consistency>())
 {}
-        
+
 template<class D, class CT, class OT, class E, class Cmp, class CCmp>
 void
 DynamicPersistenceChains<D,CT,OT,E,Cmp,CCmp>::

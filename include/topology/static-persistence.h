@@ -80,13 +80,21 @@ class StaticPersistence
         
         typedef                         Comparison_                                             OrderComparison;
 
+        /* Constructor: StaticPersistence() */
+                                        StaticPersistence(): ocmp_(order_)                      {}
+
         /* Constructor: StaticPersistence()
          * TODO: write a description
          *
          * Template parameters:
          *   Filtration -           filtration of the complex whose persistence we are computing
          */
-        template<class Filtration>      StaticPersistence(const Filtration& f);
+        template<class Filtration>      StaticPersistence(const Filtration& f): ocmp_(order_)   { initialize(f); }
+
+        // Function: initialize(const Filtration& f)
+        // Initialize the boundary map from the Filtration
+        template<class Filtration>
+        void                            initialize(const Filtration& f);
         
         // Function: pair_simplices()                                        
         // Compute persistence of the filtration

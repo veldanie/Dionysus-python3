@@ -83,6 +83,9 @@ class DynamicPersistenceTrails:
         typedef         typename Element::Trail                                         Trail;
         typedef         typename Element::Cycle                                         Cycle;
 
+         /* Constructor: DynamicPersistenceTrails() */
+                                        DynamicPersistenceTrails();
+
         /**
          * Constructor: DynamicPersistenceTrails()
          * TODO: write a description
@@ -92,6 +95,9 @@ class DynamicPersistenceTrails:
          */
         template<class Filtration>      DynamicPersistenceTrails(const Filtration& f);
         
+        template<class Filtration>
+        void                            initialize(const Filtration& f)                 { Parent::initialize(f); }
+
         void                            pair_simplices();
 
         // Function: transpose(i)
@@ -236,6 +242,9 @@ class DynamicPersistenceChains:
         typedef         typename Element::Chain                                         Chain;
         typedef         typename Element::Cycle                                         Cycle;
 
+        /* Constructor: DynamicPersistenceChains() */
+                                        DynamicPersistenceChains();
+
         /**
          * Constructor: DynamicPersistenceChains()
          * TODO: write a description
@@ -245,6 +254,8 @@ class DynamicPersistenceChains:
          */
         template<class Filtration>      DynamicPersistenceChains(const Filtration& f);
         
+        template<class Filtration>
+        void                            initialize(const Filtration& f)                 { Parent::initialize(f); }
         void                            pair_simplices();
 
         // Function: transpose(i)

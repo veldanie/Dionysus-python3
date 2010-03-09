@@ -18,7 +18,7 @@ class LinearKernel
 		static RootType				root(const T& r)									{ return r; }
 		static int					sign_at(const Function& f, const RootType& r)       { RootType y = f(r); if (y < 0) return -1; if (y > 0) return 1; return 0; }
 		static RootType				between(const RootType& r1, const RootType& r2)		{ return (r1 + r2)/2; }
-		static int					sign_at_negative_infinity(const Function& f)        { if (f.a1 < 0) return 1; if (f.a1 > 0) return -1; return 0; }
+		static int					sign_at_negative_infinity(const Function& f)        { if (f.a1 < 0) return 1; if (f.a1 > 0) return -1; if (f.a0 > 0) return 1; if (f.a0 < 0) return -1; return 0; }
 };
 
 template<class T>
