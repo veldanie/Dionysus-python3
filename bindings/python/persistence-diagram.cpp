@@ -2,6 +2,7 @@
 #include<utilities/types.h>
 
 #include<boost/python.hpp>
+#include<boost/python/init.hpp>
 #include<boost/shared_ptr.hpp>
 #include<boost/python/stl_iterator.hpp>
 #include <boost/python/def.hpp>
@@ -21,15 +22,6 @@ typedef PersistenceDiagram<Data> PersistenceDiagramD;
 
 namespace dp = dionysus::python;
 
-// TBD: Make the Data argument optional. Use bp::None ?
-template<class PDPoint>
-boost::shared_ptr< PDPoint >    init_from_coords( bp::object x_obj, bp::object y_obj, dp::Data d ){
-
-    RealType x = bp::extract<RealType>( x_obj ); RealType y = bp::extract<RealType>( y_obj );
-    boost::shared_ptr< PDPoint > p( new PDPoint( x, y, d ) );
-    return p;
-
-}
 
 template<class PDPoint>
 RealType    get_x_coord( const PDPoint& p ){
@@ -49,7 +41,7 @@ bp::object    get_data( const PDPoint& p ){
 void export_point( ){
 
     bp::class_<dp::PointD>("Point")
-    .def( "__init__", bp::make_constructor( &init_from_coords<dp::PointD> ) )
+    .def( bp::init< RealType, RealType, bp::optional<dp::Data>  >( ) )
     .add_property( "x", &get_x_coord<dp::PointD> )
     .add_property( "y", &get_y_coord<dp::PointD> )
     .add_property( "data", &get_data<dp::PointD> )
