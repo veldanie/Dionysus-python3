@@ -52,30 +52,44 @@ void export_point( ){
 
 
 
-template<class PersistenceDiagramD, class PointD>
-boost::shared_ptr<PersistenceDiagramD>    init_from_points_sequence( bp::object point_sequence ){
+template<class PersistenceDiagram, class Point>
+boost::shared_ptr<PersistenceDiagram>    init_from_points_sequence( bp::object point_sequence ){
 
-    typedef bp::stl_input_iterator<PointD> PointDIterator;
+    typedef bp::stl_input_iterator<Point> PointIterator;
 
-    PointDIterator beg = PointDIterator( point_sequence ), end = PointDIterator( );
+    PointIterator beg = PointIterator( point_sequence ), end = PointIterator( );
     // The following line is commented out until we can figure out the Evaluator class in make_point
-    //boost::shared_ptr<PersistenceDiagramD> p(  new PersistenceDiagramD( beg, end );
-    boost::shared_ptr<PersistenceDiagramD> p(  new PersistenceDiagramD( ) );
+    //boost::shared_ptr<PersistenceDiagram> p(  new PersistenceDiagram( beg, end );
+    boost::shared_ptr<PersistenceDiagram> p(  new PersistenceDiagram( ) );
 
-    for( PointDIterator cur=beg;  cur!=end; cur++ )
+    for( PointIterator cur=beg;  cur!=end; cur++ )
         (*p).push_back( *cur );
     return p;
 
+}
+
+
+template<class PersistenceDiagram>
+Dimension get_dimension( PersistenceDiagram dgm ){
+    return dgm.dimension( );
+}
+
+template<class PersistenceDiagram>
+SizeType get_length( PersistenceDiagram dgm ){
+    return dgm.size( );
 }
 
 void export_persistence_diagram( ){
 
     bp::class_<dp::PersistenceDiagramD>("PersistenceDiagram")
     .def( "__init__", bp::make_constructor(  &init_from_points_sequence< dp::PersistenceDiagramD, dp::PointD > ) )
+    .def( bp::init< Dimension >( ) )
     .def( "append", &dp::PersistenceDiagramD::push_back )
     .add_property( "points", bp::range( &dp::PersistenceDiagramD::begin, &dp::PersistenceDiagramD::end ) )
+    .add_property( "dimension", &get_dimension<dp::PersistenceDiagramD> )
     .def( repr(bp::self) )
     .def( "__sub__", &bottleneck_distance<dp::PersistenceDiagramD,dp::PersistenceDiagramD> )
+    .def( "__len__", &get_length<dp::PersistenceDiagramD> )
     ;
 
     bp::def( "BottleneckDistance", bottleneck_distance<dp::PersistenceDiagramD,dp::PersistenceDiagramD> );

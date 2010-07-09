@@ -85,6 +85,9 @@ class PersistenceDiagram
 
                                 PersistenceDiagram()                        {}
 
+                                PersistenceDiagram( Dimension dimension ):  
+                                    dimension_( dimension )                  {}
+
         template<class OtherData>
                                 PersistenceDiagram(const PersistenceDiagram<OtherData>& other);
 
@@ -110,8 +113,11 @@ class PersistenceDiagram
         
         std::ostream&           operator<<(std::ostream& out) const;
 
+        const Dimension&        dimension( ) const                          { return dimension_; }
+
     private:
         PointVector             points_;
+        Dimension               dimension_;
 	
     private:
 		/* Serialization */

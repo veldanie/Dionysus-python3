@@ -26,3 +26,13 @@ def data_dim_cmp(s1,s2):
 
 def vertex_dim_cmp(s1, s2):
     return cmp(s1.dimension(), s2.dimension()) or vertex_cmp(s1, s2)
+
+# TBD: Port this into C++
+def point_iterator( point ):
+
+    yield point.x
+    yield point.y
+    if not point.data is None:
+        yield point.data
+
+Point.__iter__ = point_iterator
