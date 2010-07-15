@@ -37,19 +37,6 @@ Dionysus requires the following software:
   :Boost_:              C++ utilities (version :math:`\geq` 1.36; including Boost.Python used to create
                         Python bindings)
 
-.. warning::
-
-    There also seems to be a dependence on the version of GCC, although I don't
-    entirely understand it. GCC 4.3 and above definitely work, but some versions
-    below that seem not to.
-
-    One particular catch is that the default compiler on many current Mac OS X
-    is GCC 4.0 that has a well-known bug making Dionysus unusable. Fortunately
-    the problem is easy to solve by using GCC 4.2 that is often available on a
-    Mac under the name ``gcc-4.2``.
-
-    One can check the compiler version with ``g++ --version`` command.
-
 Optional dependencies:
 
   :CGAL_:               for alpha shapes and vineyards   (version :math:`\geq` 3.4)

@@ -55,7 +55,7 @@ Usually, because of space restrictions, generation of a Rips complex has to be
 restricted to a :math:`k`-skeleton of the complex and some maximal parameter
 :math:`max`. In the following example :math:`k = 3` and :math:`max = 50`::
 
-    simplices = []
+    simplices = Filtration()
     rips.generate(3, 50, simplices.append)
 
 :meth:`Rips.generate` takes a skeleton and a maximum distance cutoffs, and a
