@@ -85,7 +85,7 @@ void export_persistence_diagram( ){
     .def( "__init__", bp::make_constructor(  &init_from_points_sequence< dp::PersistenceDiagramD, dp::PointD > ) )
     .def( bp::init< Dimension >( ) )
     .def( "append", &dp::PersistenceDiagramD::push_back )
-    .add_property( "points", bp::range( &dp::PersistenceDiagramD::begin, &dp::PersistenceDiagramD::end ) )
+    .add_property( "intervals", bp::range( &dp::PersistenceDiagramD::begin, &dp::PersistenceDiagramD::end ) )
     .add_property( "dimension", &get_dimension<dp::PersistenceDiagramD> )
     .def( repr(bp::self) )
     .def( "__sub__", &bottleneck_distance<dp::PersistenceDiagramD,dp::PersistenceDiagramD> )
