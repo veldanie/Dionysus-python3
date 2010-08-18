@@ -21,3 +21,5 @@ The following classes are available in the module:
     alphashapes.rst
     rips.rst
     zigzag-persistence.rst
+    point.rst
+    persistence-diagram.rst

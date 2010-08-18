@@ -45,7 +45,7 @@ def persistence_diagram_iterator( self ):
 
     # self.intervals is an iterator object,
     # whose next method returns a Point object
-    for intv in self.intervals:
+    for intv in self.points:
         yield [ x for x in intv ]
 
 PersistenceDiagram.__iter__ = persistence_diagram_iterator
