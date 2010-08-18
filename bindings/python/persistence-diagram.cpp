@@ -53,14 +53,14 @@ void export_point( ){
 
 
 template<class PersistenceDiagram, class Point>
-boost::shared_ptr<PersistenceDiagram>    init_from_points_sequence( bp::object point_sequence ){
+boost::shared_ptr<PersistenceDiagram>    init_from_points_sequence( Dimension dimension, bp::object point_sequence ){
 
     typedef bp::stl_input_iterator<Point> PointIterator;
 
     PointIterator beg = PointIterator( point_sequence ), end = PointIterator( );
     // The following line is commented out until we can figure out the Evaluator class in make_point
     //boost::shared_ptr<PersistenceDiagram> p(  new PersistenceDiagram( beg, end );
-    boost::shared_ptr<PersistenceDiagram> p(  new PersistenceDiagram( ) );
+    boost::shared_ptr<PersistenceDiagram> p(  new PersistenceDiagram( dimension ) );
 
     for( PointIterator cur=beg;  cur!=end; cur++ )
         (*p).push_back( *cur );
