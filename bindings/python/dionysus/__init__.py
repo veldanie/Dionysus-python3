@@ -36,16 +36,3 @@ def point_iterator( point ):
         yield point.data
 
 Point.__iter__ = point_iterator
-
-def persistence_diagram_iterator( self ):
-    """
-    This returns a list of lists.
-    Whereas the intervals iterator returns a list of dionysus.Point objects
-    """
-
-    # self.intervals is an iterator object,
-    # whose next method returns a Point object
-    for intv in self.points:
-        yield [ x for x in intv ]
-
-PersistenceDiagram.__iter__ = persistence_diagram_iterator

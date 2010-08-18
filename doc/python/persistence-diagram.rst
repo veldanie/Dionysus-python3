@@ -24,22 +24,17 @@
 
         Dimension of the persistence diagram. Must be an integer. Must be set at initialization.
 
-    .. attribute:: points
+    .. method:: __iter__( )
 
         Iterator over the points in the persistence diagram,
         e.g.::
             
-            for p in dia.points: print p
+            for p in dia: print p
 
     .. method:: __len__( )
 
         :returns: The number of points in the diagram.
 
-    .. method:: __iter__( )
-
-        Provides another way to access the :attr:`~PersistenceDiagram.points` iterator, e.g.::
-
-            for p in dia: print p
 
 
 Utility functions for persistence diagrams
