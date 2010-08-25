@@ -74,7 +74,7 @@ than its pure C++ analog)::
         def __len__(self):
             return len(self.points)
 
-        def __call__(self, x, y):
+        def __call__(self, p1, p2):
             return self.norm([x - y for (x,y) in zip(self.points[p1], self.points[p2])])
 
 Another distances class is available that speeds up the computation of the Rips
@@ -87,7 +87,7 @@ the future::
     distances = ExplicitDistances(distances)
 
 With :class:`PairwiseDistances` being a C++ class, and
-:class:`ExplicitDistances` being pure Python, the speead-up seems minor.
+:class:`ExplicitDistances` being pure Python, the speed-up seems minor.
 
 
 Example

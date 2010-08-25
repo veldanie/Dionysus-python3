@@ -60,7 +60,7 @@ Utility functions for manipulating simplices
 
 The first function :func:`vertex_cmp` is a Python interface to a C++ function.
 The rest are pure Python functions defined in
-:sfile:`bindings/python/dionysis/__init__.py`.
+:sfile:`bindings/python/dionysus/__init__.py`.
 
 .. function:: vertex_cmp(s1, s2)
     
