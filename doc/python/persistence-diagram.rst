@@ -47,9 +47,6 @@ Utility functions for persistence diagrams
 
 
 
-:class:`Point` class
-======================
-
 .. class:: Point
 
     .. method:: __init__( x, y [, data])

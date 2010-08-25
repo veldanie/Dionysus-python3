@@ -28,7 +28,7 @@ sys.path.append('.')
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 
               #'sphinx.ext.jsmath',  'ext.sprite_jsmath', 
               'sphinx.ext.pngmath',
-              'ext.sfile', 'ext.cppdocs']
+              'ext.sfile']
 todo_include_todos = True
 
 jsmath_path = 'jsMath/easy/load.js'
