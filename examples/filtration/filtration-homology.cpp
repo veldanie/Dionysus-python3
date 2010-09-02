@@ -15,7 +15,7 @@ typedef         unsigned                                                Vertex;
 typedef         Simplex<Vertex>                                         Smplx;
 typedef         Filtration<Smplx>                                       Fltr;
 typedef         DynamicPersistenceChains<>                              Persistence;
-typedef         typename Persistence::Chain                             Chain;
+typedef         Persistence::Chain                                      Chain;
 typedef         PersistenceDiagram<>                                    PDgm;
 
 void            program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, std::string& diagram_name, Dimension& cycle_dimension, std::string& cycle_filename);
@@ -135,6 +135,6 @@ void            read_filtration(const std::string& filename, Fltr& filtration)
 void    output_chain(std::ostream& out, const Chain& chain, const Persistence& persistence)
 {
     out << "---\n";
-    for (typename Chain::const_iterator iter = chain.begin(); iter != chain.end(); ++iter)
+    for (Chain::const_iterator iter = chain.begin(); iter != chain.end(); ++iter)
         out << persistence.iterator_to(*iter) - persistence.begin() << '\n';
 }
