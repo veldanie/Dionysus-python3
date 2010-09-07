@@ -36,3 +36,16 @@ def point_iterator( point ):
         yield point.data
 
 Point.__iter__ = point_iterator
+
+def closure(simplices, k):
+    """Compute the k-skeleton of the closure of the list of simplices."""
+
+    res = set()
+
+    from    itertools   import combinations
+    for s in simplices:
+        for kk in xrange(1, k+2):
+            for face in combinations(s.vertices, kk):
+                res.add(Simplex(face))
+
+    return list(res)
