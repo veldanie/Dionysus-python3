@@ -64,7 +64,7 @@
 
             smap = persistence.make_simplex_map(filtration)
             for i in persistence:
-                for ii in i.cycle(): print smap[ii]
+                for ii in i.cycle: print smap[ii]
 
     .. method:: unpaired()
 
