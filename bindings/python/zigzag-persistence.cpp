@@ -10,6 +10,9 @@ namespace bp = boost::python;
 #include "optional.h"
 namespace dp = dionysus::python;
 
+#include <sstream>
+#include <string>
+
 
 // ZigzagPersistence
 bp::tuple                           zzp_add(dp::ZZPersistence& zzp, bp::object bdry, dp::BirthID birth)
@@ -33,6 +36,10 @@ dp::ZZPersistence::Death            zzp_remove(dp::ZZPersistence& zzp, dp::ZZPer
     return zzp.remove(s, birth); 
 }
 
+bool                                zzp_is_alive(dp::ZZPersistence& zzp, const dp::ZZPersistence::ZNode& zn)
+{
+    return zzp.is_alive(zn);
+}
 
 // ImageZigzagPersistence
 bp::tuple                           izzp_add(dp::IZZPersistence& izzp, bp::object bdry, bool subcomplex, dp::BirthID birth)
@@ -64,11 +71,30 @@ unsigned                            si_order(T& si)
     return si->order;
 }
 
+template<class T>
+std::string                         si_repr(T& si)
+{
+    std::ostringstream out; out << "SimplexIndex <" << si->order << ">";
+    return out.str();
+}
+
+// ZNode
+dp::ZZPersistence::ZColumn::const_iterator
+znode_zcolumn_begin(dp::ZZPersistence::ZNode& zn)
+{ return zn.z_column.begin(); }
+
+dp::ZZPersistence::ZColumn::const_iterator
+znode_zcolumn_end(dp::ZZPersistence::ZNode& zn)
+{ return zn.z_column.end(); }
+
+
 
 void export_zigzag_persistence()
 {
     bp::class_<dp::ZZPersistence::SimplexIndex>("ZZSimplexIndex")
-        .def("order",           &si_order<dp::ZZPersistence::SimplexIndex>);
+        .def("order",           &si_order<dp::ZZPersistence::SimplexIndex>)
+        .def("__repr__",        &si_repr<dp::ZZPersistence::SimplexIndex>)
+    ;
     
     bp::class_<dp::IZZPersistence::SimplexIndex>("IZZSimplexIndex")
         .def("order",           &si_order<dp::IZZPersistence::SimplexIndex>);
@@ -76,10 +102,17 @@ void export_zigzag_persistence()
     bp::class_<dp::ZZPersistence>("ZigzagPersistence")
         .def("add",             &zzp_add)
         .def("remove",          &zzp_remove)
+        .def("is_alive",        &zzp_is_alive)
+        .def("__iter__",        bp::range(&dp::ZZPersistence::begin, &dp::ZZPersistence::end))
     ;
     
     bp::class_<dp::IZZPersistence>("ImageZigzagPersistence")
         .def("add",             &izzp_add)
         .def("remove",          &izzp_remove)
+    ;
+
+    bp::class_<dp::ZZPersistence::ZNode>("ZNode", bp::no_init)
+        .add_property("birth",  &dp::ZZPersistence::ZNode::birth)
+        .def("__iter__",        bp::range(&znode_zcolumn_begin, &znode_zcolumn_end))
     ;
 }

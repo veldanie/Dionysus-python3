@@ -87,6 +87,7 @@ void export_simplex()
 
         .def("__hash__",            &hash_simplex<dp::Vertex, dp::Data>)
         .def("__eq__",              &eq_simplex<dp::Vertex, dp::Data>)
+        .enable_pickling()
     ;
 
     bp::class_<dp::SimplexObject>("SimplexObject")
