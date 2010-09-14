@@ -55,7 +55,7 @@
 
         Simplex's pair. The pair is set to self if the siplex is unpaired.
 
-    .. method:: cycle()
+    .. attribute:: cycle
 
         If the simplex is negative, its cycle (that it kills) is non-empty, and
         can be accessed using this method. The cycle itself is an iterable
@@ -70,9 +70,43 @@
 
         Indicates whether the simplex is unpaired.
 
-.. class:: PersistenceSimplexMap
+.. class:: SPersistenceSimplexMap
 
     .. method:: __getitem__(i)
 
         Given a persistence index, i.e. an :class:`SPNode`, returns the
         :class:`Simplex` it represents.
+
+
+:class:`DynamicPersistenceChains` class
+=======================================
+
+.. class:: DynamicPersistenceChains
+
+    This class works exactly like :class:`StaticPersistence`, providing all the
+    same methods. The only difference is that when iterating over it, the
+    elements are of type :class:`DPCNode`, described below. 
+
+.. class:: DPCNode
+
+    This class works just like :class:`SPNode`, except it has an additional
+    attribute :attr:`chain`. 
+
+    .. attribute:: chain
+    
+        It allows one to retrieve the "chain" associated with the simplex. 
+        (In terms of the :math:`R = DV` decomposition, it gives access to the
+        columns of the matrix :math:`V`.) In case of the positive simplex, this
+        is a cycle created by the addition of this simplex.  This access is
+        particularly useful for the unpaired positive simplices, allowing one to
+        recover the cycles they create. In case of the negative simplex, this chain's
+        boundary is exactly what's stored in the :attr:`~SPNode.cycle` attribute.
+    
+        For example, to print out all the essential cycles of the complex, one
+        can run the following loop::
+
+            smap = persistence.make_simplex_map(filtration)
+            for i in persistence:
+                if i.unpaired()
+                    for ii in i.chain: print smap[ii]
+
