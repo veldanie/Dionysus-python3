@@ -35,6 +35,29 @@ The :ref:`triangle-zigzag-example` illustrates the use of :class:`ZigzagPersiste
                   :meth:`~ZigzagPersistence.remove` when the class that just
                   died was born.
 
+    .. method:: is_alive(z)
+
+        Determines whether a given cycle is alive. The input should be an
+        instance of :class:`ZNode`.
+
+    .. method:: __iter__()
+
+        Iterator over elements of type :class:`ZNode`, i.e. the cycles stored in the structure.
+
+.. class:: ZNode
+
+    .. attribute:: birth
+
+        The birth value associated with the cycle. It is passed to
+        :class:`ZigzagPersistence` in method
+        :meth:`~ZigzagPersistence.add`.
+
+    .. method:: __iter__()
+
+        Iterator over the individual nodes (simplices) of the cycle (same
+        indices that are passed to and returned by
+        :meth:`~ZigzagPersistence.add`.
+
 
 Auxilliary functions
 --------------------
