@@ -17,6 +17,10 @@ Simplex.__init__   =    init_with_none
 Simplex._cpp_repr_ =    Simplex.__repr__
 Simplex.__repr__   =    repr_with_data
 
+def Simplex_getinitargs(self):
+    return ([v for v in self.vertices], self.data)
+
+Simplex.__getinitargs__ = Simplex_getinitargs
 
 def data_cmp(s1, s2):
     return cmp(s1.data, s2.data)
