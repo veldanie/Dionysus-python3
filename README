@@ -17,7 +17,7 @@
 [boost]:        http://www.boost.org
 [Doxygen]:      http://www.stack.nl/~dimitri/doxygen/
 [rlog]:         http://www.arg0.net/rlog
-[SYNAPS]:       http://www-sop.inria.fr/galaad/synaps/
+[SYNAPS]:       http://synaps.inria.fr/
 
 ## Building
   To build examples, create a directory build (to keep everything in one place),
