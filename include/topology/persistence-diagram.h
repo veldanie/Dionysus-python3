@@ -113,7 +113,7 @@ class PersistenceDiagram
         
         std::ostream&           operator<<(std::ostream& out) const;
 
-        const Dimension&        dimension( ) const                          { return dimension_; }
+        Dimension               dimension() const                           { return dimension_; }
 
     private:
         PointVector             points_;
