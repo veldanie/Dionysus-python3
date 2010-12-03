@@ -18,7 +18,7 @@ if                              (CGAL_FOUND)
 
     foreach                     (t ${targets})
         add_executable          (${t} ${t}.cpp)
-        target_link_libraries   (${t} ${libraries} ${CGAL_LIBRARY})
+        target_link_libraries   (${t} ${libraries} ${CGAL_LIBRARY} ${CGAL_3RD_PARTY_LIBRARIES})
     endforeach                  (t ${targets})
 else                            (CGAL_FOUND)
     message(STATUS "CGAL not found, therefore alphashapes will not be built.")

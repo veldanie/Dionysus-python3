@@ -28,7 +28,7 @@ if                          (CGAL_FOUND)
     add_definitions         (${CGAL_CXX_FLAGS_INIT})
     include_directories     (${CGAL_INCLUDE_DIRS})
 
-    link_libraries          (${CGAL_LIBRARY})                                            
+    link_libraries          (${CGAL_LIBRARY} ${CGAL_3RD_PARTY_LIBRARIES})
 else                            (CGAL_FOUND)
     message(STATUS "CGAL not found, alphashape bindings will not be built")
     add_definitions         (-DNO_CGAL)
