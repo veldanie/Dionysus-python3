@@ -43,6 +43,10 @@ functionality, their documentation may be a helpful resource for the latter.
 :ref:`Download <download>` the software, or read a :ref:`tutorial` to
 get acquainted with its structure.
 
+The library is distributed under the GPL_ license.
+
+.. _GPL: http://www.gnu.org/licenses/gpl.html
+
 .. include::    substitutions.aux
 
 
