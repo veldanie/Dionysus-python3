@@ -52,7 +52,7 @@ boost::shared_ptr<dp::PersistenceDiagramD>      init_from_points_sequence(Dimens
 
 }
 
-RealType    bottleneck_distnace_adapter(const dp::PersistenceDiagramD& dgm1, const dp::PersistenceDiagramD& dgm2)
+RealType    bottleneck_distance_adapter(const dp::PersistenceDiagramD& dgm1, const dp::PersistenceDiagramD& dgm2)
 {
     return bottleneck_distance(dgm1, dgm2);
 }    
@@ -69,5 +69,5 @@ void export_persistence_diagram()
         .def("__len__",             &dp::PersistenceDiagramD::size)
     ;
 
-    bp::def("bottleneck_distance",  &bottleneck_distnace_adapter);
+    bp::def("bottleneck_distance",  &bottleneck_distance_adapter);
 }
