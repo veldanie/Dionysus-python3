@@ -28,6 +28,9 @@ def data_cmp(s1, s2):
 def data_dim_cmp(s1,s2):
     return cmp(s1.dimension(), s2.dimension()) or data_cmp(s1,s2)
 
+def dim_data_cmp(s1,s2):
+    return data_cmp(s1,s2) or cmp(s1.dimension(), s2.dimension())
+
 def vertex_dim_cmp(s1, s2):
     return cmp(s1.dimension(), s2.dimension()) or vertex_cmp(s1, s2)
 
@@ -50,6 +53,6 @@ def closure(simplices, k):
     for s in simplices:
         for kk in xrange(1, k+2):
             for face in combinations(s.vertices, kk):
-                res.add(Simplex(face))
+                res.add(Simplex(face, s.data))
 
     return list(res)
