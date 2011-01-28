@@ -52,7 +52,7 @@ def closure(simplices, k):
     from    itertools   import combinations
     for s in simplices:
         for kk in xrange(1, k+2):
-            for face in combinations(s.vertices, kk):
+            for face in combinations(s.vertices, min(s.dimension() + 1, kk)):
                 res.add(Simplex(face, s.data))
 
     return list(res)
