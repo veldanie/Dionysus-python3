@@ -5,7 +5,7 @@ AlphaSimplex2D::
 AlphaSimplex2D(const Delaunay2D::Vertex& v): alpha_(0), attached_(false)
 {
 	for (int i = 0; i < 3; ++i)
-		if (v.face()->vertex(i)->point() == v.point())
+		if (v.face()->vertex(i) != Vertex_handle() && v.face()->vertex(i)->point() == v.point())
 			Parent::add(v.face()->vertex(i));
 }
 
@@ -26,13 +26,18 @@ AlphaSimplex2D(const Delaunay2D::Edge& e, const SimplexSet& simplices, const Del
 		if (i != e.second)
 			Parent::add(f->vertex(i));
 
-	Face_handle o = f->neighbor(e.second);
-	int oi = o->index(f);
-
 	VertexSet::const_iterator v = static_cast<const Parent*>(this)->vertices().begin();
 	const Point& p1 = (*v++)->point();
 	const Point& p2 = (*v)->point();
 	
+	Face_handle o = f->neighbor(e.second);
+    if (o == Face_handle())
+    {
+        alpha_ = squared_radius(p1, p2);
+        return;
+    }
+	int oi = o->index(f);
+
 	attached_ = false;
 	if (!Dt.is_infinite(f->vertex(e.second)) &&
         CGAL::side_of_bounded_circle(p1, p2, 
