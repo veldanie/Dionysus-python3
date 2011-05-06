@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 # Author: Dmitriy Morozov <morozov@cs.duke.edu>
 # (2004-2008) Department of Computer Science, Duke University
@@ -14,7 +14,7 @@ class PersistenceDiagram:
             ymin = math.floor(min(self.ymin,-1) - radius - 1)
         else:
             xmin,ymin,xmax,ymax = dimensions
-        
+
         minmax = min([xmax, ymax])
         maxmin = max([xmin, ymin])
         for i in xrange(int(math.floor(xmin)),int(math.ceil(xmax)), spacing):
@@ -65,7 +65,7 @@ class PersistenceDiagram:
             self.drawAxes(c, radius, axes, dimensions)
             self.drawCanvas(c, self.points[d], color, filled, radius)
             c.writePDFfile(filename + str(d))
-    
+
     def add(self, d, p, filter):
         x,y = p
         p = filter(x,y)
@@ -82,16 +82,16 @@ class PersistenceDiagram:
         if abs(y) != float('inf'):
             self.ymax = max(y,self.ymax)
             self.ymin = min(y,self.ymin)
-    
+
     def load(self,filename, filter):
         self.xmax = self.ymax = 0
         self.xmin = self.ymin = 0
         f = file(filename, 'r')
         for line in f:
             if line.strip().startswith('#'): continue
-            dim,xstr,ystr = string.split(line)
+            dim,xstr,ystr = string.split(line)[:3]
             self.add(dim, (float(xstr),float(ystr)), filter)
-    
+
     def __init__(self, filename, filter = lambda x,y: (x,y)):
         self.points = {}
         self.load(filename, filter)
