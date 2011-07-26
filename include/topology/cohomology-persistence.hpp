@@ -26,6 +26,7 @@ static Counter*  cCohomologyAddBasic =                  GetCounter("cohomology/a
 static Counter*  cCohomologyAddComparison =             GetCounter("cohomology/add/comparison");
 static Counter*  cCohomologyElementCount =              GetCounter("cohomology/elements");
 static Counter*  cCohomologyCocycleCount =              GetCounter("cohomology/cocycles");
+static Counter*  cCohomologyCandidatesCount =           GetCounter("cohomology/candidates");
 #endif // COUNTERS
 
 template<class BirthInfo, class SimplexData, class Field>
@@ -83,6 +84,7 @@ add(CI coefficient_iter, BI begin, BI end, BirthInfo birth, bool store, const Si
     }
 
     candidates_bulk.sort(make_first_comparison(make_indirect_comparison(std::less<Cocycle>())));
+    CountBy(cCohomologyCandidatesCount, candidates_bulk.size());
     
 #if LOGGING    
     rLog(rlCohomology,  "  Candidates bulk");
