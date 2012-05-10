@@ -25,7 +25,7 @@ void export_static_persistence()
 
     bp::class_<dp::SPersistence>("StaticPersistence", bp::no_init)
         .def("__init__",        bp::make_constructor(&dp::init_from_filtration<dp::SPersistence>))
-        
+
         .def("pair_simplices",  &pair_simplices)
         .def("__call__",        &dp::distance<dp::SPersistence, dp::SPersistenceIndex>)
         .def("make_simplex_map",&dp::SPersistence::make_simplex_map<dp::PythonFiltration>)

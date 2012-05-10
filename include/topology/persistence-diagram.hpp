@@ -62,10 +62,10 @@ make_point(Iterator i, const Evaluator& evaluator, const Visitor& visitor)
     RealType y = Infinity;
     if (&*(i->pair) != &*i)
         y = evaluator(&*(i->pair));
-    
+
     Point p(x,y);
     visitor.point(i, p);
-    
+
     if (x == y) return boost::optional<Point>();
 
     return p;
@@ -116,8 +116,8 @@ template<class D>
 template<class Archive>
 void 
 PDPoint<D>::
-serialize(Archive& ar, version_type )									
-{ 
+serialize(Archive& ar, version_type )
+{
     ar & make_nvp("x", x()); 
     ar & make_nvp("y", y()); 
     ar & make_nvp("data", data());
@@ -127,9 +127,9 @@ template<class D>
 template<class Archive>
 void 
 PersistenceDiagram<D>::
-serialize(Archive& ar, version_type )									
-{ 
-    ar & make_nvp("points", points_); 
+serialize(Archive& ar, version_type )
+{
+    ar & make_nvp("points", points_);
 }
 
 
@@ -148,7 +148,7 @@ struct Edge: public std::pair<unsigned, unsigned>
                     Edge(unsigned v1, unsigned v2, RealType d):
                         Parent(v1, v2), distance(d)                     {}
 
-    bool            operator<(const Edge& other) const                  { return distance < other.distance; }                    
+    bool            operator<(const Edge& other) const                  { return distance < other.distance; }
 
     RealType        distance;
 };
@@ -242,6 +242,6 @@ RealType                bottleneck_distance(const Diagram1& dgm1, const Diagram2
                                                             EV_counting_const_iterator(edges.end()), 
                                                             edges.begin(),
                                                             CardinaliyComparison(max_size, edges.begin()));
-    
+
     return (*bdistance)->distance;
 }
