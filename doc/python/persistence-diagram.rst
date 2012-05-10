@@ -46,11 +46,11 @@ Utility functions for persistence diagrams
 
 .. function:: init_diagrams(persistence, filtration[, eval = lambda s: s.data[, data = lambda i: None]])
 
-    Initializes a collection of :class:`PersistenceDiagram`s from `persistence`
+    Initializes a collection of :class:`PersistenceDiagram` instances from `persistence`
     and `filtration`. Optional `eval` can determine how to extract birth and
     death values from a simplex. For example, if `filtration` was filled using
-    :fun:`fill_alpha_complex()`, the :attr:`~Simplex.data` contains a pair ``(value, critical)``.
-    We can extract the value from the tuple::
+    :func:`fill_alpha_complex()`, the :attr:`~Simplex.data` contains a pair ``(value, critical)``.
+    We can extract the ``value`` from the tuple::
 
         init_diagrams(persistence, filtration, lambda s: s.data[0])
 
@@ -60,3 +60,8 @@ Utility functions for persistence diagrams
 .. function:: bottleneck_distance(dia1, dia2)
 
     Calculates the bottleneck distance between the two persistence diagrams.
+
+.. function:: wasserstein_distance(dia1, dia2, p)
+
+    Calculates the `p`-th Wasserstein distance between the two persistence diagrams.
+
