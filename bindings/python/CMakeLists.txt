@@ -18,6 +18,7 @@ set                         (sources
                                                 cohomology-persistence.cpp
                                                 rips.cpp
                                                 distances.cpp
+                                                ../../include/utilities/munkres/munkres.cpp
                             )
 set                         (bindings_libraries ${libraries})
 

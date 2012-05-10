@@ -1,6 +1,8 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include "utilities/munkres/munkres.h"
+
 using boost::serialization::make_nvp;
 
 template<class D>
@@ -19,7 +21,7 @@ PersistenceDiagram<D>::
 PersistenceDiagram(const PersistenceDiagram<OtherData>& other)
 {
     points_.reserve(other.size());
-    for (typename PersistenceDiagram<OtherData>::PointVector::const_iterator cur = points_.begin(); 
+    for (typename PersistenceDiagram<OtherData>::PointVector::const_iterator cur = points_.begin();
                                                                              cur != points_.end(); ++cur)
         push_back(Point(cur->x(), cur->y()));
 }
@@ -73,8 +75,8 @@ make_point(Iterator i, const Evaluator& evaluator, const Visitor& visitor)
 
 template<class Diagrams, class Iterator, class Evaluator, class DimensionExtractor>
 void    init_diagrams(Diagrams& diagrams,
-                      Iterator bg, Iterator end, 
-                      const Evaluator& evaluator, 
+                      Iterator bg, Iterator end,
+                      const Evaluator& evaluator,
                       const DimensionExtractor& dimension)
 {
     // FIXME: this is specialized for Diagrams that is std::map
@@ -85,8 +87,8 @@ void    init_diagrams(Diagrams& diagrams,
 
 template<class Diagrams, class Iterator, class Evaluator, class DimensionExtractor, class Visitor>
 void    init_diagrams(Diagrams& diagrams,
-                      Iterator bg, Iterator end, 
-                      const Evaluator& evaluator, 
+                      Iterator bg, Iterator end,
+                      const Evaluator& evaluator,
                       const DimensionExtractor& dimension,
                       const Visitor& visitor)
 {
@@ -114,18 +116,18 @@ operator<<(std::ostream& out) const
 
 template<class D>
 template<class Archive>
-void 
+void
 PDPoint<D>::
 serialize(Archive& ar, version_type )
 {
-    ar & make_nvp("x", x()); 
-    ar & make_nvp("y", y()); 
+    ar & make_nvp("x", x());
+    ar & make_nvp("y", y());
     ar & make_nvp("data", data());
 }
 
 template<class D>
 template<class Archive>
-void 
+void
 PersistenceDiagram<D>::
 serialize(Archive& ar, version_type )
 {
@@ -134,7 +136,7 @@ serialize(Archive& ar, version_type )
 
 
 /**
- * Some structures to compute bottleneck distance between two persistence diagrams (in bottleneck_distance() function below) 
+ * Some structures to compute bottleneck distance between two persistence diagrams (in bottleneck_distance() function below)
  * by setting up bipartite graphs, and finding maximum cardinality matchings in them using Boost Graph Library.
  */
 #include <boost/iterator/counting_iterator.hpp>
@@ -172,7 +174,7 @@ struct CardinaliyComparison
 
         // FIXME: the matching is being recomputed from scratch every time, this should be fixed
         if (i2 > last)
-            do 
+            do
             {
                 ++last;
                 boost::add_edge(last->first, last->second, g);
@@ -238,10 +240,87 @@ RealType                bottleneck_distance(const Diagram1& dgm1, const Diagram2
 
     // Perform cardinality based binary search
     typedef boost::counting_iterator<EV_const_iterator>         EV_counting_const_iterator;
-    EV_counting_const_iterator bdistance = std::upper_bound(EV_counting_const_iterator(edges.begin()), 
-                                                            EV_counting_const_iterator(edges.end()), 
+    EV_counting_const_iterator bdistance = std::upper_bound(EV_counting_const_iterator(edges.begin()),
+                                                            EV_counting_const_iterator(edges.end()),
                                                             edges.begin(),
                                                             CardinaliyComparison(max_size, edges.begin()));
 
     return (*bdistance)->distance;
+}
+
+// Wasserstein distance
+template<class Diagram>
+RealType
+wasserstein_distance(const Diagram& dgm1, const Diagram& dgm2, unsigned p)
+{
+    typedef         RealType                    Distance;
+    typedef         typename Diagram::Point     Point;
+    typedef         Linfty<Point, Point>        Norm;
+
+    unsigned size = dgm1.size() + dgm2.size();
+    Norm norm;
+
+    // Setup the matrix
+    Matrix<Distance>        m(size,size);
+    for (unsigned i = 0; i < dgm1.size(); ++i)
+        for (unsigned j = 0; j < dgm2.size(); ++j)
+        {
+            const Point& p1 = *(dgm1.begin() + i);
+            const Point& p2 = *(dgm2.begin() + j);
+            m(i,j) = pow(norm(p1, p2),  p);
+            m(j + dgm1.size(), i + dgm2.size()) = 0;
+        }
+
+    for (unsigned i = 0; i < dgm1.size(); ++i)
+        for (unsigned j = dgm2.size(); j < size; ++j)
+        {
+            const Point& p1 = *(dgm1.begin() + i);
+            m(i,j) = pow(norm.diagonal(p1), p);
+        }
+
+    for (unsigned j = 0; j < dgm2.size(); ++j)
+        for (unsigned i = dgm1.size(); i < size; ++i)
+        {
+            const Point& p2 = *(dgm2.begin() + j);
+            m(i,j) = pow(norm.diagonal(p2), p);
+        }
+
+    // Compute weighted matching
+    Munkres munkres;
+    munkres.solve(m);
+
+    // Assume everything is assigned (i.e., that we have a perfect matching)
+    Distance sum = 0;
+    for (unsigned i = 0; i < size; i++)
+        for (unsigned j = 0; j < size; j++)
+            if (m(i,j) == 0)
+            {
+                //std::cout << i << ": " << j << '\n';
+                //sum += m[i][j];
+                if (i >= dgm1.size())
+                {
+                    if (j >= dgm2.size())
+                        sum += 0;
+                    else
+                    {
+                        const Point& p2 = *(dgm2.begin() + j);
+                        sum += pow(norm.diagonal(p2), p);
+                    }
+                } else
+                {
+                    if (j >= dgm2.size())
+                    {
+                        const Point& p1 = *(dgm1.begin() + i);
+                        sum += pow(norm.diagonal(p1), p);
+                    } else
+                    {
+                        const Point& p1 = *(dgm1.begin() + i);
+                        const Point& p2 = *(dgm2.begin() + j);
+                        sum += pow(norm(p1, p2),  p);
+                    }
+                }
+                break;
+            }
+
+    return sum;
 }

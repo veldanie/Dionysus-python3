@@ -223,4 +223,5 @@ void export_persistence_diagram()
                                       bp::arg("data")=bp::object()));
 
     bp::def("bottleneck_distance",  &bottleneck_distance_adapter);
+    bp::def("wasserstein_distance", &wasserstein_distance<dp::PersistenceDiagramD>);
 }

@@ -169,6 +169,9 @@ template<class Diagram1,
 RealType                bottleneck_distance(const Diagram1& dgm1, const Diagram2& dgm2)
 { return bottleneck_distance(dgm1, dgm2, Linfty<typename Diagram1::Point, typename Diagram2::Point>()); }
 
+template<class Diagram>
+RealType                wasserstein_distance(const Diagram& dgm1, const Diagram& dgm2, unsigned p);
+
 
 #include "persistence-diagram.hpp"
 
