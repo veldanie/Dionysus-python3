@@ -46,4 +46,7 @@ private:
 	int saverow, savecol;
 };
 
+// DM: This is dangerous, but will do for now
+#include "munkres.cpp"
+
 #endif /* !defined(_MUNKRES_H_) */
