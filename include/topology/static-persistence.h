@@ -128,7 +128,6 @@ class StaticPersistence
         };
         OrderModifier                   modifier()                                              { return OrderModifier(order()); }
 
-    protected:
         // Function: pair_simplices(bg, end)
         // Compute persistence of the simplices in filtration between bg and end
         template<class Visitor>
@@ -165,6 +164,7 @@ class StaticPersistence
             void                        finished(iterator j) const                              {}
         };
 
+    protected:
         const Order&                    order() const                                           { return order_; }
         Order&                          order()                                                 { return order_; }
 

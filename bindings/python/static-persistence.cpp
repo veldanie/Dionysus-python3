@@ -11,7 +11,11 @@ namespace bp = boost::python;
 namespace dp = dionysus::python;
 
 
-void                                    pair_simplices(dp::SPersistence& sp)                { sp.pair_simplices(false); }
+void            pair_simplices(dp::SPersistence& sp, bool store_negative)
+{
+    dp::SPersistence::PairVisitorNoProgress visitor;
+    sp.pair_simplices(sp.begin(), sp.end(), store_negative, visitor);
+}
 
 
 void export_static_persistence()
@@ -26,7 +30,7 @@ void export_static_persistence()
     bp::class_<dp::SPersistence>("StaticPersistence", bp::no_init)
         .def("__init__",        bp::make_constructor(&dp::init_from_filtration<dp::SPersistence>))
 
-        .def("pair_simplices",  &pair_simplices)
+        .def("pair_simplices",  &pair_simplices, (bp::args("store_negative")=false))
         .def("__call__",        &dp::distance<dp::SPersistence, dp::SPersistenceIndex>)
         .def("make_simplex_map",&dp::SPersistence::make_simplex_map<dp::PythonFiltration>)
 

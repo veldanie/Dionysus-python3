@@ -19,7 +19,7 @@ print "Complex in the filtration order:", ', '.join((str(s) for s in f))
 
 p = StaticPersistence(f)
 print "Persistence initialized"
-p.pair_simplices()
+p.pair_simplices(True)
 print "Simplices paired"
 
 smap = p.make_simplex_map(f)

@@ -10,9 +10,10 @@
         matrix of the complex captured by the filtration with rows and columns
         sorted with respect to the filtration ordering.
 
-    .. method:: pair_simplices()
+    .. method:: pair_simplices(store_negative = False)
 
-        Pairs simplices using the [ELZ02]_ algorithm.
+        Pairs simplices using the [ELZ02]_ algorithm. `store_negative` indicates
+        whether to store the negative simplices in the cycles.
 
     .. method:: __call__(i)
 
