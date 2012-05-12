@@ -8,7 +8,7 @@
 
 namespace bp = boost::python;
 
-namespace dionysus { 
+namespace dionysus {
 namespace python   {
 
 typedef         Filtration<SimplexVD>                       PythonFiltration;

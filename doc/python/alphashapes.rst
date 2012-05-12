@@ -15,13 +15,18 @@ is the alpha shape value assigned to it. This value is stored in the simplex's
 .. _`Delaunay triangulation`:   http://en.wikipedia.org/wiki/Delaunay_triangulation
 
 
+.. function:: fill_alpha_complex(points, complex)
+
+    Based on the dimension of the first point, decides which of the two functions
+    below to call.
+
 .. function:: fill_alpha2D_complex(points, complex)
-    
+
     Appends to the `complex` the simplices of the 2D Delaunay triangulation
     on the `points`.
 
 .. function:: fill_alpha3D_complex(points, complex)
-    
+
     Appends to the `complex` the simplices of the 3D Delaunay triangulation
     on the `points`.
 

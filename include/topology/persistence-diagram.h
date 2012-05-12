@@ -32,7 +32,7 @@ class PDPoint
         Data&                   data()                                      { return point_.second(); }
 
         std::ostream&           operator<<(std::ostream& out) const         { return (out << x() << " " << y()); } // << " " << data()); }
-        
+
         struct Visitor
         {
             template<class Iterator>
@@ -45,17 +45,17 @@ class PDPoint
 
     private:
         boost::compressed_pair<std::pair<RealType, RealType>, Data>       point_;
-	
+
     private:
-		/* Serialization */
-		friend class boost::serialization::access;
-		
-		template<class Archive>
-		void 					serialize(Archive& ar, version_type );
+        /* Serialization */
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void                    serialize(Archive& ar, version_type );
 };
 
 template<class Data>
-std::ostream&                   operator<<(std::ostream& out, const PDPoint<Data>& point)     
+std::ostream&                   operator<<(std::ostream& out, const PDPoint<Data>& point)
 { return (point.operator<<(out)); }
 
 template<class Point, class Iterator, class Evaluator, class Visitor>
@@ -71,7 +71,7 @@ make_point(Iterator i, const Evaluator& evaluator)
 /**
  * Class: PersistenceDiagram
  *
- * Stores birth-death pairs, i.e. points in the extended plane. Each point can also store 
+ * Stores birth-death pairs, i.e. points in the extended plane. Each point can also store
  * additional information described by `Data_` template parameter.
  */
 template<class Data_ = Empty<> >
@@ -85,24 +85,24 @@ class PersistenceDiagram
 
                                 PersistenceDiagram()                        {}
 
-                                PersistenceDiagram( Dimension dimension ):  
+                                PersistenceDiagram( Dimension dimension ):
                                     dimension_( dimension )                  {}
 
         template<class OtherData>
                                 PersistenceDiagram(const PersistenceDiagram<OtherData>& other);
 
         template<class Iterator, class Evaluator>
-                                PersistenceDiagram(Iterator bg, Iterator end, 
+                                PersistenceDiagram(Iterator bg, Iterator end,
                                                    const Evaluator& eval = Evaluator());
 
         template<class Iterator, class Evaluator, class Visitor>
-                                PersistenceDiagram(Iterator bg, Iterator end, 
-                                                   const Evaluator& eval = Evaluator(), 
+                                PersistenceDiagram(Iterator bg, Iterator end,
+                                                   const Evaluator& eval = Evaluator(),
                                                    const Visitor& visitor = Visitor());
 
         template<class Iterator, class Evaluator, class Visitor>
-        void                    init(Iterator bg, Iterator end, 
-                                     const Evaluator& eval = Evaluator(), 
+        void                    init(Iterator bg, Iterator end,
+                                     const Evaluator& eval = Evaluator(),
                                      const Visitor& visitor = Visitor());
 
         const_iterator          begin() const                               { return points_.begin(); }
@@ -110,7 +110,7 @@ class PersistenceDiagram
         size_t                  size() const                                { return points_.size(); }
 
         void                    push_back(const Point& point)               { points_.push_back(point); }
-        
+
         std::ostream&           operator<<(std::ostream& out) const;
 
         Dimension               dimension() const                           { return dimension_; }
@@ -118,56 +118,59 @@ class PersistenceDiagram
     private:
         PointVector             points_;
         Dimension               dimension_;
-	
+
     private:
-		/* Serialization */
-		friend class boost::serialization::access;
-		
-		template<class Archive>
-		void 					serialize(Archive& ar, version_type );
+        /* Serialization */
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void                    serialize(Archive& ar, version_type );
 };
 
 template<class Data>
-std::ostream&                   operator<<(std::ostream& out, const PersistenceDiagram<Data>& pd)     
+std::ostream&                   operator<<(std::ostream& out, const PersistenceDiagram<Data>& pd)
 { return (pd.operator<<(out)); }
 
 // Function: init_diagram_vector()
 template<class Diagrams, class Iterator, class Evaluator, class DimensionExtractor>
 void                    init_diagrams(Diagrams& diagrams,
-                                      Iterator bg, Iterator end, 
-                                      const Evaluator& evaluator = Evaluator(), 
+                                      Iterator bg, Iterator end,
+                                      const Evaluator& evaluator = Evaluator(),
                                       const DimensionExtractor& dimension = DimensionExtractor());
 
 template<class Diagrams, class Iterator, class Evaluator, class DimensionExtractor, class Visitor>
 void                    init_diagrams(Diagrams& diagrams,
-                                      Iterator bg, Iterator end, 
-                                      const Evaluator& evaluator = Evaluator(), 
+                                      Iterator bg, Iterator end,
+                                      const Evaluator& evaluator = Evaluator(),
                                       const DimensionExtractor& dimension = DimensionExtractor(),
                                       const Visitor& visitor = Visitor());
 
-// Class: Linfty 
+// Class: Linfty
 // Functor that computes L infinity norm between two points
 template<class Point1, class Point2>
 struct Linfty
 {
-    RealType            operator()(const Point1& p1, const Point2& p2) const        { return std::max(std::abs(p1.x() - p2.x()), 
+    RealType            operator()(const Point1& p1, const Point2& p2) const        { return std::max(std::abs(p1.x() - p2.x()),
                                                                                                       std::abs(p1.y() - p2.y())); }
-    
+
     template<class Point>
     RealType            diagonal(const Point& p) const                              { return std::abs(p.y() - p.x())/2; }
 };
 
 // Function: bottleneck_distance(dgm1, dgm2)
 // Computes bottleneck distance between the two diagrams.
-template<class Diagram1, 
-         class Diagram2, 
+template<class Diagram1,
+         class Diagram2,
          class Norm>
 RealType                bottleneck_distance(const Diagram1& dgm1, const Diagram2& dgm2, const Norm& norm = Norm());
 
-template<class Diagram1, 
+template<class Diagram1,
          class Diagram2>
 RealType                bottleneck_distance(const Diagram1& dgm1, const Diagram2& dgm2)
 { return bottleneck_distance(dgm1, dgm2, Linfty<typename Diagram1::Point, typename Diagram2::Point>()); }
+
+template<class Diagram>
+RealType                wasserstein_distance(const Diagram& dgm1, const Diagram& dgm2, unsigned p);
 
 
 #include "persistence-diagram.hpp"
