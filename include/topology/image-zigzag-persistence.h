@@ -6,7 +6,7 @@
 
 struct SimplexSubcomplexData
 {
-                SimplexSubcomplexData(bool sc = false): 
+                SimplexSubcomplexData(bool sc = false):
                     subcomplex(sc)                              {}
 
     bool        subcomplex;
@@ -40,10 +40,10 @@ class ImageZigzagPersistence: public ZigzagPersistence<BirthID_, SimplexSubcompl
                                     cok_order_begin(std::numeric_limits<int>::max()/2)
                                 {}
 
-        IndexDeathPair          add(ZColumn         bdry, 
-                                    bool            subcomplex, 
+        IndexDeathPair          add(ZColumn         bdry,
+                                    bool            subcomplex,
                                     const BirthID&  birth = BirthID())                      { ImageZZVisitor zzv(subcomplex); return Parent::add(bdry, birth, zzv); }
-        
+
         Death                   remove(SimplexIndex s, const BirthID& birth = BirthID())    { ImageZZVisitor zzv(s->subcomplex); return Parent::remove(s, birth, zzv); }
 
 
@@ -59,31 +59,31 @@ class ImageZigzagPersistence: public ZigzagPersistence<BirthID_, SimplexSubcompl
             public:
                                     ImageZZVisitor(bool sc = false):
                                         subcomplex(sc), birth_in_image(false)                   {}
-    
-                // Sets the subcomplex property of the new simplex                                
+
+                // Sets the subcomplex property of the new simplex
                 SimplexIndex        new_simplex(Parent& zz);
-    
+
                 // Decides where to put the new column (image or cokernel)
                 ZIndex              new_z_in_add(Parent& zz, const ZColumn& z, const BRow& u);
-                
+
                 // Checks if there is a boundary entirely in the subcomplex, and sets birth_in_image accordingly
                 BIndex              select_j_in_remove(Parent& zz, const CRow& c_row);
-    
+
                 ZIndex              new_z_in_remove(Parent& zz);
-                
+
                 // Updates im_last and cok_begin if necessary
                 void                erasing_z(Parent& zz, ZIndex j);
 
                 // Determines if there is a death in the image
                 Death               death(Parent& zz, ZIndex dying_z);
-    
+
             private:
                 ZIndex              append_in_image(Parent& zz);
                 ZIndex              append_in_cokernel(Parent& zz);
                 ZIndex              prepend_in_image(Parent& zz);
                 ZIndex              prepend_in_cokernel(Parent& zz);
                 bool                in_subcomplex(const ZColumn& z);
-    
+
                 bool                subcomplex, birth_in_image;
         };
 

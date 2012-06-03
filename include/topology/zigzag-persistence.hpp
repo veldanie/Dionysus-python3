@@ -34,7 +34,7 @@ add(ZColumn bdry, const BirthID& birth, Visitor& visitor)
     SimplexIndex last_s     = visitor.new_simplex(*this);
     last_s->low             = z_list.end();
 #if ZIGZAG_CONSISTENCY
-    last_s->boundary        = bdry;     // NB: debug only    
+    last_s->boundary        = bdry;     // NB: debug only
 #endif
 
     rLog(rlZigzagAdd,   "  Reducing among cycles");
@@ -98,9 +98,9 @@ add(ZColumn bdry, const BirthID& birth, Visitor& visitor)
         unsigned order              = b_list.empty() ? 0 : boost::prior(b_list.end())->order + 1;
         b_list.push_back(BNode(order));
         BIndex last_b               = boost::prior(b_list.end());
-        
+
         // Set b_column and low
-        last_b->b_column.swap(v);            
+        last_b->b_column.swap(v);
         last_b->b_column.back()->low = last_b;
 
         // Set b_row
@@ -137,12 +137,12 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
         // Birth
         //show_all();
         rLog(rlZigzagRemove,        "Birth case in remove");
-        
+
         // Prepend DC[j] = ZB[j] to Z
         rLog(rlZigzagRemove,        "Computing the column DC[j] = ZB[j] to prepend to Z");
         BIndex j                    = visitor.select_j_in_remove(*this, s->c_row);
         rLog(rlZigzagRemove,        "  j = %d", j->order);
-        
+
         ZColumn z;
         std::for_each(j->b_column.begin(), j->b_column.end(), make_adder(&ZNode::z_column, z));
 
@@ -157,7 +157,7 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
 
         // Prepend row of s in C to B
         rLog(rlZigzagRemove,        "Prepending the row of s to B");
-        first_z->b_row = s->c_row;      // copying instead of swapping is inefficient, 
+        first_z->b_row = s->c_row;      // copying instead of swapping is inefficient,
                                         // but it simplifies logic when subtracting chains later
         std::for_each(first_z->b_row.begin(), first_z->b_row.end(), make_appender(&BNode::b_column, first_z));
         //AssertMsg(check_consistency(),  "Must be consistent after prepending row of s to B");
@@ -175,7 +175,7 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
         // Subtract C[j] from every column of C that contains s
         AssertMsg(s->c_row == first_z->b_row,   "s->c_row == first_z->b_row before subtracting C[j]");
         rLog(rlZigzagRemove,        "Subtracting C[j]=[%s] from every column of C that contains s=%d with row [%s]",
-                                    j->c_column.tostring(out).c_str(), 
+                                    j->c_column.tostring(out).c_str(),
                                     s->order, s->c_row.tostring(out).c_str());
         add_chains(boost::make_filter_iterator(std::bind2nd(NotEqualBIndex(), j), first_z->b_row.begin(), first_z->b_row.end()),
                    boost::make_filter_iterator(std::bind2nd(NotEqualBIndex(), j), first_z->b_row.end(),   first_z->b_row.end()),
@@ -188,7 +188,7 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
         // Subtract B[j] from every other column of B that has l
         ZIndex l                    = j->b_column.back();
         BRow   l_row                = l->b_row;
-        rLog(rlZigzagRemove,    "Subtracting B[j], j is %d, l is %d, l_row: [%s]", 
+        rLog(rlZigzagRemove,    "Subtracting B[j], j is %d, l is %d, l_row: [%s]",
                                 j->order, l->order, l_row.tostring(out).c_str());
         add_chains(boost::make_filter_iterator(std::bind2nd(NotEqualBIndex(), j), l_row.rbegin(), l_row.rend()),
                    boost::make_filter_iterator(std::bind2nd(NotEqualBIndex(), j), l_row.rend(),   l_row.rend()),
@@ -200,7 +200,7 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
 
 
         // Drop j, l, and s
-        // 
+        //
         // l->z_column is the only non-empty thing, but we drop it,
         // the basis is preserved because we added first_z
         l->z_column.back()->low     = z_list.end();
@@ -214,8 +214,8 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
         rLog(rlZigzagRemove,            "s->c_row: [%s]", s->c_row.tostring(out).c_str());
         if (!s->c_row.empty())
         {
-            rLog(rlZigzagRemove,        "s->c_row[0]: [%s]", s->c_row.front()->c_column.tostring(out).c_str()); 
-            rLog(rlZigzagRemove,        "   b_column: [%s]", s->c_row.front()->b_column.tostring(out).c_str()); 
+            rLog(rlZigzagRemove,        "s->c_row[0]: [%s]", s->c_row.front()->c_column.tostring(out).c_str());
+            rLog(rlZigzagRemove,        "   b_column: [%s]", s->c_row.front()->b_column.tostring(out).c_str());
         }
         AssertMsg(s->c_row.empty(),     "c_row of s must be empty before erasing in remove::birth");
         visitor.erasing_z(*this, l);
@@ -233,7 +233,7 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
 
             // if ls->low precedes first_z, swap them
             if (cmp(ls->low, first_z))      std::swap(ls->low, first_z);
-            
+
             add_chain(first_z, ls->low, &ZNode::b_row, &BNode::b_column);
             add_chain(ls->low, first_z, &ZNode::z_column, &SimplexNode::z_row);
             std::swap(ls->low, first_z);
@@ -254,13 +254,13 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
         rLog(rlZigzagRemove,        "j=%d, j->b_row=[%s]", j->order, j->b_row.tostring(out).c_str());
         rLog(rlZigzagRemove,        "s=%d, s->c_row=[%s]", s->order, s->c_row.tostring(out).c_str());
         rLog(rlZigzagRemove,        "s=%d, s->z_row=[%s]", s->order, s->z_row.tostring(out).c_str());
-        
+
         // Subtract Z[j] from every chain in C that contains s
         // (it's Ok to go in the forward order since we are subtracting a column in Z from C)
         add_chains(c_row.begin(), c_row.end(), j, &BNode::c_column, &SimplexNode::c_row, &ZNode::z_column);
         AssertMsg(check_consistency(),  "Must be consistent after subtracting Z[j] from C");
-        
-        // Change basis to remove s from Z 
+
+        // Change basis to remove s from Z
         // Compute reducers --- columns that we will be adding to other columns
         ZRow z_row                  = s->z_row;
         typedef typename ZRow::reverse_iterator             ZRowReverseIterator;
@@ -269,36 +269,42 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
         reducers.push_back(boost::prior(z_row.rend()));     // j is the first reducer
         AssertMsg(*(reducers.back()) == j,  "The first element of reducers should be j");
         SimplexIndex low            = j->z_column.back();
-        rLog(rlZigzagRemove,        "   Added reducer %d [%s] with low=%d", 
+        rLog(rlZigzagRemove,        "   Added reducer %d [%s] with low=%d",
                                     j->order, j->z_column.tostring(out).c_str(),
                                     low->order);
         for (typename ZRow::iterator cur = z_row.begin(); cur != z_row.end(); ++cur)
             if (cmp((*cur)->z_column.back(), low))
-            { 
-                reducers.push_back(ZRowReverseIterator(boost::next(cur))); 
+            {
+                reducers.push_back(ZRowReverseIterator(boost::next(cur)));
                 low = (*(reducers.back()))->z_column.back();
-                rLog(rlZigzagRemove,        "   Added reducer %d [%s] with low=%d", 
+                rLog(rlZigzagRemove,        "   Added reducer %d [%s] with low=%d",
                                             (*cur)->order, (*cur)->z_column.tostring(out).c_str(),
                                             low->order);
-                rLog(rlZigzagRemove,        "   reducers.back(): %d [%s] with low=%d", 
+                rLog(rlZigzagRemove,        "   reducers.back(): %d [%s] with low=%d",
                                             (*(reducers.back()))->order,
                                             (*(reducers.back()))->z_column.tostring(out).c_str(),
                                             (*(reducers.back()))->z_column.back()->order);
             }
-        rLog(rlZigzagRemove,        " Reducers size: %d, s is %d", 
+        rLog(rlZigzagRemove,        " Reducers size: %d, s is %d",
                                     reducers.size(), s->order);
 
         //show_all();
 
         // Add each reducer to the columns that follow them until the next reducer
+        // NB: processing reducers in the reverse order fixes a bug in the paper,
+        //     in step Remove.Death.1.4, where the matrix B is updated incorrectly.
+        //     I can't find a mention of this bug in my notes, but the fact
+        //     that it's fixed in the code suggests that I knew about it. (Or
+        //     most likely I didn't recognize that what the paper said is not
+        //     exactly what I meant.)
         typename ReducersContainer::reverse_iterator    cur     = reducers.rbegin();
         ZRowReverseIterator                             zcur    = z_row.rbegin();
-        
+
         while (cur != reducers.rend())
         {
             rLog(rlZigzagRemove,        " Cur reducer: %d [%s]", (**cur)->order,
                                                                  (**cur)->z_column.tostring(out).c_str());
-            change_basis(zcur, *cur, **cur, 
+            change_basis(zcur, *cur, **cur,
                          &ZNode::z_column, &SimplexNode::z_row,
                          &ZNode::b_row,    &BNode::b_column);
             if (cur != reducers.rbegin())
@@ -313,7 +319,7 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
             zcur = *cur++;
             // This makes it inconsistent until the next iteration of this update loop
         }
-        
+
         // Drop j and s
         Death d                     = visitor.death(*this, j);
 
@@ -323,8 +329,8 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
         rLog(rlZigzagRemove,            "j->b_row: [%s]", j->b_row.tostring(out).c_str());
         if (!j->b_row.empty())
         {
-            rLog(rlZigzagRemove,        "j->b_row[0]: [%s]", j->b_row.front()->b_column.tostring(out).c_str()); 
-            rLog(rlZigzagRemove,        "   c_column: [%s]", j->b_row.front()->c_column.tostring(out).c_str()); 
+            rLog(rlZigzagRemove,        "j->b_row[0]: [%s]", j->b_row.front()->b_column.tostring(out).c_str());
+            rLog(rlZigzagRemove,        "   c_column: [%s]", j->b_row.front()->c_column.tostring(out).c_str());
         }
         AssertMsg(j->b_row.empty(),     "b_row of j must be empty before erasing in remove(). Most likely you are trying to remove a simplex whose coface is still in the complex.");
         AssertMsg(s->z_row.empty(),     "z_row of s must be empty before erasing in remove()");
@@ -336,11 +342,11 @@ remove(SimplexIndex s, const BirthID& birth, Visitor& visitor)
         //show_all();
 
         AssertMsg(check_consistency(),  "Must be consistent when done in remove()");
-        
+
         return d;
     }
 }
-        
+
 template<class BID, class SD>
 void
 ZigzagPersistence<BID,SD>::
@@ -360,7 +366,7 @@ show_all()
         for (typename CRow::const_iterator ccur = cur->c_row.begin(); ccur != cur->c_row.end(); ++ccur)
             std::cout << (*ccur)->order << " ";
         std::cout << std::endl;
-        
+
         std::cout << "    low: ";
         if (cur->low != z_list.end())
             std::cout << cur->low->order;
@@ -368,12 +374,12 @@ show_all()
             std::cout << "none";
         std::cout << std::endl;
     }
-    
+
     std::cout << "z_list:" << std::endl;
     for (ZIndex cur = z_list.begin(); cur != z_list.end(); ++cur)
     {
         std::cout << "  " << cur->order << ":" << std::endl;
-        
+
         std::cout << "    birth: " << cur->birth << std::endl;
 
         std::cout << "    z_column: ";
@@ -387,7 +393,7 @@ show_all()
         std::cout << std::endl;
 
         std::cout << "    low: ";
-        if (cur->low != b_list.end()) 
+        if (cur->low != b_list.end())
             std::cout << cur->low->order;
         else
             std::cout << "none";
@@ -438,7 +444,7 @@ check_consistency(SimplexIndex, ZIndex, BIndex)
             }
         if (cur->low != z_list.end())
             AssertMsg(!(cur->low->z_column.empty()),        "z_column must not be empty");
-        if (cur->low != z_list.end() && cur->low->z_column.back() != cur) 
+        if (cur->low != z_list.end() && cur->low->z_column.back() != cur)
         {
             rError("low of SimplexNode %d is incorrect", cur->order);
             return false;
@@ -462,7 +468,7 @@ check_consistency(SimplexIndex, ZIndex, BIndex)
                 rError("In check_consistency(): ZNode %d not found in b_column of %d", cur->order, (*bcur)->order);
                 return false;
             }
-        if (cur->low != b_list.end() && cur->low->b_column.back() != cur) 
+        if (cur->low != b_list.end() && cur->low->b_column.back() != cur)
         {
             rError("low of ZNode %d is incorrect", cur->order);
             return false;
@@ -523,42 +529,42 @@ check_consistency(SimplexIndex, ZIndex, BIndex)
 /* Private */
 
 // Class: Appender
-//   
+//
 // Functor that appends given element to the given member of whatever parameter it is invoked with
 template<class BID, class SD>
 template<class Member, class Element>
 struct ZigzagPersistence<BID,SD>::Appender
 {
-                Appender(Member mm, Element ee): 
+                Appender(Member mm, Element ee):
                     m(mm), e(ee)                        {}
 
     template<class T>
     void        operator()(T& a)                        { ((*a).*m).append(e, cmp); }
-                
+
     Member          m;
     Element         e;
     OrderComparison cmp;
 };
 
 // Class: Remover
-//   
+//
 // Functor that removes given element from the given member of whatever parameter it is invoked with
 template<class BID, class SD>
 template<class Member, class Element>
 struct ZigzagPersistence<BID,SD>::Remover
 {
-                Remover(Member mm, Element ee): 
+                Remover(Member mm, Element ee):
                     m(mm), e(ee)                        {}
 
     template<class T>
     void        operator()(T& a)                        { ((*a).*m).remove(e); }
-                
+
     Member  m;
     Element e;
 };
 
 // Class: Adder
-//   
+//
 // Functor that adds the given member of whatever it is invoked with to the given chain
 template<class BID, class SD>
 template<class Member, class Chain>
@@ -575,10 +581,10 @@ struct ZigzagPersistence<BID,SD>::Adder
     OrderComparison cmp;
 };
 
-        
+
 // Function: add_chains()
-//   
-// Special case of add_chains where all Indexes are the same, and 
+//
+// Special case of add_chains where all Indexes are the same, and
 // therefore PrimaryMemberFrom and PrimaryMemberTo are the same
 template<class BID, class SD>
 template<class Index, class IndexFrom, class PrimaryMember, class SecondaryMember>
@@ -590,7 +596,7 @@ add_chains(Index bg, Index end, IndexFrom j, PrimaryMember pm, SecondaryMember s
 }
 
 // Function: add_chains()
-//   
+//
 // Adds PrimaryMember pm of j to pm of every element in the range [bg,end)
 // Fixes SecondaryMembers by adding and removing the corresponding elements.
 // For example, if we add a column to a number of other columns, then PrimaryMember is that
@@ -634,7 +640,7 @@ add_chain(Index to, Index from, PrimaryMember pm, SecondaryMember sm)
 
 // Function: add_chain()
 //
-// Adds PrimaryMemberFrom pmf of `from` to PrimaryMemberTo pmt of `to`. 
+// Adds PrimaryMemberFrom pmf of `from` to PrimaryMemberTo pmt of `to`.
 // Fixes SecondaryMemberTos. See add_chains().
 template<class BID, class SD>
 template<class IndexTo, class IndexFrom, class PrimaryMemberTo, class SecondaryMemberTo, class PrimaryMemberFrom>
@@ -642,8 +648,8 @@ void
 ZigzagPersistence<BID,SD>::
 add_chain(IndexTo to, IndexFrom from, PrimaryMemberTo pmt, SecondaryMemberTo smt, PrimaryMemberFrom pmf)
 {
-    rLog(rlZigzagAddChain,  "Adding %d [%s] to %d [%s]", 
-                            (*from).order, 
+    rLog(rlZigzagAddChain,  "Adding %d [%s] to %d [%s]",
+                            (*from).order,
                             ((*from).*pmf).tostring(out).c_str(),
                             (*to).order,
                             ((*to).*pmt).tostring(out).c_str());
@@ -663,7 +669,7 @@ add_chain(IndexTo to, IndexFrom from, PrimaryMemberTo pmt, SecondaryMemberTo smt
                                              ((*to).*pmt).end(),        ((*to).*pmt).end(),
                                            cmp),
                   make_appender(smt, to));
- 
+
     // Add primaries
     ((*to).*pmt).add((*from).*pmf, cmp);
     rLog(rlZigzagAddChain,  "Got %s", ((*to).*pmt).tostring(out).c_str());
@@ -704,7 +710,7 @@ typename ZigzagPersistence<BID,SD>::ZIndex
 ZigzagPersistence<BID,SD>::ZigzagVisitor::
 new_z_in_remove(ZigzagPersistence& zz)
 {
-    int order                   = zz.z_list.empty() ? 0 : zz.z_list.begin()->order - 1; 
+    int order                   = zz.z_list.empty() ? 0 : zz.z_list.begin()->order - 1;
     zz.z_list.push_front(ZNode(order, zz.b_list.end()));
     return zz.z_list.begin();
 }
