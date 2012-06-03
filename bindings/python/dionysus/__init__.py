@@ -1,6 +1,7 @@
 from    _dionysus   import *
 from    distances   import l2, ExplicitDistances, points_file
 from    zigzag      import *
+from    adaptor     import *
 
 
 def init_with_none(self, iter, data = None):        # convenience: data defaults to None
@@ -52,3 +53,11 @@ def closure(simplices, k):
                 res.add(Simplex(face, s.data))
 
     return list(res)
+
+_init_diagrams = init_diagrams
+
+def init_diagrams(p, f, evaluator = None, data = None):
+    if isinstance(p, StaticCohomologyPersistence):
+        return init_diagrams_from_adaptor(p,f, evaluator, data)
+
+    return _init_diagrams(p,f, evaluator, data)
