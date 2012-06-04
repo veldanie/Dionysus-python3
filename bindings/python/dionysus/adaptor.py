@@ -26,7 +26,7 @@ class StaticCohomologyPersistence(object):
 
     def __iter__(self):
         for i, (pair, subcomplex, cocycle) in enumerate(self.pairs):
-            if not pair:
+            if pair == i:       # unpaired
                 if subcomplex:
                     yield APNode(i, self.pairs)
             else:

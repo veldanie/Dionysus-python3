@@ -2,6 +2,7 @@ from    _dionysus   import *
 from    distances   import l2, ExplicitDistances, points_file
 from    zigzag      import *
 from    adaptor     import *
+from    circular    import smooth
 
 
 def init_with_none(self, iter, data = None):        # convenience: data defaults to None
