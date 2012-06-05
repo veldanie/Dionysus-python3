@@ -23,6 +23,11 @@ class StaticCohomologyPersistence(object):
                 cocycle = self.persistence.__iter__().next()
                 self.pairs[-1][2] = [(n.coefficient, n.si.order) for n in cocycle]
 
+    def __call__(self, n):
+        return n.i
+
+    def __len__(self):
+        return len(self.pairs)
 
     def __iter__(self):
         for i, (pair, subcomplex, cocycle) in enumerate(self.pairs):
@@ -69,6 +74,7 @@ class APNode:
     def pair(self):
         return APNode(self._pair(), self.pairs)
 
+    @property
     def cocycle(self):
         return self.pairs[self.i][2]
 
