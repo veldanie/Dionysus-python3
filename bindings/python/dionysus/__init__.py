@@ -3,6 +3,7 @@ from    distances   import l2, ExplicitDistances, points_file
 from    zigzag      import *
 from    adaptor     import *
 import  circular
+import  viewer
 
 def init_with_none(self, iter, data = None):        # convenience: data defaults to None
     self._cpp_init_(iter, data)
