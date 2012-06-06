@@ -2,7 +2,7 @@ from    PyQt4       import QtGui, QtCore
 
 class DiagramPoint(QtGui.QGraphicsEllipseItem):
     def __init__(self,x,y,radius, p, viewer):
-        super(QtGui.QGraphicsEllipseItem, self).__init__(x,y,radius, radius)
+        super(QtGui.QGraphicsEllipseItem, self).__init__(x - radius/2,y - radius/2,radius, radius)
         self.p = p
         self.viewer = viewer
 
