@@ -66,10 +66,9 @@ class ComplexViewer(QtGui.QGraphicsView):
         return c
 
 # TODO: cycle
-def show_complex_2D(points, complex = None, values = None):
-    app = QtGui.QApplication([])
+def show_complex_2D(points, complex = None, values = None, app = None):
+    #app = QtGui.QApplication([])
     view = ComplexViewer(points, complex, values)
     view.show()
     view.raise_()
     app.exec_()
-

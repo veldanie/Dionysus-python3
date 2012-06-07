@@ -14,22 +14,29 @@ class ComplexViewer3D(PyGLWidget):
             # Create vertex simplices if no complex provided
             self.complex = [Simplex([i]) for i in xrange(len(self.points))]
 
+        self.values = values
         if not values:
-            values = [0]*len(self.points)
-        self.maxval, self.minval = max(values), min(values)
+            self.values = [0]*len(self.points)
+        self.maxval, self.minval = max(self.values), min(self.values)
 
     def paintGL(self):
         PyGLWidget.paintGL(self)
         self.complex.sort(lambda s1, s2: -cmp(s1.dimension(), s2.dimension()))
         for s in self.complex:
             vertices = [v for v in s.vertices]
-        #    if s.dimension() == 0:              # point
-        #        p = points[vertices[0]]
-        #        v = values[vertices[0]]
-        #        item = QtGui.QGraphicsEllipseItem(p[0] - radius/2,p[1] - radius/2,radius,radius)
-        #        color = self.colormap(v)
-        #        item.setBrush(QtGui.QBrush(color))
-        #        item.setPen(QtGui.QPen(color))
+            if s.dimension() == 0:              # point
+                p = self.points[vertices[0]]
+                v = self.values[vertices[0]]
+
+                glPointSize(3.0)
+                c = self.colormap(v)
+                cr = float(c.red())/255
+                cg = float(c.green())/255
+                cb = float(c.blue())/255
+                glColor3f(cr, cg, cb)
+                glBegin(GL_POINTS)
+                glVertex3f(p[0],p[1],p[2])
+                glEnd()
             if s.dimension() == 1:            # edge
                 p0 = self.points[vertices[0]]
                 p1 = self.points[vertices[1]]
@@ -44,7 +51,7 @@ class ComplexViewer3D(PyGLWidget):
                 p1 = self.points[vertices[1]]
                 p2 = self.points[vertices[2]]
 
-                glColor3f(1,0,0)
+                glColor3f(1,1,0)
                 glBegin(GL_TRIANGLES)
                 glVertex3f(p0[0],p0[1],p0[2])
                 glVertex3f(p1[0],p1[1],p1[2])
@@ -62,10 +69,9 @@ class ComplexViewer3D(PyGLWidget):
         return c
 
 # TODO: cycle
-def show_complex_3D(points, complex = None, values = None):
-    app = QtGui.QApplication([])
+def show_complex_3D(points, complex = None, values = None, app = None):
+    #app = QtGui.QApplication([])
     view = ComplexViewer3D(points, complex, values)
     view.show()
     view.raise_()
     app.exec_()
-

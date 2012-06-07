@@ -77,7 +77,7 @@ class PyGLWidget(QtOpenGL.QGLWidget):
 
     def initializeGL(self):
         # OpenGL state
-        glClearColor(0.0, 0.0, 0.0, 0.0)
+        glClearColor(1.0, 1.0, 1.0, 0.0)
         glEnable(GL_DEPTH_TEST)
         self.reset_view()
 
@@ -129,7 +129,7 @@ class PyGLWidget(QtOpenGL.QGLWidget):
         glMatrixMode(GL_MODELVIEW)
         glLoadMatrixd(self.modelview_matrix_)
         self.updateGL()
-   
+
     def translate(self, _trans):
         # Translate the object by _trans
         # Update modelview_matrix_
@@ -208,7 +208,7 @@ class PyGLWidget(QtOpenGL.QGLWidget):
 
     def wheelEvent(self, _event):
         # Use the mouse wheel to zoom in/out
-        
+
         d = - float(_event.delta()) / 200.0 * self.radius_
         self.translate([0.0, 0.0, d])
         self.updateGL()
@@ -224,7 +224,7 @@ class PyGLWidget(QtOpenGL.QGLWidget):
         if ((newPoint2D.x() < 0) or (newPoint2D.x() > self.width()) or
             (newPoint2D.y() < 0) or (newPoint2D.y() > self.height())):
             return
-        
+
         # Left button: rotate around center_
         # Middle button: translate object
         # Left & middle button: zoom in/out
@@ -267,13 +267,13 @@ class PyGLWidget(QtOpenGL.QGLWidget):
                              -2.0 * dy / h * up / n * z,
                              0.0] )
 
-    
+
         # rotate
         elif (_event.buttons() & QtCore.Qt.LeftButton):
             if (not self.isInRotation_):
                 self.isInRotation_ = True
                 self.rotationBeginEvent.emit()
-       
+
             axis = [0.0, 0.0, 0.0]
             angle = 0.0
 

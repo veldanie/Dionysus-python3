@@ -56,10 +56,14 @@ class DiagramViewer(QtGui.QGraphicsView):
 
     def draw_axes(self, minx, miny, maxx, maxy):
         # Draw axes and diagonal
-        self.scene.addItem(QtGui.QGraphicsLineItem(0,0, maxx, 0))
-        self.scene.addItem(QtGui.QGraphicsLineItem(minx,0, 0, 0))
-        self.scene.addItem(QtGui.QGraphicsLineItem(0,0, 0, maxy))
-        self.scene.addItem(QtGui.QGraphicsLineItem(0,miny, 0, 0))
+        if maxx > 0:
+            self.scene.addItem(QtGui.QGraphicsLineItem(0,0, maxx, 0))
+        if minx < 0:
+            self.scene.addItem(QtGui.QGraphicsLineItem(minx,0, 0, 0))
+        if maxy > 0:
+            self.scene.addItem(QtGui.QGraphicsLineItem(0,0, 0, maxy))
+        if miny < 0:
+            self.scene.addItem(QtGui.QGraphicsLineItem(0,miny, 0, 0))
         self.scene.addItem(QtGui.QGraphicsLineItem(0,0, min(maxx, maxy), min(maxx, maxy)))
         self.scene.addItem(QtGui.QGraphicsLineItem(max(minx,miny), max(minx,miny), 0,0))
 
@@ -76,8 +80,8 @@ class DiagramViewer(QtGui.QGraphicsView):
             self.scene.addItem(line)
 
 
-def show_diagram(dgm):
-    app = QtGui.QApplication([])
+def show_diagram(dgm, app):
+    #app = QtGui.QApplication([])
     view = DiagramViewer(dgm)
     view.show()
     view.raise_()
