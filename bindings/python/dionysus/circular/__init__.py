@@ -50,10 +50,12 @@ def smooth(filtration, cocycle):
     if not (sum((D*z_smooth)**2) < tol and sum((D.T*z_smooth)**2) < tol):
         print "Expected a harmonic cocycle:", sum((D*z_smooth)**2), sum((D.T*z_smooth)**2)
 
-    values = {}
+    values = []
     vertices = ((i,s) for (i,s) in enumerate(filtration) if s.dimension() == 0)
     for i,s in vertices:
         v = [v for v in s.vertices][0]
+        if v >= len(values):
+            values.extend((None for i in xrange(len(values), v+1)))
         values[v] = solution[0][i]
 
     return values

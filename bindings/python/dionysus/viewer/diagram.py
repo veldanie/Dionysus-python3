@@ -1,14 +1,15 @@
 from    PyQt4       import QtGui, QtCore
 
 class DiagramPoint(QtGui.QGraphicsEllipseItem):
-    def __init__(self,x,y,radius, p, viewer):
-        super(QtGui.QGraphicsEllipseItem, self).__init__(x - radius/2,y - radius/2,radius, radius)
+    def __init__(self,x,y,radius, p):
+        super(QtGui.QGraphicsEllipseItem, self).__init__(x - radius,y - radius,2*radius, 2*radius)
         self.p = p
-        self.viewer = viewer
 
-    def mousePressEvent(self, event):
-        self.viewer.selection = self.p
-        self.viewer.close()
+    # for debugging purposes
+    def color(self):
+        pen = QtGui.QPen()
+        pen.setColor(QtCore.Qt.red)
+        self.setPen(pen)
 
 class DiagramViewer(QtGui.QGraphicsView):
     def __init__(self, dgm):
@@ -20,19 +21,22 @@ class DiagramViewer(QtGui.QGraphicsView):
         self.scene = QtGui.QGraphicsScene(self)
         self.setScene(self.scene)
 
+        inf = float('inf')
         minx = min(p[0] for p in dgm)
         miny = min(p[1] for p in dgm)
-        maxx = max(p[0] for p in dgm)
-        maxy = max(p[1] for p in dgm)
+        maxx = max(p[0] for p in dgm if p[0] != inf)
+        maxy = max(p[1] for p in dgm if p[1] != inf)
+
+        radius = max(.005, min(maxx - minx, maxy - miny)/200)
+        border = 25
+        self.scene.setSceneRect(minx - border*radius, miny - border*radius, (maxx - minx) + 2*border*radius, (maxy - miny) + 2*border*radius)
 
         self.draw_axes(minx,miny,maxx,maxy)
 
-        radius = min(maxx - minx, maxy - miny)/100
-        self.scene.setSceneRect(minx - 10*radius, miny - 10*radius, (maxx - minx) + 20*radius, (maxy - miny) + 20*radius)
-
         for p in dgm:
             x,y = p[0],p[1]
-            item = DiagramPoint(x,y,radius, p, self)
+            if x == inf or y == inf: continue
+            item = DiagramPoint(x,y,radius, p)
             self.scene.addItem(item)
 
         # Flip y-axis
@@ -41,6 +45,14 @@ class DiagramViewer(QtGui.QGraphicsView):
         # Set the correct view
         rect = self.scene.itemsBoundingRect()
         self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
+
+    def mousePressEvent(self, event):
+        p = self.mapToScene(event.pos())
+        item = self.scene.itemAt(p)
+        if isinstance(item, DiagramPoint):
+            #item.color()
+            self.selection = item.p
+            self.close()
 
     def draw_axes(self, minx, miny, maxx, maxy):
         # Draw axes and diagonal

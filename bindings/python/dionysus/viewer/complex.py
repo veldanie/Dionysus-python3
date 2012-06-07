@@ -1,11 +1,20 @@
 from    PyQt4       import QtGui, QtCore
+from    dionysus    import Simplex
 
 class ComplexViewer(QtGui.QGraphicsView):
-    def __init__(self, complex, points):
+    def __init__(self, points, complex = None, values = None):
         super(QtGui.QGraphicsView, self).__init__()
 
-        self.complex = [s for s in complex]
         self.points = points
+        if complex:
+            self.complex = [s for s in complex]
+        else:
+            # Create vertex simplices if no complex provided
+            self.complex = [Simplex([i]) for i in xrange(len(self.points))]
+
+        if not values:
+            values = [0]*len(self.points)
+        self.maxval, self.minval = max(values), min(values)
 
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         self.scene = QtGui.QGraphicsScene(self)
@@ -22,18 +31,18 @@ class ComplexViewer(QtGui.QGraphicsView):
         self.complex.sort(lambda s1, s2: -cmp(s1.dimension(), s2.dimension()))
         for s in self.complex:
             vertices = [v for v in s.vertices]
-            if s.dimension() == 0:
+            if s.dimension() == 0:              # point
                 p = points[vertices[0]]
+                v = values[vertices[0]]
                 item = QtGui.QGraphicsEllipseItem(p[0] - radius/2,p[1] - radius/2,radius,radius)
-                # TODO: vertex colors
-                color = QtCore.Qt.red
+                color = self.colormap(v)
                 item.setBrush(QtGui.QBrush(color))
                 item.setPen(QtGui.QPen(color))
-            elif s.dimension() == 1:
+            elif s.dimension() == 1:            # edge
                 p0 = points[vertices[0]]
                 p1 = points[vertices[1]]
                 item = QtGui.QGraphicsLineItem(p0[0], p0[1], p1[0], p1[1])
-            else:
+            else:                               # higher-d simplex
                 pts = [QtCore.QPointF(points[v][0], points[v][1]) for v in vertices]
                 item = QtGui.QGraphicsPolygonItem(QtGui.QPolygonF(pts))
                 item.setBrush(QtCore.Qt.blue)
@@ -47,10 +56,19 @@ class ComplexViewer(QtGui.QGraphicsView):
         rect = self.scene.itemsBoundingRect()
         self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
 
+    def colormap(self, v):
+        if self.maxval <= self.minval:
+            t = 0
+        else:
+            t = (v - self.minval)/(self.maxval - self.minval)
+        c = QtGui.QColor()
+        c.setHsv(int(t*255), 255, 255)
+        return c
+
 # TODO: cycle
-def show_complex_2D(complex, points):
+def show_complex_2D(points, complex = None, values = None):
     app = QtGui.QApplication([])
-    view = ComplexViewer(complex, points)
+    view = ComplexViewer(points, complex, values)
     view.show()
     view.raise_()
     app.exec_()

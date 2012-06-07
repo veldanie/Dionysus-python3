@@ -11,7 +11,15 @@ namespace bp = boost::python;
 #include "utils.h"           // defines PythonCmp
 namespace dp = dionysus::python;
 
-boost::shared_ptr<dp::PythonFiltration>     init_from_iterator(bp::object iter, bp::object cmp)
+boost::shared_ptr<dp::PythonFiltration>     init_from_iterator(bp::object iter)
+{
+    typedef     dp::PythonFiltration::Simplex   Smplx;
+    boost::shared_ptr<dp::PythonFiltration>     p(new dp::PythonFiltration(bp::stl_input_iterator<Smplx>(iter), 
+                                                                           bp::stl_input_iterator<Smplx>()));
+    return p;
+}
+
+boost::shared_ptr<dp::PythonFiltration>     init_from_iterator_cmp(bp::object iter, bp::object cmp)
 {
     typedef     dp::PythonFiltration::Simplex   Smplx;
     boost::shared_ptr<dp::PythonFiltration>     p(new dp::PythonFiltration(bp::stl_input_iterator<Smplx>(iter), 
@@ -39,6 +47,7 @@ void export_filtration()
 {
     bp::class_<dp::PythonFiltration>("Filtration")
         .def("__init__",        bp::make_constructor(&init_from_iterator))
+        .def("__init__",        bp::make_constructor(&init_from_iterator_cmp))
 
         .def("append",          &dp::PythonFiltration::push_back)
         .def("sort",            &filtration_sort)

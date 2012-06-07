@@ -57,6 +57,11 @@ class Filtration
                                 Filtration()                                    {}
 
         // Constructor: Filtration(bg, end, cmp)
+                                template<class ComplexIndex>
+                                Filtration(ComplexIndex bg, ComplexIndex end):
+                                    container_(bg, end)                         {}
+
+        // Constructor: Filtration(bg, end, cmp)
                                 template<class ComplexIndex, class Comparison>
                                 Filtration(ComplexIndex bg, ComplexIndex end, const Comparison& cmp = Comparison()):
                                     container_(bg, end)                         { sort(cmp); }

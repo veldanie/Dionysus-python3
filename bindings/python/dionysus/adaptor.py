@@ -83,7 +83,7 @@ def init_diagrams_from_adaptor(p, f, evaluator, data):
         evaluator = lambda s: s.data
 
     if not data:
-        data = lambda s: None
+        data = lambda i: None
 
     dgms = []
     smap = p.make_simplex_map(f)
@@ -96,7 +96,8 @@ def init_diagrams_from_adaptor(p, f, evaluator, data):
 
         b = evaluator(smap[n])
         d = evaluator(smap[n.pair()]) if not n.unpaired() else float('inf')
+        if b == d: continue
 
-        dgms[dim].append((b,d, data(smap[n])))
+        dgms[dim].append((b,d, data(n)))
 
     return dgms
