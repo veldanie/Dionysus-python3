@@ -3,8 +3,8 @@
 Get, Build, Install
 ===================
 
-The most up to date code is available from 
-`my Mercurial repository`_. 
+The most up to date code is available from
+`my Mercurial repository`_.
 If you have Mercurial_, the easiest way to obtain the code is by cloning it:
 
 .. parsed-literal::
@@ -41,6 +41,8 @@ Optional dependencies:
 
   :CGAL_:               for alpha shapes   (version :math:`\geq` 3.4)
   :CVXOPT_:             for :ref:`circle-valued parametrization <cohomology-parametrization>` using LSQR
+  :PyQt4_:              for :mod:`viewer` module
+  :PyOpenGL_, NumPy_:   for 3D visualization in :mod:`viewer` module
   :PyX_:                :sfile:`tools/draw-diagram/draw.py` uses `PyX`_ to
                         produce a PDF of the diagram
   :rlog_:               used for logging only (not needed by default)
@@ -52,8 +54,11 @@ Optional dependencies:
 .. _CMake:          http://www.cmake.org
 .. _Boost:          http://www.boost.org
 .. _CGAL:           http://www.cgal.org
-.. _CVXOPT:         http://abel.ee.ucla.edu/cvxopt/  
-.. _PyX:            http://pyx.sourceforge.net/   
+.. _CVXOPT:         http://abel.ee.ucla.edu/cvxopt/
+.. _PyQt4:          http://www.riverbankcomputing.co.uk/software/pyqt/intro
+.. _PyOpenGL:       http://pyopengl.sourceforge.net/
+.. _NumPy:          http://numpy.scipy.org/
+.. _PyX:            http://pyx.sourceforge.net/
 .. _rlog:           http://www.arg0.net/rlog
 .. _dsrpdb:         http://www.salilab.org/~drussel/pdb/
 .. _SYNAPS:         http://www-sop.inria.fr/galaad/synaps/

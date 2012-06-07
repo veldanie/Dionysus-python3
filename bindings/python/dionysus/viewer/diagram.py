@@ -16,6 +16,7 @@ class DiagramViewer(QtGui.QGraphicsView):
         super(QtGui.QGraphicsView, self).__init__()
 
         self.selection = None
+        self._pan = False
 
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         self.scene = QtGui.QGraphicsScene(self)
@@ -27,7 +28,7 @@ class DiagramViewer(QtGui.QGraphicsView):
         maxx = max(p[0] for p in dgm if p[0] != inf)
         maxy = max(p[1] for p in dgm if p[1] != inf)
 
-        radius = max(.005, min(maxx - minx, maxy - miny)/200)
+        radius = max(.005, min(maxx - minx, maxy - miny)/500)
         border = 25
         self.scene.setSceneRect(minx - border*radius, miny - border*radius, (maxx - minx) + 2*border*radius, (maxy - miny) + 2*border*radius)
 
@@ -40,19 +41,48 @@ class DiagramViewer(QtGui.QGraphicsView):
             self.scene.addItem(item)
 
         # Flip y-axis
-        self.scale(1,-1)
+        self.scale(1, -1)
 
         # Set the correct view
         rect = self.scene.itemsBoundingRect()
         self.fitInView(rect, QtCore.Qt.KeepAspectRatio)
 
     def mousePressEvent(self, event):
-        p = self.mapToScene(event.pos())
-        item = self.scene.itemAt(p)
-        if isinstance(item, DiagramPoint):
-            #item.color()
-            self.selection = item.p
-            self.close()
+        if event.button() == QtCore.Qt.RightButton:
+            self._pan = True
+            self._panStartX = event.x()
+            self._panStartY = event.y()
+            self.setCursor(QtCore.Qt.ClosedHandCursor)
+            event.accept()
+        else:
+            p = self.mapToScene(event.pos())
+            item = self.scene.itemAt(p)
+            if isinstance(item, DiagramPoint):
+                item.color()
+                self.selection = item.p
+                self.close()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == QtCore.Qt.RightButton:
+            self._pan = False
+            self.setCursor(QtCore.Qt.ArrowCursor)
+            event.accept()
+            return
+        event.ignore()
+
+    def mouseMoveEvent(self, event):
+        if self._pan:
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - (event.x() - self._panStartX))
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - (event.y() - self._panStartY))
+            self._panStartX = event.x()
+            self._panStartY = event.y()
+            event.accept()
+            return
+        event.ignore()
+
+    def wheelEvent(self, event):
+        delta = 1 + float(event.delta())/100
+        self.scale(delta, delta)
 
     def draw_axes(self, minx, miny, maxx, maxy):
         # Draw axes and diagonal
@@ -70,11 +100,11 @@ class DiagramViewer(QtGui.QGraphicsView):
         # Dashed, gray integer lattice
         pen = QtGui.QPen(QtCore.Qt.DashLine)
         pen.setColor(QtCore.Qt.gray)
-        for i in xrange(int(minx) + 1, int(maxx) + 1):
+        for i in xrange(min(0, int(minx)) + 1, max(0,int(maxx)) + 1):
             line = QtGui.QGraphicsLineItem(i,0, i, maxy)
             line.setPen(pen)
             self.scene.addItem(line)
-        for i in xrange(int(miny) + 1, int(maxy) + 1):
+        for i in xrange(min(0, int(miny)) + 1, max(0, int(maxy)) + 1):
             line = QtGui.QGraphicsLineItem(0,i, maxx, i)
             line.setPen(pen)
             self.scene.addItem(line)
