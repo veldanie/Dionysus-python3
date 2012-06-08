@@ -2,6 +2,7 @@ from    PyQt4       import QtGui, QtCore
 from    PyGLWidget  import PyGLWidget
 from    OpenGL.GL   import *
 from    dionysus    import Simplex
+from    math        import sqrt
 
 class ComplexViewer3D(PyGLWidget):
     def __init__(self, points, complex = None, values = None):
@@ -18,6 +19,22 @@ class ComplexViewer3D(PyGLWidget):
         if not values:
             self.values = [0]*len(self.points)
         self.maxval, self.minval = max(self.values), min(self.values)
+
+        center, radius = self.center_radius()
+        self.set_radius(radius)
+        self.set_center(center)
+
+    def center_radius(self):
+        c = [0,0,0]
+        for p in self.points:
+            for i in xrange(3): c[i] += p[i]
+        for i in xrange(3): c[i] /= len(self.points)
+
+        r = 0
+        for p in self.points:
+            d = sqrt((p[0] - c[0])**2 + (p[1] - c[1])**2 + (p[2] - c[2])**2)
+            if d > r: r = d
+        return c,r
 
     def paintGL(self):
         PyGLWidget.paintGL(self)
