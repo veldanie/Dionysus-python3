@@ -2,11 +2,13 @@ from    PyQt4       import QtGui, QtCore
 from    math        import fabs
 
 class DiagramPoint(QtGui.QGraphicsEllipseItem):
-    def __init__(self,x,y, p):
+    def __init__(self,x,y, p, infty = False):
         super(QtGui.QGraphicsEllipseItem, self).__init__()
         self.setPen(QtGui.QPen(QtGui.QColor(225, 0, 0)))
         self.setBrush(QtGui.QBrush(QtCore.Qt.red))
         self.radius = .075
+        if infty:
+            self.radius *= 2
         self.x, self.y = x,y
         self.scale(1)
         self.p = p
@@ -42,10 +44,16 @@ class DiagramViewer(QtGui.QGraphicsView):
 
         for p in dgm:
             x,y = p[0],p[1]
-            if x == inf or y == inf: continue
             if fabs(y - x) < noise:
                 continue
-            item = DiagramPoint(x,y,p)
+            if fabs(x) == inf or fabs(y) == inf:
+                if x == inf: x = maxx + 2
+                if y == inf: y = maxy + 2
+                if x == -inf: x = minx - 2
+                if y == -inf: y = miny - 2
+                item = DiagramPoint(x,y,p, infty = True)
+            else:
+                item = DiagramPoint(x,y,p)
             self.scene.addItem(item)
 
         # Flip y-axis
