@@ -12,5 +12,5 @@ def show_complex(points, complex = None, values = None):
     if len(points[0]) == 3:
         show_complex_3D(points, complex, values, app = _app)
 
-def show_diagram(dgm):
-    return _show_diagram(dgm, _app)
+def show_diagram(dgm, noise = 0):
+    return _show_diagram(dgm, noise, _app)

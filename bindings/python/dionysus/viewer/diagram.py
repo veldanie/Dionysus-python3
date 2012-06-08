@@ -1,9 +1,19 @@
 from    PyQt4       import QtGui, QtCore
+from    math        import fabs
 
 class DiagramPoint(QtGui.QGraphicsEllipseItem):
-    def __init__(self,x,y,radius, p):
-        super(QtGui.QGraphicsEllipseItem, self).__init__(x - radius,y - radius,2*radius, 2*radius)
+    def __init__(self,x,y, p):
+        super(QtGui.QGraphicsEllipseItem, self).__init__()
+        self.setPen(QtGui.QPen(QtGui.QColor(225, 0, 0)))
+        self.setBrush(QtGui.QBrush(QtCore.Qt.red))
+        self.radius = .075
+        self.x, self.y = x,y
+        self.scale(1)
         self.p = p
+
+    def scale(self, delta):
+        self.radius *= delta
+        self.setRect(self.x - self.radius, self.y - self.radius, 2*self.radius, 2*self.radius)
 
     # for debugging purposes
     def color(self):
@@ -12,7 +22,7 @@ class DiagramPoint(QtGui.QGraphicsEllipseItem):
         self.setPen(pen)
 
 class DiagramViewer(QtGui.QGraphicsView):
-    def __init__(self, dgm):
+    def __init__(self, dgm, noise):
         super(QtGui.QGraphicsView, self).__init__()
 
         self.selection = None
@@ -28,16 +38,14 @@ class DiagramViewer(QtGui.QGraphicsView):
         maxx = max(p[0] for p in dgm if p[0] != inf)
         maxy = max(p[1] for p in dgm if p[1] != inf)
 
-        radius = max(.005, min(maxx - minx, maxy - miny)/500)
-        border = 25
-        self.scene.setSceneRect(minx - border*radius, miny - border*radius, (maxx - minx) + 2*border*radius, (maxy - miny) + 2*border*radius)
-
         self.draw_axes(minx,miny,maxx,maxy)
 
         for p in dgm:
             x,y = p[0],p[1]
             if x == inf or y == inf: continue
-            item = DiagramPoint(x,y,radius, p)
+            if fabs(y - x) < noise:
+                continue
+            item = DiagramPoint(x,y,p)
             self.scene.addItem(item)
 
         # Flip y-axis
@@ -82,7 +90,14 @@ class DiagramViewer(QtGui.QGraphicsView):
 
     def wheelEvent(self, event):
         delta = 1 + float(event.delta())/100
+        if delta < 0:
+            event.ignore()
+            return
         self.scale(delta, delta)
+        for item in self.scene.items():
+            if isinstance(item, DiagramPoint):
+                item.scale(1/delta)
+        event.accept()
 
     def draw_axes(self, minx, miny, maxx, maxy):
         # Draw axes and diagonal
@@ -110,9 +125,9 @@ class DiagramViewer(QtGui.QGraphicsView):
             self.scene.addItem(line)
 
 
-def show_diagram(dgm, app):
+def show_diagram(dgm, noise, app):
     #app = QtGui.QApplication([])
-    view = DiagramViewer(dgm)
+    view = DiagramViewer(dgm, noise)
     view.show()
     view.raise_()
     app.exec_()

@@ -61,3 +61,7 @@ def init_diagrams(p, f, evaluator = None, data = None):
         return init_diagrams_from_adaptor(p,f, evaluator, data)
 
     return _init_diagrams(p,f, evaluator, data)
+
+def read_points(filename):
+    return [p for p in points_file(filename)]
+
