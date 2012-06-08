@@ -26,8 +26,10 @@ def smooth(filtration, cocycle):
                  [0     for zz in cocycle], (dimension, 1))
 
     v1 = D * z
-    # print "D^2 is zero:", not bool(D*D)
-    # print "D*z is zero:", not bool(v1)
+    if bool(D*D):
+        raise Exception('D^2 is not 0')
+    if bool(v1):
+        raise Exception('Expect a cocycle as input')
     z = matrix(z)
 
     def Dfun(x,y,trans = 'N'):
@@ -48,7 +50,7 @@ def smooth(filtration, cocycle):
     # print sum(z_smooth**2)
     # assert sum((D*z_smooth)**2) < tol and sum((D.T*z_smooth)**2) < tol, "Expected a harmonic cocycle"
     if not (sum((D*z_smooth)**2) < tol and sum((D.T*z_smooth)**2) < tol):
-        print "Expected a harmonic cocycle:", sum((D*z_smooth)**2), sum((D.T*z_smooth)**2)
+        raise Exception("Expected a harmonic cocycle: %f %f" % (sum((D*z_smooth)**2), sum((D.T*z_smooth)**2)))
 
     values = []
     vertices = ((i,s) for (i,s) in enumerate(filtration) if s.dimension() == 0)

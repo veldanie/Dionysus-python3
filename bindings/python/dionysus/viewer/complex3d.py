@@ -5,8 +5,9 @@ from    dionysus    import Simplex
 from    math        import sqrt
 
 class ComplexViewer3D(PyGLWidget):
-    def __init__(self, points, complex = None, values = None):
+    def __init__(self, points, complex = None, values = None, point_size = 3.):
         PyGLWidget.__init__(self)
+        self.point_size = point_size
 
         self.points = points
         if complex:
@@ -24,6 +25,8 @@ class ComplexViewer3D(PyGLWidget):
         self.set_radius(radius)
         self.set_center(center)
 
+        self.make_display_list()
+
     def center_radius(self):
         c = [0,0,0]
         for p in self.points:
@@ -38,6 +41,12 @@ class ComplexViewer3D(PyGLWidget):
 
     def paintGL(self):
         PyGLWidget.paintGL(self)
+        glCallList(self.display_list)
+
+    def make_display_list(self):
+        self.display_list = glGenLists(1)
+        glNewList(self.display_list, GL_COMPILE)
+
         self.complex.sort(lambda s1, s2: -cmp(s1.dimension(), s2.dimension()))
         for s in self.complex:
             vertices = [v for v in s.vertices]
@@ -45,7 +54,7 @@ class ComplexViewer3D(PyGLWidget):
                 p = self.points[vertices[0]]
                 v = self.values[vertices[0]]
 
-                glPointSize(3.0)
+                glPointSize(self.point_size)
                 c = self.colormap(v)
                 cr = float(c.red())/255
                 cg = float(c.green())/255
@@ -75,6 +84,7 @@ class ComplexViewer3D(PyGLWidget):
                 glVertex3f(p2[0],p2[1],p2[2])
                 glEnd()
 
+        glEndList()
 
     def colormap(self, v):
         if self.maxval <= self.minval:
@@ -86,9 +96,10 @@ class ComplexViewer3D(PyGLWidget):
         return c
 
 # TODO: cycle
-def show_complex_3D(points, complex = None, values = None, app = None):
+def show_complex_3D(points, complex = None, values = None, app = None, point_size = 3.):
+    print "Point size:", point_size
     #app = QtGui.QApplication([])
-    view = ComplexViewer3D(points, complex, values)
+    view = ComplexViewer3D(points, complex, values, point_size)
     view.show()
     view.raise_()
     app.exec_()
