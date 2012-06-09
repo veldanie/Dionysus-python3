@@ -2,10 +2,11 @@ from    PyQt4       import QtGui, QtCore
 from    math        import fabs
 
 class DiagramPoint(QtGui.QGraphicsEllipseItem):
-    def __init__(self,x,y, p, infty = False):
+    def __init__(self,x,y, p, infty = False, color = 0):
         super(QtGui.QGraphicsEllipseItem, self).__init__()
-        self.setPen(QtGui.QPen(QtGui.QColor(225, 0, 0)))
-        self.setBrush(QtGui.QBrush(QtCore.Qt.red))
+        c = self.color(color)
+        self.setBrush(QtGui.QBrush(c[0]))
+        self.setPen(QtGui.QPen(c[1]))
         self.radius = .075
         if infty:
             self.radius *= 2
@@ -17,11 +18,14 @@ class DiagramPoint(QtGui.QGraphicsEllipseItem):
         self.radius *= delta
         self.setRect(self.x - self.radius, self.y - self.radius, 2*self.radius, 2*self.radius)
 
-    # for debugging purposes
-    def color(self):
-        pen = QtGui.QPen()
-        pen.setColor(QtCore.Qt.red)
-        self.setPen(pen)
+    def color(self, i):
+        return self._colors[i % len(self._colors)]
+
+    # (fill, border) pairs
+    _colors = [(QtCore.Qt.red,   QtGui.QColor(225, 0, 0)),
+               (QtCore.Qt.blue,  QtGui.QColor(0, 0, 225)),
+               (QtCore.Qt.green, QtGui.QColor(0, 225, 0)),
+              ]
 
 class DiagramViewer(QtGui.QGraphicsView):
     def __init__(self, dgm, noise):
@@ -34,27 +38,34 @@ class DiagramViewer(QtGui.QGraphicsView):
         self.scene = QtGui.QGraphicsScene(self)
         self.setScene(self.scene)
 
+        if not isinstance(dgm, list):
+            # Assume it's just a single diagram
+            dgms = [dgm]
+        else:
+            dgms = dgm
+
         inf = float('inf')
-        minx = min(p[0] for p in dgm)
-        miny = min(p[1] for p in dgm)
-        maxx = max(p[0] for p in dgm if p[0] != inf)
-        maxy = max(p[1] for p in dgm if p[1] != inf)
+        minx = min(0, min(p[0] for d in dgms for p in d))
+        miny = min(0, min(p[1] for d in dgms for p in d))
+        maxx = max(0, max(p[0] for d in dgms for p in d if p[0] != inf))
+        maxy = max(0, max(p[1] for d in dgms for p in d if p[1] != inf))
 
         self.draw_axes(minx,miny,maxx,maxy)
 
-        for p in dgm:
-            x,y = p[0],p[1]
-            if fabs(y - x) < noise:
-                continue
-            if fabs(x) == inf or fabs(y) == inf:
-                if x == inf: x = maxx + 2
-                if y == inf: y = maxy + 2
-                if x == -inf: x = minx - 2
-                if y == -inf: y = miny - 2
-                item = DiagramPoint(x,y,p, infty = True)
-            else:
-                item = DiagramPoint(x,y,p)
-            self.scene.addItem(item)
+        for i, dgm in enumerate(dgms):
+            for p in dgm:
+                x,y = p[0],p[1]
+                if fabs(y - x) < noise:
+                    continue
+                if fabs(x) == inf or fabs(y) == inf:
+                    if x == inf: x = maxx + 2
+                    if y == inf: y = maxy + 2
+                    if x == -inf: x = minx - 2
+                    if y == -inf: y = miny - 2
+                    item = DiagramPoint(x,y,p, infty = True, color = i)
+                else:
+                    item = DiagramPoint(x,y,p, color = i)
+                self.scene.addItem(item)
 
         # Flip y-axis
         self.scale(1, -1)
@@ -74,7 +85,6 @@ class DiagramViewer(QtGui.QGraphicsView):
             p = self.mapToScene(event.pos())
             item = self.scene.itemAt(p)
             if isinstance(item, DiagramPoint):
-                item.color()
                 self.selection = item.p
                 self.close()
 
