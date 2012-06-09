@@ -6,9 +6,14 @@ from    math        import sqrt
 
 class ComplexViewer3D(PyGLWidget):
     def __init__(self, points, complex = None, values = None, point_size = 3.):
+        self.display_list = None
         PyGLWidget.__init__(self)
-        self.point_size = point_size
 
+        #glEnable( GL_BLEND )
+        #glEnable( GL_LINE_SMOOTH )
+        #glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        self.point_size = point_size
         self.points = points
         if complex:
             self.complex = [s for s in complex]
@@ -41,7 +46,8 @@ class ComplexViewer3D(PyGLWidget):
 
     def paintGL(self):
         PyGLWidget.paintGL(self)
-        glCallList(self.display_list)
+        if self.display_list:
+            glCallList(self.display_list)
 
     def make_display_list(self):
         self.display_list = glGenLists(1)
@@ -97,7 +103,6 @@ class ComplexViewer3D(PyGLWidget):
 
 # TODO: cycle
 def show_complex_3D(points, complex = None, values = None, app = None, point_size = 3.):
-    print "Point size:", point_size
     #app = QtGui.QApplication([])
     view = ComplexViewer3D(points, complex, values, point_size)
     view.show()

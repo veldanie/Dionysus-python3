@@ -5,11 +5,11 @@ The :ref:`rips-pairwise-cohomology` illustrates the use of :class:`CohomologyPer
 
 .. class:: CohomologyPersistence
 
-    .. method:: __init__(prime)
+    .. method:: __init__(prime = 11)
 
         Initializes :class:`CohomologyPersistence` with the given `prime`; from
         this point on all the computation will be performed with coefficients
-        coming from :math:`\mathbb{Z}/prime \mathbb{Z}`.
+        in :math:`\mathbb{Z}/prime \mathbb{Z}`.
 
     .. method:: add(boundary, birth, [store = True], [image = True], [coefficients = []])
 
@@ -19,7 +19,7 @@ The :ref:`rips-pairwise-cohomology` illustrates the use of :class:`CohomologyPer
         it for future reference.
 
         If `store` is ``False`` and a class is born, it will not be stored in
-        :class:`CohomologyPersistence`. This is useful to not waste space on the
+        :class:`CohomologyPersistence`. This avoids wasting space on the
         classes of the dimension equal to the maximum-dimensional simplices of
         the complex since such classes will never die.
 
@@ -34,15 +34,18 @@ The :ref:`rips-pairwise-cohomology` illustrates the use of :class:`CohomologyPer
         coefficients for the corresponding boundary elements. If empty, it is
         assumed to be :math:`(-1)^i`.
 
-        :returns: a pair (`i`, `d`). The first element is the index `i`.
+        :returns: a triple (`i`, `d`, `ccl`). The first element is the index `i`.
                   It is the internal representation of the newly added simplex,
-                  and should be used later for removal or when constructing the
+                  and should be used later when constructing the
                   boundaries of its cofaces. In other words, `boundary` must
                   consist of these indices.  The second element `d` is the death
                   element. It is `None` if a birth occurred, otherwise it
                   contains the value passed as `birth` to
                   :meth:`~CohomologyPersistence.add` when the class that just
                   died was born.
+                  The third element `ccl` returns the dying cocycle
+                  (iterable over instances of :class:`CHSNode`), in case of a death.
+                  It's empty if a birth occurs.
 
     .. method:: __iter__()
 
@@ -141,7 +144,7 @@ See the documentation of the latter class for details.
 
     .. attribute:: cocycle
 
-        If the simplex is positive, this attribute stores a cocycle it created.
+        If the simplex is positive, this attribute stores a cocycle it created (recorded at the time of its death).
         The 1-dimensional cocycles can be used with the :func:`circular.smooth` function to turn
         them into circle-valued maps.
         ::

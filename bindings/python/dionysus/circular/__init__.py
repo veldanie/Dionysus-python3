@@ -17,8 +17,11 @@ def smooth(filtration, cocycle):
             face_indices.append(j)
             c *= -1
 
+    # Cocycle can be larger than D; we implicitly project it down
+    cocycle_max = max(zz[1] for zz in cocycle)
+
     # D is a coboundary matrix
-    dimension = max(max(coface_indices), max(face_indices)) + 1
+    dimension = max(max(coface_indices), max(face_indices), cocycle_max) + 1
     D = spmatrix(coefficient, coface_indices, face_indices, (dimension, dimension))
 
     z = spmatrix([zz[0] for zz in cocycle],
@@ -29,7 +32,7 @@ def smooth(filtration, cocycle):
     if bool(D*D):
         raise Exception('D^2 is not 0')
     if bool(v1):
-        raise Exception('Expect a cocycle as input')
+        raise Exception('Expected a cocycle as input')
     z = matrix(z)
 
     def Dfun(x,y,trans = 'N'):

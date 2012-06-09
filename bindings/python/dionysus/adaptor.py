@@ -1,8 +1,9 @@
-from _dionysus import CohomologyPersistence, PersistenceDiagram
+from _dionysus import CohomologyPersistence, PersistenceDiagram, Cocycle
 
 class StaticCohomologyPersistence(object):
     def __init__(self, filtration, prime = 2, subcomplex = lambda s: True):
         self.filtration = filtration
+        self.prime = prime
         self.subcomplex = subcomplex
         self.persistence = CohomologyPersistence(prime)
         self.pairs = []
@@ -12,16 +13,26 @@ class StaticCohomologyPersistence(object):
         for i,s in enumerate(self.filtration):
             sc = self.subcomplex(s)
             boundary = (indices[self.filtration(ss)] for ss in s.boundary)
-            idx,d = self.persistence.add(boundary, i, image = sc)
+            idx,d,ccl = self.persistence.add(boundary, i, image = sc)
             indices.append(idx)
             self.pairs.append([i, sc, []])
             if d:                           # Death
                 if self.pairs[d][1]:        # Birth was in the subcomplex
                     self.pairs[i][0] = d    # i killed d
                     self.pairs[d][0] = i    # d was killed by i
+                    self.pairs[d][2] = self._cocycle_list(ccl)  # record the cocycle at the time of death
             else:
                 cocycle = self.persistence.__iter__().next()
-                self.pairs[-1][2] = [(n.coefficient, n.si.order) for n in cocycle]
+                self.pairs[-1][2] = cocycle
+
+        # Replace cocycles with lists
+        for i in xrange(len(self.pairs)):
+            ccl = self.pairs[i][2]
+            if isinstance(ccl, Cocycle):
+                self.pairs[i][2] = self._cocycle_list(ccl)
+
+    def _cocycle_list(self, ccl):
+        return [(n.coefficient if n.coefficient <= self.prime/2 else n.coefficient - self.prime, n.si.order) for n in ccl]
 
     def __call__(self, n):
         return n.i

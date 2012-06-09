@@ -37,7 +37,7 @@ import math
 import numpy
 import numpy.linalg as linalg
 import OpenGL
-OpenGL.ERROR_CHECKING = True
+OpenGL.ERROR_CHECKING = False
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
