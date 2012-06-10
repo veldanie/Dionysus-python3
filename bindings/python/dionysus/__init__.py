@@ -35,6 +35,9 @@ def dim_data_cmp(s1,s2):
 def vertex_dim_cmp(s1, s2):
     return cmp(s1.dimension(), s2.dimension()) or vertex_cmp(s1, s2)
 
+def dim_cmp(s1, s2):
+    return cmp(s1.dimension(), s2.dimension())
+
 def fill_alpha_complex(points, simplices):
     if   len(points[0]) == 2:           # 2D
         fill_alpha2D_complex(points, simplices)
@@ -64,4 +67,3 @@ def init_diagrams(p, f, evaluator = None, data = None):
 
 def read_points(filename):
     return [p for p in points_file(filename)]
-

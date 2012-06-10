@@ -5,7 +5,7 @@ from    dionysus    import Simplex
 from    math        import sqrt
 
 class ComplexViewer3D(PyGLWidget):
-    def __init__(self, points, complex = None, values = None, point_size = 3.):
+    def __init__(self, points, complex = None, values = None, subcomplex = None, point_size = 3.):
         self.display_list = None
         PyGLWidget.__init__(self)
 
@@ -20,6 +20,11 @@ class ComplexViewer3D(PyGLWidget):
         else:
             # Create vertex simplices if no complex provided
             self.complex = [Simplex([i]) for i in xrange(len(self.points))]
+
+        if subcomplex:
+            self.subcomplex = subcomplex
+        else:
+            self.subcomplex = []
 
         self.values = values
         if not values:
@@ -52,20 +57,23 @@ class ComplexViewer3D(PyGLWidget):
     def make_display_list(self):
         self.display_list = glGenLists(1)
         glNewList(self.display_list, GL_COMPILE)
+        self.draw_complex(self.complex,    self.point_size,   2., self.colormap)
+        self.draw_complex(self.subcomplex, 2*self.point_size, 4., colormap = lambda v: (0,1.,0), line_color = (0,1.,0))
+        glEndList()
 
-        self.complex.sort(lambda s1, s2: -cmp(s1.dimension(), s2.dimension()))
-        for s in self.complex:
+
+    def draw_complex(self, complex, point_size, line_size, colormap, line_color = (0,0,1.)):
+        glPointSize(point_size)
+        glLineWidth(line_size)
+        complex.sort(lambda s1, s2: -cmp(s1.dimension(), s2.dimension()))
+        for s in complex:
             vertices = [v for v in s.vertices]
             if s.dimension() == 0:              # point
                 p = self.points[vertices[0]]
                 v = self.values[vertices[0]]
 
-                glPointSize(self.point_size)
                 c = self.colormap(v)
-                cr = float(c.red())/255
-                cg = float(c.green())/255
-                cb = float(c.blue())/255
-                glColor3f(cr, cg, cb)
+                glColor3f(*c)
                 glBegin(GL_POINTS)
                 glVertex3f(p[0],p[1],p[2])
                 glEnd()
@@ -73,7 +81,7 @@ class ComplexViewer3D(PyGLWidget):
                 p0 = self.points[vertices[0]]
                 p1 = self.points[vertices[1]]
 
-                glColor3f(0,0,1)
+                glColor3f(*line_color)
                 glBegin(GL_LINES)
                 glVertex3f(p0[0],p0[1],p0[2])
                 glVertex3f(p1[0],p1[1],p1[2])
@@ -90,8 +98,6 @@ class ComplexViewer3D(PyGLWidget):
                 glVertex3f(p2[0],p2[1],p2[2])
                 glEnd()
 
-        glEndList()
-
     def colormap(self, v):
         if self.maxval <= self.minval:
             t = 0
@@ -99,12 +105,14 @@ class ComplexViewer3D(PyGLWidget):
             t = (v - self.minval)/(self.maxval - self.minval)
         c = QtGui.QColor()
         c.setHsv(int(t*255), 255, 255)
-        return c
+        cr = float(c.red())/255
+        cg = float(c.green())/255
+        cb = float(c.blue())/255
+        return (cr,cg,cb)
 
-# TODO: cycle
-def show_complex_3D(points, complex = None, values = None, app = None, point_size = 3.):
+def show_complex_3D(points, complex = None, values = None, subcomplex = None, app = None, point_size = 3.):
     #app = QtGui.QApplication([])
-    view = ComplexViewer3D(points, complex, values, point_size)
+    view = ComplexViewer3D(points, complex, values, subcomplex, point_size)
     view.show()
     view.raise_()
     app.exec_()
