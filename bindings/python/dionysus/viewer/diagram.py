@@ -45,10 +45,14 @@ class DiagramViewer(QtGui.QGraphicsView):
             dgms = dgm
 
         inf = float('inf')
-        minx = min(0, min(p[0] for d in dgms for p in d))
-        miny = min(0, min(p[1] for d in dgms for p in d))
-        maxx = max(0, max(p[0] for d in dgms for p in d if p[0] != inf))
-        maxy = max(0, max(p[1] for d in dgms for p in d if p[1] != inf))
+        xs = [p[0] for d in dgms for p in d]
+        ys = [p[1] for d in dgms for p in d]
+        minx = min(0, min(xs) if xs else 0)
+        miny = min(0, min(ys) if ys else 0)
+        xs = [x for x in xs if x != inf]
+        ys = [y for y in ys if y != inf]
+        maxx = max(0, max(xs) if xs else 0)
+        maxy = max(0, max(ys) if ys else 0)
 
         self.draw_axes(minx,miny,maxx,maxy)
 
