@@ -22,6 +22,8 @@ set                         (sources
 set                         (bindings_libraries ${libraries})
 
 if                          (CGAL_FOUND)
+    include                 (${CGAL_USE_FILE})
+
     set                     (sources            ${sources}
                                                 alphashapes3d.cpp
                                                 alphashapes2d.cpp)

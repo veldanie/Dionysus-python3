@@ -5,6 +5,7 @@ option                      (logging            "Build Dionysus with logging on"
 option                      (counters           "Build Dionysus with counters on"       OFF)
 option                      (debug              "Build Dionysus with debugging on"      OFF)
 option                      (optimize           "Build Dionysus with optimization"      ON)
+option                      (use_cgal           "Build examples and python bindings that use CGAL"       ON)
 option                      (use_dsrpdb         "Build examples that use DSR-PDB"       OFF)
 option                      (use_synaps         "Build examples that use SYNAPS"        OFF)
 
@@ -17,7 +18,9 @@ if                          (use_dsrpdb)
 endif                       (use_dsrpdb)
 
 # CGAL
-find_package                (CGAL)
+if                          (use_cgal)
+    find_package            (CGAL QUIET)
+endif                       (use_cgal)
 #add_definitions             (-DCGAL_NO_ASSERTIONS -DCGAL_NO_PRECONDITIONS)
 
 # SYNAPS

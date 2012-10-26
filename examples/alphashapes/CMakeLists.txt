@@ -8,6 +8,8 @@ target_link_libraries           (compare-diagrams               ${libraries})
 
 # Add targets that depend on CGAL
 if                              (CGAL_FOUND)
+    include                     (${CGAL_USE_FILE})
+
     set                         (targets                        alphashapes3d
                                                                 alphashapes2d
                                                                 alphashapes3d-cohomology
