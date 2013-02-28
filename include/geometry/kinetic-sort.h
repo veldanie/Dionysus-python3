@@ -7,19 +7,19 @@
 #include <iostream>
 
 /**
- * Maintains elements of the given data structure in the sorted order assuming the elements follow 
+ * Maintains elements of the given data structure in the sorted order assuming the elements follow
  * trajectories given by TrajectoryExtractor_.
  *
  *  \arg ElementIterator_     iterator over the underlying data structure that's kept in sorted order
- *  \arg TrajectoryExtractor_ applied to the iterator into SortDS_ should return a function 
+ *  \arg TrajectoryExtractor_ applied to the iterator into SortDS_ should return a function
  *                            (of type Simulator_::FunctionKernel::Function) describing the trajectory of the element
- *  \arg Simulator_           the Simulator type, e.g. Simulator. Note that KineticSort does not store 
+ *  \arg Simulator_           the Simulator type, e.g. Simulator. Note that KineticSort does not store
  *                            a pointer to the Simulator (so a pointer is passed in each relevant operation)
  *  \arg Swap_                is called with an ElementIterator_ when a swap needs to be performed
  *
  *  \ingroup kinetic
  */
-template<class ElementIterator_, class TrajectoryExtractor_, 
+template<class ElementIterator_, class TrajectoryExtractor_,
 		 class Simulator_, class Swap_ = boost::function<void(ElementIterator_ pos, Simulator_* simulator)> >
 class KineticSort
 {
@@ -29,18 +29,18 @@ class KineticSort
 		typedef						ElementIterator_							ElementIterator;
 		typedef						Swap_										Swap;
 		typedef						TrajectoryExtractor_						TrajectoryExtractor;
-		
+
 		typedef						typename Simulator::Key						SimulatorKey;
 
-									
+
 	private:
 		/* Implementation */
 		struct Node
 		{
 			ElementIterator			element;
-			SimulatorKey			swap_event_key;		
+			SimulatorKey			swap_event_key;
 
-									Node(ElementIterator e, SimulatorKey k): 
+									Node(ElementIterator e, SimulatorKey k):
 										element(e), swap_event_key(k)			{}
 		};
 
@@ -53,7 +53,7 @@ class KineticSort
 		/// \name Core Functionality
 		/// @{
 									KineticSort();
-									KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator, const TrajectoryExtractor& te);
+									KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator, const TrajectoryExtractor& te = TrajectoryExtractor());
 		void						initialize(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator);
 
 		void						insert(iterator pos, ElementIterator f, ElementIterator l, Simulator* simulator);
@@ -77,7 +77,7 @@ class KineticSort
 
 	private:
 		NodeList					list_;
-		Swap						swap_;	
+		Swap						swap_;
         TrajectoryExtractor         te_;
 };
 

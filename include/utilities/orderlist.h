@@ -1,5 +1,5 @@
 /*
- * Author: Dmitriy Morozov 
+ * Author: Dmitriy Morozov
  * Department of Computer Science, Duke University, 2006
  *
  * Implements the simplified order list data strcutre given in ``Two Simplified
@@ -42,21 +42,21 @@ template<class T>
 class OrderList: public std::list<OrderListNode<T> >
 {
 	public:
-		class 			OrderComparison;				
+		class 			OrderComparison;
 
 		/// OrderComparison type
 		typedef			OrderComparison								OrderComparison;
-	
+
 		typedef			OrderListNode<T>							NodeType;
 		typedef			OrderList<T>								Self;
 		typedef			std::list<NodeType >						Parent;
-		
+
 		typedef			T											value_type;
 		typedef			T&											reference;
 		typedef			const T&									const_reference;
 		typedef			OrderListIterator<T>						iterator;
 		typedef			const_OrderListIterator<T>					const_iterator;
-	
+
 						OrderList()									{}
 						~OrderList() 								{ clear(); }
 
@@ -71,8 +71,8 @@ class OrderList: public std::list<OrderListNode<T> >
 		iterator		push_back(const_reference x);
 		iterator		insert(iterator predecessor, const_reference x);	///< Inserts x immediately after predecessor (has to be a valid iterator)
 		void			erase(iterator x)							{ Parent::erase(x.get_base()); }
-		
-		void			clear()										{ return Parent::clear(); }	
+
+		void			clear()										{ return Parent::clear(); }
 		bool			empty() const								{ return Parent::empty(); }
 		SizeType		size()	const								{ return Parent::size(); }
 		iterator		begin()										{ return iterator(Parent::begin()); }
@@ -82,11 +82,11 @@ class OrderList: public std::list<OrderListNode<T> >
 		reference		back()										{ return Parent::back(); }
 		const_reference	back() const								{ return Parent::back(); }
 		void			pop_back()									{ return Parent::pop_back(); }
-		                                                			
+
 		iterator		last()										{ return iterator(boost::prior(end())); }
 		const_iterator	last() const								{ return const_iterator(boost::prior(end())); }
 		/// @}
-		
+
 		/// \name Debugging operations
 		/// @{
 		void			show_elements() const;
@@ -101,8 +101,8 @@ template<class T>
 class OrderList<T>::OrderComparison
 {
 	public:
-		typedef			typename OrderList<T>::const_iterator		ComparableType;				
-		int 			compare(ComparableType a, ComparableType b) const;				/// (-1,0,1) = a (precedes, ==, succeeds) b 
+		typedef			typename OrderList<T>::const_iterator		ComparableType;
+		int 			compare(ComparableType a, ComparableType b) const;				/// (-1,0,1) = a (precedes, ==, succeeds) b
 		bool			operator()(ComparableType a, ComparableType b) const;
 };
 
@@ -113,10 +113,10 @@ struct OrderListNode
 	OrderListNode(const T& d, unsigned int t):
 		data(d), tag(t)
 	{}
-	
+
 	T 				data;
 	OrderType		tag;
-	
+
 	std::ostream& 	operator<<(std::ostream& out) const				{ return out << data << ": " << tag; }
 };
 
@@ -142,7 +142,7 @@ class OrderListIterator: public boost::iterator_adaptor<OrderListIterator<T>,
 {
 	private:
 		struct			enabler										{};
-		
+
 	public:
 		typedef			typename OrderList<T>::Parent				OrderListParent;
 		typedef 		boost::iterator_adaptor<OrderListIterator<T>,
@@ -153,12 +153,12 @@ class OrderListIterator: public boost::iterator_adaptor<OrderListIterator<T>,
 
 						OrderListIterator()							{}
 						OrderListIterator(const typename OrderListParent::iterator& iter):
-    						OrderListIterator::iterator_adaptor_(iter)	
+    						OrderListIterator::iterator_adaptor_(iter)
 						{}
 						OrderListIterator(const OrderListIterator<T>& other):
-							OrderListIterator::iterator_adaptor_(other.base())			
+							OrderListIterator::iterator_adaptor_(other.base())
 						{}
-	
+
 	private:
 		friend class	boost::iterator_core_access;
 		reference		dereference() const							{ return Parent::base_reference()->data; }
@@ -174,7 +174,7 @@ class const_OrderListIterator: public boost::iterator_adaptor<const_OrderListIte
 {
 	private:
 		struct			enabler										{};
-		
+
 	public:
 		typedef			typename OrderList<T>::Parent				OrderListParent;
 		typedef 		boost::iterator_adaptor<const_OrderListIterator<T>,
@@ -185,13 +185,13 @@ class const_OrderListIterator: public boost::iterator_adaptor<const_OrderListIte
 
 						const_OrderListIterator()					{}
 						const_OrderListIterator(const typename OrderListParent::const_iterator& iter):
-    						const_OrderListIterator::iterator_adaptor_(iter)	
+    						const_OrderListIterator::iterator_adaptor_(iter)
 						{}
 						const_OrderListIterator(const const_OrderListIterator<T>& other):
-							const_OrderListIterator::iterator_adaptor_(other.base())			
+							const_OrderListIterator::iterator_adaptor_(other.base())
 						{}
 						const_OrderListIterator(const OrderListIterator<T>& other):
-							const_OrderListIterator::iterator_adaptor_(other.base())			
+							const_OrderListIterator::iterator_adaptor_(other.base())
 						{}
 
 	private:
@@ -201,7 +201,6 @@ class const_OrderListIterator: public boost::iterator_adaptor<const_OrderListIte
 						get_base()									{ return Parent::base_reference(); }
 
 		friend class 	OrderList<T>;
-		friend class 	OrderList<T>::OrderComparison;
 };
 
 

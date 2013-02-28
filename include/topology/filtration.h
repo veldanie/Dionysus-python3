@@ -26,11 +26,11 @@ namespace bmi = boost::multi_index;
 
 // Class: Filtration
 //
-// Filtration keeps track of the ordering of the simplices in a complex. 
+// Filtration keeps track of the ordering of the simplices in a complex.
 // The most significant function it provides is <boundary()> which converts
 // the boundary of a simplex at a given index into a list of indices.
 template<class Simplex_,
-         class SimplexOrderIndex_ = bmi::ordered_unique<bmi::identity<Simplex_>, 
+         class SimplexOrderIndex_ = bmi::ordered_unique<bmi::identity<Simplex_>,
                                                         typename Simplex_::VertexComparison> >
 class Filtration
 {
@@ -42,9 +42,9 @@ class Filtration
         typedef                 Simplex_                                        Simplex;
         typedef                 SimplexOrderIndex_                              SimplexOrderIndex;
 
-        typedef                 b::multi_index_container<Simplex, 
+        typedef                 b::multi_index_container<Simplex,
                                                          bmi::indexed_by<SimplexOrderIndex,
-                                                                         bmi::random_access<bmi::tag<order> > 
+                                                                         bmi::random_access<bmi::tag<order> >
                                                                         >
                                                         >                       Container;
         typedef                 typename Container::value_type                  value_type;
@@ -69,18 +69,18 @@ class Filtration
         // Lookup
         const Simplex&          simplex(Index i) const                          { return *i; }
         Index                   find(const Simplex& s) const                    { return bmi::project<order>(container_, container_.find(s)); }
-        
+
         // Modifiers
         template<class Comparison>
-        void                    sort(const Comparison& cmp = Comparison())      { container_.get<order>().sort(cmp); }
-        void                    push_back(const Simplex& s)                     { container_.get<order>().push_back(s); }
-        void                    transpose(Index i)                              { container_.get<order>().relocate(i, i+1); }
-        void                    clear()                                         { container_.get<order>().clear(); }
+        void                    sort(const Comparison& cmp = Comparison())      { container_.template get<order>().sort(cmp); }
+        void                    push_back(const Simplex& s)                     { container_.template get<order>().push_back(s); }
+        void                    transpose(Index i)                              { container_.template get<order>().relocate(i, i+1); }
+        void                    clear()                                         { container_.template get<order>().clear(); }
         template<class Iter>
-        void                    rearrange(Iter i)                               { container_.get<order>().rearrange(i); }
+        void                    rearrange(Iter i)                               { container_.template get<order>().rearrange(i); }
 
-        Index                   begin() const                                   { return container_.get<order>().begin(); }
-        Index                   end() const                                     { return container_.get<order>().end(); }
+        Index                   begin() const                                   { return container_.template get<order>().begin(); }
+        Index                   end() const                                     { return container_.template get<order>().end(); }
         size_t                  size() const                                    { return container_.size(); }
 
         std::ostream&           operator<<(std::ostream& out) const             { std::copy(begin(), end(), std::ostream_iterator<Simplex>(out, "\n")); return out; }
@@ -91,7 +91,7 @@ class Filtration
     private:
         // Serialization
         friend class                            boost::serialization::access;
-        template<class Archive> 
+        template<class Archive>
         void                                    serialize(Archive& ar, const unsigned int)
         { ar & boost::serialization::make_nvp("order", container_); }
 };
@@ -140,7 +140,7 @@ class DimensionFunctor
         template<class key_type>
         Dimension               operator()(key_type i) const                    { return filtration_.simplex(map_[i]).dimension(); }
 
-    private:        
+    private:
         const Map&              map_;
         const Filtration&       filtration_;
 };

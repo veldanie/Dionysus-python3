@@ -73,7 +73,7 @@ include_directories         (${CMAKE_CURRENT_BINARY_DIR}
 
 # Doxygen (FIXME)
 if                          (DOXYGEN_FOUND)
-#   add_custom_target       (docs ALL 
+#   add_custom_target       (docs ALL
 #                           ${DOXYGEN_EXECUTABLE} Doxyfile
 #                           DEPENDS Doxyfile)
 endif                       (DOXYGEN_FOUND)

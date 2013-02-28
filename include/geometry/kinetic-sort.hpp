@@ -21,7 +21,7 @@ KineticSort()
 
 template<class ElementIterator_, class TrajectoryExtractor_, class Simulator_, class Swap_>
 KineticSort<ElementIterator_, TrajectoryExtractor_, Simulator_, Swap_>::
-KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator, const TrajectoryExtractor& te = TrajectoryExtractor()):
+KineticSort(ElementIterator b, ElementIterator e, Swap swap, Simulator* simulator, const TrajectoryExtractor& te):
     te_(te)
 {
 	initialize(b, e, swap, simulator);

@@ -1,5 +1,5 @@
 /*
- * Author: Dmitriy Morozov 
+ * Author: Dmitriy Morozov
  * Department of Computer Science, Duke University, 2006
  */
 
@@ -31,7 +31,7 @@ template<class T>
 class ConsistencyList: public OrderList<ConsistencyListNode<T> >
 {
 	public:
-		class 			OrderComparison;				
+		class 			OrderComparison;
 		class 			LessThanComparison;
 		class 			GreaterThanComparison;
 		class 			ConsistencyComparison;
@@ -43,20 +43,20 @@ class ConsistencyList: public OrderList<ConsistencyListNode<T> >
 		typedef			GreaterThanComparison						GreaterThanComparison;
 		typedef			ConsistencyComparison						ConsistencyComparison;
 		/// @}
-	
+
 		typedef			ConsistencyListNode<T>						NodeType;
 		typedef			ConsistencyList<T>							Self;
 		typedef			OrderList<NodeType >						Parent;
-		
+
 		typedef			T											value_type;
 		typedef			T&											reference;
 		typedef			const T&									const_reference;
 		typedef			ConsistencyListIterator<T>					iterator;
 		typedef			const_ConsistencyListIterator<T>			const_iterator;
-	
+
 						ConsistencyList(): sz(0)					{}
 						~ConsistencyList() 							{ clear(); }
-	
+
 		/// \name Order operations
 		void			swap(iterator i, iterator j);				///< Exchanges the order of simplices pointed to by i and j
 		template<class BinaryPredicate>
@@ -69,7 +69,7 @@ class ConsistencyList: public OrderList<ConsistencyListNode<T> >
 		iterator		insert(iterator predecessor, const_reference x);	///< Inserts x immediately after predecessor (has to be a valid iterator)
 		void			erase(iterator x)							{ Parent::erase(x.get_base()); --sz; }
 
-		void			clear()										{ return Parent::clear(); }	
+		void			clear()										{ return Parent::clear(); }
 		bool			empty() const								{ return Parent::empty(); }
 		SizeType		size()	const								{ return sz; }
 		iterator		begin()										{ return iterator(Parent::begin()); }
@@ -79,11 +79,11 @@ class ConsistencyList: public OrderList<ConsistencyListNode<T> >
 		reference		back()										{ return Parent::back(); }
 		const_reference	back() const								{ return Parent::back(); }
 		void			pop_back()									{ return Parent::pop_back(); }
-		                                                			
+
 		iterator		last()										{ return iterator(boost::prior(end())); }
 		const_iterator	last() const								{ return const_iterator(boost::prior(end())); }
 		/// @}
-	
+
 	private:
 		unsigned int	sz;
 };
@@ -93,31 +93,31 @@ template<class T>
 class ConsistencyList<T>::OrderComparison
 {
 	public:
-		typedef			typename ConsistencyList<T>::const_iterator		ComparableType;				
+		typedef			typename ConsistencyList<T>::const_iterator		ComparableType;
 
-		int 			compare(ComparableType a, ComparableType b) const;				/// (-1,0,1) = a (precedes, ==, succeeds) b 
+		int 			compare(ComparableType a, ComparableType b) const;				/// (-1,0,1) = a (precedes, ==, succeeds) b
 };
 
 /// Determines if the first element is less than the second one
 template<class T>
-class ConsistencyList<T>::LessThanComparison: public OrderComparison 
+class ConsistencyList<T>::LessThanComparison: public OrderComparison
 {
 	public:
 		typedef			OrderComparison								Parent;
-		typedef			typename Parent::ComparableType				ComparableType;				
-		
-		int 			compare(ComparableType a, ComparableType b) const;	
+		typedef			typename Parent::ComparableType				ComparableType;
+
+		int 			compare(ComparableType a, ComparableType b) const;
 		bool 			operator()(ComparableType a, ComparableType b) const;
 };
 
 /// Determines if the first element is greater than the second one
 template<class T>
-class ConsistencyList<T>::GreaterThanComparison: public OrderComparison 
+class ConsistencyList<T>::GreaterThanComparison: public OrderComparison
 {
 	public:
 		typedef			OrderComparison								Parent;
-		typedef			typename Parent::ComparableType				ComparableType;				
-		
+		typedef			typename Parent::ComparableType				ComparableType;
+
 		int 			compare(ComparableType a, ComparableType b) const;
 		bool 			operator()(ComparableType a, ComparableType b) const;
 };
@@ -127,10 +127,10 @@ template<class T>
 class ConsistencyList<T>::ConsistencyComparison
 {
 	public:
-		typedef			typename ConsistencyList<T>::const_iterator		ComparableType;				
-		
-		int 			compare(ComparableType a, ComparableType b) const;				///< (-1,0,1) = a (precedes, ==, succeeds) b 
-		bool 			operator()(ComparableType a, ComparableType b) const;		
+		typedef			typename ConsistencyList<T>::const_iterator		ComparableType;
+
+		int 			compare(ComparableType a, ComparableType b) const;				///< (-1,0,1) = a (precedes, ==, succeeds) b
+		bool 			operator()(ComparableType a, ComparableType b) const;
 };
 
 /// Structure storing auxilliary information requred for each node of ConsistencyList
@@ -140,7 +140,7 @@ struct ConsistencyListNode
 	ConsistencyListNode(const T& d, unsigned int c):
 		data(d), consistency(c)
 	{}
-	
+
 	T 				data;
 	OrderType		consistency;
 
@@ -157,7 +157,7 @@ class ConsistencyListIterator: public boost::iterator_adaptor<ConsistencyListIte
 {
 	private:
 		struct			enabler										{};
-		
+
 	public:
 		typedef			typename ConsistencyList<T>::Parent			ConsistencyListParent;
 		typedef 		boost::iterator_adaptor<ConsistencyListIterator<T>,
@@ -168,10 +168,10 @@ class ConsistencyListIterator: public boost::iterator_adaptor<ConsistencyListIte
 
 						ConsistencyListIterator()					{}
 						ConsistencyListIterator(const typename ConsistencyListParent::iterator& iter):
-    						ConsistencyListIterator::iterator_adaptor_(iter)	
+    						ConsistencyListIterator::iterator_adaptor_(iter)
 						{}
 						ConsistencyListIterator(const ConsistencyListIterator<T>& other):
-							ConsistencyListIterator::iterator_adaptor_(other.base())			
+							ConsistencyListIterator::iterator_adaptor_(other.base())
 						{}
 
 	private:
@@ -189,7 +189,7 @@ class const_ConsistencyListIterator: public boost::iterator_adaptor<const_Consis
 {
 	private:
 		struct			enabler										{};
-		
+
 	public:
 		typedef			typename ConsistencyList<T>::Parent				ConsistencyListParent;
 		typedef 		boost::iterator_adaptor<const_ConsistencyListIterator<T>,
@@ -200,13 +200,13 @@ class const_ConsistencyListIterator: public boost::iterator_adaptor<const_Consis
 
 						const_ConsistencyListIterator()					{}
 						const_ConsistencyListIterator(const typename ConsistencyListParent::const_iterator& iter):
-    						const_ConsistencyListIterator::iterator_adaptor_(iter)	
+    						const_ConsistencyListIterator::iterator_adaptor_(iter)
 						{}
 						const_ConsistencyListIterator(const const_ConsistencyListIterator<T>& other):
-							const_ConsistencyListIterator::iterator_adaptor_(other.base())			
+							const_ConsistencyListIterator::iterator_adaptor_(other.base())
 						{}
 						const_ConsistencyListIterator(const ConsistencyListIterator<T>& other):
-							const_ConsistencyListIterator::iterator_adaptor_(other.base())			
+							const_ConsistencyListIterator::iterator_adaptor_(other.base())
 						{}
 
 	private:
@@ -216,7 +216,6 @@ class const_ConsistencyListIterator: public boost::iterator_adaptor<const_Consis
 						get_base()									{ return Parent::base_reference(); }
 
 		friend class 	ConsistencyList<T>::OrderComparison;
-		friend class 	ConsistencyList<T>::ConsistencyComparison;
 };
 
 
