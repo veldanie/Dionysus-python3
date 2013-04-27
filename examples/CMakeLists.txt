@@ -1,3 +1,6 @@
+add_executable                  (bottleneck-distance bottleneck-distance.cpp)
+target_link_libraries           (bottleneck-distance ${libraries} ${Boost_PROGRAM_OPTIONS_LIBRARY})
+
 add_subdirectory			(alphashapes)
 #add_subdirectory			(ar-vineyard)
 add_subdirectory			(cech-complex)
