@@ -80,6 +80,8 @@ typedef     std::map<Smplx, Index,
                             Smplx::VertexDimensionComparison>       Complex;
 typedef     Zigzag::ZColumn                                         Boundary;
 
+typedef     std::vector<std::list<std::pair<double, double> > >     IntervalsVector;
+
 // Information we need to know when a class dies
 struct      BirthInfo
 {
@@ -91,8 +93,8 @@ struct      BirthInfo
 
 // Forward declarations of auxilliary functions
 // Note: min_value is used only for log-scale, so set it up to zero by default
-void write_intervals(std::ostream& out, std::list<std::pair<double,double> >* intervals, int skeleton_dimension, bool logscale, double min_value=0);
-void        report_death(std::list<std::pair<double, double> >* intervals, Death d, DistanceType epsilon, DistanceType birthEpsilon, Dimension skeleton_dimension);
+void write_intervals(std::ostream& out, const IntervalsVector& intervals, int skeleton_dimension, bool logscale, double min_value=0);
+void        report_death(IntervalsVector& intervals, Death d, DistanceType epsilon, DistanceType birthEpsilon, Dimension skeleton_dimension);
 void        make_boundary(const Smplx& s, Complex& c, const Zigzag& zz, Boundary& b);
 std::ostream&   operator<<(std::ostream& out, const BirthInfo& bi);
 void        process_command_line_options(int           argc,
@@ -138,7 +140,7 @@ int main(int argc, char* argv[])
     PairDistances distances(points);
     
     // Create intervals DS
-    std::list<std::pair<double, double> > intervals [skeleton_dimension];
+    IntervalsVector intervals(skeleton_dimension);
     // for (int i=0; i<skeleton_dimension; i++)
     //   intervals[i] = new std::list<std::pair<double, double> > ();
 
@@ -331,11 +333,11 @@ double log2(double x) {
   return std::log(x) / LOG2;
 }
 
-void write_intervals(std::ostream& out, std::list<std::pair<double,double> >* intervals, int skeleton_dimension, bool logscale, double min_value) {
+void write_intervals(std::ostream& out, const IntervalsVector& intervals, int skeleton_dimension, bool logscale, double min_value) {
   out << "I = { ";
     for (int d = 0; d<skeleton_dimension; d++) {
       out << "[ ";
-      for (std::list<std::pair<double,double> >::iterator pit = intervals[d].begin(); pit != intervals[d].end(); pit++)
+      for (std::list<std::pair<double,double> >::const_iterator pit = intervals[d].begin(); pit != intervals[d].end(); pit++)
 	if (logscale)
 	  out << "[" << log2(std::max(pit->first, min_value)) << ";" << log2(std::max(pit->second, min_value)) << "] ";
 	else
@@ -349,7 +351,7 @@ void write_intervals(std::ostream& out, std::list<std::pair<double,double> >* in
     out << "} ";
 } 
             
-void        report_death(std::list<std::pair<double,double> >* intervals, Death d, DistanceType epsilon, DistanceType birthEpsilon, Dimension skeleton_dimension)
+void        report_death(IntervalsVector& intervals, Death d, DistanceType epsilon, DistanceType birthEpsilon, Dimension skeleton_dimension)
 {
   // std::cerr << "   d = " << d;
   // if (d)

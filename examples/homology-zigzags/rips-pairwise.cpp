@@ -57,8 +57,10 @@ typedef         Filtration<Smplx>                                       Fltr;
 typedef         DynamicPersistenceChains<>                              Persistence;
 typedef         PersistenceDiagram<>                                    PDgm;
 
+typedef         std::vector<std::list<std::pair<double, double> > >     IntervalsVector;
+
 // Forward declarations of auxilliary functions
-void write_intervals(std::ostream& out, std::list<std::pair<double,double> >* intervals, int skeleton_dimension);
+void write_intervals(std::ostream& out, const IntervalsVector& intervals, int skeleton_dimension);
 void            program_options(int argc, char* argv[], std::string& infilename, Dimension& skeleton, DistanceType& max_distance, std::string& diagram_name);
 
 int main(int argc, char* argv[])
@@ -93,7 +95,7 @@ int main(int argc, char* argv[])
 
 #if 1
     // Create intervals DS
-    std::list<std::pair<double, double> > intervals [skeleton];
+    IntervalsVector intervals(skeleton);
 
     // Output cycles
     Persistence::SimplexMap<Fltr>   m = p.make_simplex_map(f);
@@ -153,11 +155,11 @@ double log2(double x) {
   return std::log(x) / LOG2;
 }
 
-void write_intervals(std::ostream& out, std::list<std::pair<double,double> >* intervals, int skeleton_dimension) {
+void write_intervals(std::ostream& out, const IntervalsVector& intervals, int skeleton_dimension) {
   out << "I = { ";
     for (int d = 0; d<skeleton_dimension; d++) {
       out << "[ ";
-      for (std::list<std::pair<double,double> >::iterator pit = intervals[d].begin(); pit != intervals[d].end(); pit++) {
+      for (std::list<std::pair<double,double> >::const_iterator pit = intervals[d].begin(); pit != intervals[d].end(); pit++) {
 	if (pit->first == 0)
 	  out << "[-Inf;";
         else
