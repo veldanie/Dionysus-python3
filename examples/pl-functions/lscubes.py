@@ -36,11 +36,16 @@ def lsf(values_filename, cubes_filename, prime = 11):
     for c in fltr:
         # print "%s: %s" % (c, " + ".join(map(str, c.boundary())))
         # print complex
-        i,d = ch.add([complex[cb] for cb in c.boundary()], c.data)
+        i,d,_ = ch.add([complex[cb] for cb in c.boundary()], c.data)
         complex[c] = i
         if d:
             birth = d
             print c.dimension() - 1, max_vertex(fltr[birth], vertices), max_vertex(c, vertices)
+
+    for ccl in ch:
+        birth = ccl.birth
+        c = fltr[birth]
+        print c.dimension(), max_vertex(c, vertices), 'inf'
 
 if __name__ == '__main__':
     if len(argv) < 3:
