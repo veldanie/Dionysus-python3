@@ -1,6 +1,8 @@
 #ifndef __LOG_H__
 #define __LOG_H__
 
+#include <unistd.h>		// for STDOUT_FILENO and STDERR_FILENO
+
 #if LOGGING
 
 #define RLOG_COMPONENT dionysus
@@ -18,8 +20,6 @@ std::string intostring(const T& t) { std::ostringstream out; t.operator<<(out); 
 #define AssertMsg(cond, message, ...)		do { if (!(cond)) { rError(message, ##__VA_ARGS__); rAssertSilent(cond); } } while (0)
 	
 #else // LOGGING
-
-#include <unistd.h>		// for STDOUT_FILENO and STDERR_FILENO
 
 #define rDebug(...)
 #define rInfo(...)
