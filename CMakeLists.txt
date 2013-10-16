@@ -48,6 +48,10 @@ else                        (debug)
 endif                       (debug)
 add_definitions             (${cxx_flags})
 
+# Fix the XCode bug
+add_definitions             (-ftemplate-depth=256)
+
+
 # Logging
 if                          (logging)
     find_library            (rlog_LIBRARY               NAMES rlog)
@@ -61,7 +65,6 @@ endif                       (logging)
 if                          (counters)
     add_definitions         (-DCOUNTERS)
 endif                       (counters)
-
 
 # Set includes
 include_directories         (${CMAKE_CURRENT_BINARY_DIR}
