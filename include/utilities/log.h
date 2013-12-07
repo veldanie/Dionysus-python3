@@ -12,6 +12,9 @@
 #include <rlog/StdioNode.h>
 #include <sstream>
 
+#undef RLOG_SECTION
+#define RLOG_SECTION
+
 template<class T>
 std::string tostring(const T& t) { std::ostringstream out; out << t; return out.str(); }
 template<class T>
