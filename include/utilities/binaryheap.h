@@ -44,10 +44,10 @@ namespace std {
 	  _DistanceType;
 
       // concept requirements
-      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
-	    _RandomAccessIterator>)
-      __glibcxx_requires_valid_range(__first, __last);
-      __glibcxx_requires_heap_pred(__first, __last - 1, __comp);
+      //__glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+	  //  _RandomAccessIterator>)
+      //__glibcxx_requires_valid_range(__first, __last);
+      //__glibcxx_requires_heap_pred(__first, __last - 1, __comp);
 
       std::__push_heap(__first, _DistanceType((__last - __first) - 1),
 		       _DistanceType(0), _ValueType(*(__last - 1)), __comp, __updatepos);
@@ -98,10 +98,10 @@ namespace std {
 			 _RandomAccessIterator __last, _Compare __comp, _Updatepos __updatepos)
     {
       // concept requirements
-      __glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
-	    _RandomAccessIterator>)
-      __glibcxx_requires_valid_range(__first, __last);
-      __glibcxx_requires_heap_pred(__first, __last, __comp);
+      //__glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+	  //  _RandomAccessIterator>)
+      //__glibcxx_requires_valid_range(__first, __last);
+      //__glibcxx_requires_heap_pred(__first, __last, __comp);
 
       typedef typename iterator_traits<_RandomAccessIterator>::value_type
 	_ValueType;
@@ -120,9 +120,9 @@ namespace std {
 	  _DistanceType;
 
 	// concept requirements
-	__glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
-								_RandomAccessIterator>)
-      __glibcxx_requires_valid_range(__first, __last);
+	//__glibcxx_function_requires(_Mutable_RandomAccessIteratorConcept<
+	//                            _RandomAccessIterator>)
+    //  __glibcxx_requires_valid_range(__first, __last);
 
 	if (__last - __first < 2)
 	  {
