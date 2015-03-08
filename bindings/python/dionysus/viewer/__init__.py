@@ -1,6 +1,6 @@
-from    diagram     import show_diagram as _show_diagram
-from    complex2d   import show_complex_2D as _show_complex_2D
-from    complex3d   import show_complex_3D as _show_complex_3D
+from    .diagram     import show_diagram as _show_diagram
+from    .complex2d   import show_complex_2D as _show_complex_2D
+from    .complex3d   import show_complex_3D as _show_complex_3D
 
 from    PyQt4       import QtGui
 

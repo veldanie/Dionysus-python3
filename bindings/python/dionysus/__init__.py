@@ -1,8 +1,8 @@
-from    _dionysus   import *
-from    distances   import l2, ExplicitDistances, points_file
-from    zigzag      import *
-from    adaptor     import *
-import  circular
+from    ._dionysus   import *
+from    .distances   import l2, ExplicitDistances, points_file
+from    .zigzag      import *
+from    .adaptor     import *
+from . import  circular
 
 def init_with_none(self, iter, data = None):        # convenience: data defaults to None
     self._cpp_init_(iter, data)
@@ -51,7 +51,7 @@ def closure(simplices, k):
 
     from    itertools   import combinations
     for s in simplices:
-        for kk in xrange(1, k+2):
+        for kk in range(1, k+2):
             for face in combinations(s.vertices, min(s.dimension() + 1, kk)):
                 res.add(Simplex(face, s.data))
 

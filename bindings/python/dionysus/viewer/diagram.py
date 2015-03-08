@@ -116,7 +116,7 @@ class DiagramViewer(QtGui.QGraphicsView):
             event.ignore()
             return
         self.scale(delta, delta)
-        for item in self.scene.items():
+        for item in list(self.scene.items()):
             if isinstance(item, DiagramPoint):
                 item.scale(1/delta)
         event.accept()
@@ -137,11 +137,11 @@ class DiagramViewer(QtGui.QGraphicsView):
         # Dashed, gray integer lattice
         pen = QtGui.QPen(QtCore.Qt.DashLine)
         pen.setColor(QtCore.Qt.gray)
-        for i in xrange(min(0, int(minx)) + 1, max(0,int(maxx)) + 1):
+        for i in range(min(0, int(minx)) + 1, max(0,int(maxx)) + 1):
             line = QtGui.QGraphicsLineItem(i,0, i, maxy)
             line.setPen(pen)
             self.scene.addItem(line)
-        for i in xrange(min(0, int(miny)) + 1, max(0, int(maxy)) + 1):
+        for i in range(min(0, int(miny)) + 1, max(0, int(maxy)) + 1):
             line = QtGui.QGraphicsLineItem(0,i, maxx, i)
             line.setPen(pen)
             self.scene.addItem(line)

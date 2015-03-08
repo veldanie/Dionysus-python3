@@ -73,7 +73,7 @@ class PyGLWidget(QtOpenGL.QGLWidget):
 
     @QtCore.pyqtSlot()
     def printModelViewMatrix(self):
-        print self.modelview_matrix_
+        print(self.modelview_matrix_)
 
     def initializeGL(self):
         # OpenGL state

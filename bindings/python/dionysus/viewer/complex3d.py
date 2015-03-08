@@ -1,5 +1,5 @@
 from    PyQt4       import QtGui, QtCore
-from    PyGLWidget  import PyGLWidget
+from    .PyGLWidget  import PyGLWidget
 from    OpenGL.GL   import *
 from    dionysus    import Simplex
 from    math        import sqrt
@@ -19,7 +19,7 @@ class ComplexViewer3D(PyGLWidget):
             self.complex = [s for s in complex]
         else:
             # Create vertex simplices if no complex provided
-            self.complex = [Simplex([i]) for i in xrange(len(self.points))]
+            self.complex = [Simplex([i]) for i in range(len(self.points))]
 
         if subcomplex:
             self.subcomplex = subcomplex
@@ -40,8 +40,8 @@ class ComplexViewer3D(PyGLWidget):
     def center_radius(self):
         c = [0,0,0]
         for p in self.points:
-            for i in xrange(3): c[i] += p[i]
-        for i in xrange(3): c[i] /= len(self.points)
+            for i in range(3): c[i] += p[i]
+        for i in range(3): c[i] /= len(self.points)
 
         r = 0
         for p in self.points:

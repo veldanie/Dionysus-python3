@@ -1,7 +1,7 @@
 def smooth(filtration, cocycle):
     from    cvxopt          import spmatrix, matrix
     from    cvxopt.blas     import copy
-    from    lsqr            import lsqr
+    from    .lsqr            import lsqr
 
     coefficient = []
     coface_indices = []
@@ -60,7 +60,7 @@ def smooth(filtration, cocycle):
     for i,s in vertices:
         v = [v for v in s.vertices][0]
         if v >= len(values):
-            values.extend((None for i in xrange(len(values), v+1)))
+            values.extend((None for i in range(len(values), v+1)))
         values[v] = solution[0][i]
 
     return values

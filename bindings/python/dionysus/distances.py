@@ -20,9 +20,9 @@ class ExplicitDistances:
     def __init__(self, distances):
         self.len = len(distances)
         self.distances = []
-        for i in xrange(self.len): 
+        for i in range(self.len): 
             self.distances.append([])
-            for j in xrange(self.len):
+            for j in range(self.len):
                 self.distances[-1].append(distances(i,j))
 
     def __len__(self):
@@ -34,7 +34,7 @@ class ExplicitDistances:
 # Generator of all points in a file `filename` with one point per line
 def points_file(filename):
     fd = open(filename)
-    for line in fd.xreadlines():
+    for line in fd:
         if line.startswith('#'): continue
-        yield map(float, line.strip().split())
+        yield list(map(float, line.strip().split()))
     fd.close()

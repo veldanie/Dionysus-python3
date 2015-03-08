@@ -11,7 +11,7 @@ class ComplexViewer2D(QtGui.QGraphicsView):
             complex = [s for s in complex]
         else:
             # Create vertex simplices if no complex provided
-            complex = [Simplex([i]) for i in xrange(len(self.points))]
+            complex = [Simplex([i]) for i in range(len(self.points))]
 
         if not subcomplex:
             subcomplex = []
