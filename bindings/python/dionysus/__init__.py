@@ -23,6 +23,9 @@ def Simplex_getinitargs(self):
 
 Simplex.__getinitargs__ = Simplex_getinitargs
 
+def cmp(s1, s2):
+    return (s1 > s2) - (s1 < s2)
+
 def data_cmp(s1, s2):
     return cmp(s1.data, s2.data)
 
