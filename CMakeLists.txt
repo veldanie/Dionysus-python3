@@ -10,7 +10,7 @@ option                      (use_dsrpdb         "Build examples that use DSR-PDB
 option                      (use_synaps         "Build examples that use SYNAPS"        OFF)
 
 # Find everything that's always required
-find_package                (Boost REQUIRED COMPONENTS program_options python serialization signals)
+find_package                (Boost REQUIRED COMPONENTS program_options python3 serialization signals)
 find_package                (Doxygen)
 if                          (use_dsrpdb)
     find_library            (dsrpdb_LIBRARY             NAMES dsrpdb)
