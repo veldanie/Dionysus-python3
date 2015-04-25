@@ -37,7 +37,7 @@ else                            (CGAL_FOUND)
 endif                       (CGAL_FOUND)
 
 add_library                 (_dionysus SHARED   ${sources})
-target_link_libraries       (_dionysus          ${libraries})
+target_link_libraries       (_dionysus          ${link_libraries})
 
 
 # Python files and the symlink
