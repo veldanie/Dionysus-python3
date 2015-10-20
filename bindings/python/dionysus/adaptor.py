@@ -22,11 +22,11 @@ class StaticCohomologyPersistence(object):
                     self.pairs[d][0] = i    # d was killed by i
                     self.pairs[d][2] = self._cocycle_list(ccl)  # record the cocycle at the time of death
             else:
-                cocycle = self.persistence.__iter__().next()
+                cocycle = next(self.persistence.__iter__())
                 self.pairs[-1][2] = cocycle
 
         # Replace cocycles with lists
-        for i in xrange(len(self.pairs)):
+        for i in range(len(self.pairs)):
             ccl = self.pairs[i][2]
             if isinstance(ccl, Cocycle):
                 self.pairs[i][2] = self._cocycle_list(ccl)
