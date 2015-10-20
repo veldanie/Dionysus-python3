@@ -60,8 +60,9 @@ int main(int argc, char* argv[])
     PDgm dgm1, dgm2;
     read_diagram(dgm1, filename1);
     read_diagram(dgm2, filename2);
-    std::cout << "Size dgm1: " << dgm1.size() << std::endl;
-    std::cout << "Size dgm2: " << dgm2.size() << std::endl;
+    //std::cout << "Size dgm1: " << dgm1.size() << std::endl;
+    //std::cout << "Size dgm2: " << dgm2.size() << std::endl;
 
-    std::cout << "Distance: " << bottleneck_distance(dgm1, dgm2) << std::endl;
+    //std::cout << "Distance: " << bottleneck_distance(dgm1, dgm2) << std::endl;
+    std::cout << "L2-Distance: " << wasserstein_distance(dgm1, dgm2, 2) << std::endl;
 }

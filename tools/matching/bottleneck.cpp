@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     read_diagram(filename1, dgm1);
     read_diagram(filename2, dgm2);
 
-    std::cout << "Distance: " << bottleneck_distance(dgm1, dgm2) << std::endl;
+    std::cout << bottleneck_distance(dgm1, dgm2) << std::endl;
 }
 
 
@@ -34,6 +34,7 @@ void    read_diagram(const std::string& filename, PDgm& dgm)
     while(in)
     {
         in >> birth >> death;
+        //std::cout << "birth: " << birth << ", death: " << death << std::endl;
         if (in)
             dgm.push_back(Point(birth, death));
     }
