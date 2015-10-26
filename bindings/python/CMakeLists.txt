@@ -1,7 +1,7 @@
 find_package                (PythonLibs)
 link_libraries              (${PYTHON_LIBRARIES})
 include_directories         (${PYTHON_INCLUDE_PATH})
-link_libraries              (${Boost_PYTHON3_LIBRARY})
+link_libraries              (${Boost_PYTHON-PY34_LIBRARY})
 
 # currently can't build bindings with counters support, eventually FIXME
 remove_definitions          (-DCOUNTERS)
